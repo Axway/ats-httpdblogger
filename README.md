@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/Axway/ats-restlogger.svg?branch=master)](https://travis-ci.org/Axway/ats-restlogger)
+[![Build Status](https://travis-ci.org/Axway/ats-httpdblogger.svg?branch=master)](https://travis-ci.org/Axway/ats-httpdblogger)
 
-# ats-restlogger
-ATS REST application for logging test data in ATS DB.
+# ats-httpdblogger
+ATS HTTP application for logging test data in ATS DB.
 
 Other related projects are ATS Framework and ATS TestExplorer.
