@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.restlogger.model;
+package com.axway.ats.httpdblogger.model;
 
-import java.util.Date;
-
+import com.axway.ats.httpdblogger.model.pojo.RunPojo;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
-import com.axway.ats.restlogger.model.pojo.RunPojo;
 
 /**
  * The session data
@@ -31,13 +29,8 @@ public class SessionData {
     // a wrapper around the ATS DB Writer
     private DbRequestProcessor dbRequestProcessor;
 
-    // The last time this session was called.
-    // This flag is used to discover not used sessions.
-    private long               lastUsed;
-
     public SessionData() {
 
-        updateLastUsedFlag();
     }
 
     public DbRequestProcessor getDbRequestProcessor() throws DatabaseAccessException {
@@ -59,13 +52,4 @@ public class SessionData {
         this.run = run;
     }
 
-    public void updateLastUsedFlag() {
-
-        lastUsed = new Date().getTime();
-    }
-
-    public long getLastUsedFlag() {
-
-        return lastUsed;
-    }
 }

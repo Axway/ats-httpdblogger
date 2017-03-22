@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.restlogger.model;
+package com.axway.ats.httpdblogger.model;
 
 import java.util.List;
 
 import com.axway.ats.core.dbaccess.DbConnection;
 import com.axway.ats.core.dbaccess.mssql.DbConnSQLServer;
+import com.axway.ats.httpdblogger.model.pojo.MessagePojo;
+import com.axway.ats.httpdblogger.model.pojo.RunMetainfoPojo;
+import com.axway.ats.httpdblogger.model.pojo.RunPojo;
+import com.axway.ats.httpdblogger.model.pojo.ScenarioMetainfoPojo;
+import com.axway.ats.httpdblogger.model.pojo.SuitePojo;
+import com.axway.ats.httpdblogger.model.pojo.TestcasePojo;
+import com.axway.ats.httpdblogger.model.pojo.TestcaseResultPojo;
 import com.axway.ats.log.autodb.DbReadAccess;
 import com.axway.ats.log.autodb.DbWriteAccess;
 import com.axway.ats.log.autodb.LifeCycleState;
 import com.axway.ats.log.autodb.entities.Run;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
-import com.axway.ats.restlogger.model.pojo.MessagePojo;
-import com.axway.ats.restlogger.model.pojo.RunMetainfoPojo;
-import com.axway.ats.restlogger.model.pojo.RunPojo;
-import com.axway.ats.restlogger.model.pojo.ScenarioMetainfoPojo;
-import com.axway.ats.restlogger.model.pojo.SuitePojo;
-import com.axway.ats.restlogger.model.pojo.TestcasePojo;
-import com.axway.ats.restlogger.model.pojo.TestcaseResultPojo;
 
 /**
  * A wrapper around the ATS DB Writer.

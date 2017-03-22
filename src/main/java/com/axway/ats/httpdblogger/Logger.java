@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.restlogger;
+package com.axway.ats.httpdblogger;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -32,22 +29,21 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.axway.ats.core.utils.StringUtils;
+import com.axway.ats.httpdblogger.model.SessionData;
+import com.axway.ats.httpdblogger.model.TestResult;
+import com.axway.ats.httpdblogger.model.pojo.BasePojo;
+import com.axway.ats.httpdblogger.model.pojo.MessagePojo;
+import com.axway.ats.httpdblogger.model.pojo.ResponseStartRunPojo;
+import com.axway.ats.httpdblogger.model.pojo.ResponseStartSuitePojo;
+import com.axway.ats.httpdblogger.model.pojo.ResponseStartTestcasePojo;
+import com.axway.ats.httpdblogger.model.pojo.RunMetainfoPojo;
+import com.axway.ats.httpdblogger.model.pojo.RunPojo;
+import com.axway.ats.httpdblogger.model.pojo.ScenarioMetainfoPojo;
+import com.axway.ats.httpdblogger.model.pojo.SuitePojo;
+import com.axway.ats.httpdblogger.model.pojo.TestcasePojo;
+import com.axway.ats.httpdblogger.model.pojo.TestcaseResultPojo;
 import com.axway.ats.log.autodb.LifeCycleState;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
-import com.axway.ats.restlogger.exceptions.InvalidSessionException;
-import com.axway.ats.restlogger.model.SessionData;
-import com.axway.ats.restlogger.model.TestResult;
-import com.axway.ats.restlogger.model.pojo.BasePojo;
-import com.axway.ats.restlogger.model.pojo.MessagePojo;
-import com.axway.ats.restlogger.model.pojo.ResponseStartRunPojo;
-import com.axway.ats.restlogger.model.pojo.ResponseStartSuitePojo;
-import com.axway.ats.restlogger.model.pojo.ResponseStartTestcasePojo;
-import com.axway.ats.restlogger.model.pojo.RunMetainfoPojo;
-import com.axway.ats.restlogger.model.pojo.RunPojo;
-import com.axway.ats.restlogger.model.pojo.ScenarioMetainfoPojo;
-import com.axway.ats.restlogger.model.pojo.SuitePojo;
-import com.axway.ats.restlogger.model.pojo.TestcasePojo;
-import com.axway.ats.restlogger.model.pojo.TestcaseResultPojo;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;
@@ -62,12 +58,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @Api(value = "/logger")
 public class Logger extends BaseEntry {
 
-    // Map the session UID with the particular session.
-    // A new session is create on starting a RUN and is discarded on ending a RUN or when it has expired.
-    private static Map<String, SessionData> sessions = Collections.synchronizedMap( new HashMap<String, SessionData>() );
-
-    // A session will expire and will be discarded if not used for the specified idle time - currently 24 hours
-    private static final long SESSION_MAX_IDLE_TIME = 24 * 60 * 60 * 1000;
+    public static final String SESSION_DATA_ATTRIB_NAME = "sessionData";
 
     @POST
     @Path("startRun")
@@ -76,25 +67,22 @@ public class Logger extends BaseEntry {
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response startRun(
-                              @Context HttpServletRequest request,
-                              @ApiParam(value = "Run details", required = true ) RunPojo run) {
+    public Response startRun( @Context HttpServletRequest request,
+                              @ApiParam(value = "Run details", required = true) RunPojo run ) {
 
-        // we do some cleanup here, it is not be very resource consuming
-        cleanupExpiredSessions();
+        HttpSession httpSession = getHttpSession( request , run.getSessionId());
+        SessionData sd = ( SessionData ) getSessionData( httpSession );
 
-        // create a new session for the new RUN
-        SessionData sd = new SessionData();
-        String sessionId = UUID.randomUUID().toString();
-        sessions.put( sessionId, sd );
-
-        // start the new RUN
-        logInfo( request, "Starting run " + run.getRunName() + " with sessionId='" + sessionId + "'" );
+        //start the new RUN
+        logInfo( request,
+                 "Starting run " + run.getRunName() + " with sessionId='" + httpSession.getId() + "'" );
 
         try {
             sd.getDbRequestProcessor().startRun( run );
             sd.setRun( run );
-            return Response.ok( new ResponseStartRunPojo( sessionId, run.getRunId() ) ).build();
+            // update httpSession's SessionData
+            httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
+            return Response.ok( new ResponseStartRunPojo( httpSession.getId(), run.getRunId() ) ).build();
         } catch( DatabaseAccessException e ) {
             return returnError( e, "Unable to start run" );
         }
@@ -107,16 +95,18 @@ public class Logger extends BaseEntry {
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response startSuite(
-                                @Context HttpServletRequest request,
-                                @ApiParam(value = "Suite details", required = true ) SuitePojo suite) {
+    public Response startSuite( @Context HttpServletRequest request,
+                                @ApiParam(value = "Suite details", required = true) SuitePojo suite ) {
 
         logInfo( request, "Starting suite " + suite.getSuiteName() );
 
         try {
-            SessionData sd = getSessionData( suite.getSessionId() );
+            HttpSession httpSession = getHttpSession( request , suite.getSessionId());
+            SessionData sd = ( SessionData ) getSessionData( httpSession );
 
             sd.getDbRequestProcessor().startSuite( sd.getRun(), suite );
+            // update httpSession's SessionData
+            httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
             return Response.ok( new ResponseStartSuitePojo( suite.getSuiteId() ) ).build();
         } catch( Exception e ) {
             return returnError( e, "Unable to start suite" );
@@ -130,16 +120,19 @@ public class Logger extends BaseEntry {
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response startTestcase(
-                                   @Context HttpServletRequest request,
-                                   @ApiParam(value = "Testcase details", required = true ) TestcasePojo testcase) {
+    public Response
+            startTestcase( @Context HttpServletRequest request,
+                           @ApiParam(value = "Testcase details", required = true) TestcasePojo testcase ) {
 
         logInfo( request, "Starting testcase " + testcase.getTestcaseName() );
 
         try {
-            SessionData sd = getSessionData( testcase.getSessionId() );
+            HttpSession httpSession = getHttpSession( request , testcase.getSessionId());
+            SessionData sd = ( SessionData ) getSessionData( httpSession );
 
             sd.getDbRequestProcessor().startTestcase( sd.getRun(), testcase );
+            // update httpSession's SessionData
+            httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
             return Response.ok( new ResponseStartTestcasePojo( testcase.getTestcaseId() ) ).build();
         } catch( Exception e ) {
             return returnError( e, "Unable to start testcase" );
@@ -153,27 +146,34 @@ public class Logger extends BaseEntry {
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response insertMessage(
-                                   @Context HttpServletRequest request,
-                                   @ApiParam(value = "Message details", required = true ) MessagePojo message) {
+    public Response
+            insertMessage( @Context HttpServletRequest request,
+                           @ApiParam(value = "Message details", required = true) MessagePojo message ) {
 
         try {
-            SessionData sd = getSessionData( message.getSessionId() );
+            HttpSession httpSession = getHttpSession( request , message.getSessionId());
+            SessionData sd = ( SessionData ) getSessionData( httpSession );
+
             if( sd.getDbRequestProcessor().getState() == LifeCycleState.RUN_STARTED ) {
+
                 logInfo( request, "Inserting message for run" + sd.getRun().getRunName() );
-
                 sd.getDbRequestProcessor().insertRunMessage( sd.getRun(), message );
-            } else if( sd.getDbRequestProcessor().getState() == LifeCycleState.SUITE_STARTED ) {
-                logInfo( request, "Inserting message for suite" + sd.getRun().getSuite().getSuiteName() );
 
+            } else if( sd.getDbRequestProcessor().getState() == LifeCycleState.SUITE_STARTED ) {
+
+                logInfo( request, "Inserting message for suite" + sd.getRun().getSuite().getSuiteName() );
                 sd.getDbRequestProcessor().insertSuiteMessage( sd.getRun(), message );
+
             } else if( sd.getDbRequestProcessor().getState() == LifeCycleState.TEST_CASE_STARTED ) {
+
                 logInfo( request, "Inserting message for testcase"
                                   + sd.getRun().getSuite().getTestcase().getTestcaseName() );
-
                 sd.getDbRequestProcessor().insertMessage( sd.getRun(), message );
+
             } else {
+
                 throw new IllegalStateException( "Unable to insert message, because no run, suite or testcase has been previously started." );
+
             }
 
             return Response.ok().build();
@@ -181,7 +181,7 @@ public class Logger extends BaseEntry {
             return returnError( e, "Unable to insert message" );
         }
     }
-    
+
     @POST
     @Path("addRunMetainfo")
     @ApiOperation(value = "Add RunMetainfo", notes = "")
@@ -194,7 +194,8 @@ public class Logger extends BaseEntry {
                             @ApiParam(value = "Run metainfo details", required = true) RunMetainfoPojo runMetainfo ) {
 
         try {
-            SessionData sd = getSessionData( runMetainfo.getSessionId() );
+            HttpSession httpSession = getHttpSession( request , runMetainfo.getSessionId());
+            SessionData sd = ( SessionData ) getSessionData( httpSession );
 
             logInfo( request, "Adding run metainfo for run" + sd.getRun().getRunName() );
 
@@ -217,7 +218,8 @@ public class Logger extends BaseEntry {
                                  @ApiParam(value = "Scenario metainfo details", required = true) ScenarioMetainfoPojo scenarioMetainfo ) {
 
         try {
-            SessionData sd = getSessionData( scenarioMetainfo.getSessionId() );
+            HttpSession httpSession = getHttpSession( request , scenarioMetainfo.getSessionId());
+            SessionData sd = ( SessionData ) getSessionData( httpSession );
 
             logInfo( request, "Adding scenario metainfo for testcase"
                               + sd.getRun().getSuite().getTestcase().getTestcaseName() );
@@ -240,14 +242,16 @@ public class Logger extends BaseEntry {
                                @ApiParam(value = "New Run details", required = true) RunPojo run ) {
 
         try {
-            SessionData sd = getSessionData( run.getSessionId() );
+            HttpSession httpSession = getHttpSession( request , run.getSessionId());
+            SessionData sd = ( SessionData ) getSessionData( httpSession );
 
             logInfo( request, "Updating run details for run" + sd.getRun().getRunName() );
 
             sd.getDbRequestProcessor().updateRun( sd.getRun(), run );
 
             updateSessionDataRunPojo( sd, run );
-
+            // update httpSession's SessionData
+            httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
             return Response.ok().build();
         } catch( Exception e ) {
             return returnError( e, "Unable to update run details" );
@@ -261,25 +265,27 @@ public class Logger extends BaseEntry {
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response endTestcase(
-                                 @Context HttpServletRequest request,
-                                 @ApiParam(value = "Testcase result", required = true ) TestcaseResultPojo testcaseResult) {
+    public Response
+            endTestcase( @Context HttpServletRequest request,
+                         @ApiParam(value = "Testcase result", required = true) TestcaseResultPojo testcaseResult ) {
 
         try {
             validateTestResult( testcaseResult );
 
-            SessionData sd = getSessionData( testcaseResult.getSessionId() );
+            HttpSession httpSession = getHttpSession( request , testcaseResult.getSessionId());
+            SessionData sd = ( SessionData ) getSessionData( httpSession );
 
             TestcasePojo testcase = sd.getRun().getSuite().getTestcase();
             logInfo( request, "Ending testcase " + testcase.getTestcaseName() );
 
             sd.getDbRequestProcessor().endTestcase( sd.getRun(), testcase, testcaseResult );
+            // update httpSession's SessionData
+            httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
             return Response.ok().build();
         } catch( Exception e ) {
             return returnError( e, "Unable to end testcase" );
         }
     }
-
 
     @POST
     @Path("endSuite")
@@ -288,16 +294,18 @@ public class Logger extends BaseEntry {
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response endSuite(
-                              @Context HttpServletRequest request,
-                              @ApiParam(value = "session data", required = true ) BasePojo baseData) {
+    public Response endSuite( @Context HttpServletRequest request,
+                              @ApiParam(value = "session data", required = true) BasePojo baseData ) {
 
         try {
-            SessionData sd = getSessionData( baseData.getSessionId() );
+            HttpSession httpSession = getHttpSession( request , baseData.getSessionId());
+            SessionData sd = ( SessionData ) getSessionData( httpSession );
 
             logInfo( request, "Ending suite " + sd.getRun().getSuite().getSuiteName() );
 
             sd.getDbRequestProcessor().endSuite( sd.getRun() );
+            // update httpSession's SessionData
+            httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
             return Response.ok().build();
         } catch( Exception e ) {
             return returnError( e, "Unable to end suite" );
@@ -311,39 +319,100 @@ public class Logger extends BaseEntry {
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response endRun(
-                            @Context HttpServletRequest request,
-                            @ApiParam(value = "session data", required = true ) BasePojo baseData) {
+    public Response endRun( @Context HttpServletRequest request,
+                            @ApiParam(value = "session data", required = true) BasePojo baseData ) {
 
         try {
-            SessionData sd = getSessionData( baseData.getSessionId() );
+            HttpSession httpSession = getHttpSession( request , baseData.getSessionId());
+            SessionData sd = ( SessionData ) getSessionData( httpSession );
 
             logInfo( request, "Ending run " + sd.getRun().getRunName() );
 
             sd.getDbRequestProcessor().endRun( sd.getRun() );
-
-            // discard the session for the this RUN
-            sessions.remove( baseData.getSessionId() );
             return Response.ok().build();
         } catch( Exception e ) {
             return returnError( e, "Unable to end run" );
         }
     }
 
-    private SessionData getSessionData(
-                                        String sessionId ) throws InvalidSessionException {
+    private HttpSession getHttpSession( HttpServletRequest request , String sessionId) {
 
-        if( !sessions.containsKey( sessionId ) ) {
-            throw new InvalidSessionException( "Invalid Session ID '" + sessionId + "'" );
+        HttpSession httpSession = request.getSession( false );
+
+        // check if valid session is obtained
+        if( httpSession == null ) {
+
+            // try getting httpSession by sessionId
+            httpSession = getHttpSessionById( request, sessionId );
+
+            if( httpSession == null ) {
+
+                // no sessions was obtained, so create new one
+                httpSession = request.getSession( true );
+            }
+
         }
 
-        SessionData sd = sessions.get( sessionId );
-        sd.updateLastUsedFlag();
-        return sd;
+        return httpSession;
+
     }
 
-    private void validateTestResult(
-                                     TestcaseResultPojo testcaseResult ) {
+    private HttpSession getHttpSessionById( HttpServletRequest request, String sessionId ) {
+
+        // we need the context, so we create a session just to get it
+        ServletContext context = request.getSession().getServletContext();
+        
+        if(StringUtils.isNullOrEmpty( sessionId )){
+            return null;
+        }
+
+        return ( HttpSession ) context.getAttribute( sessionId );
+    }
+
+    private SessionData getSessionData( HttpSession httpSession ) {
+
+        SessionData sd = ( SessionData ) httpSession.getAttribute( SESSION_DATA_ATTRIB_NAME );
+
+        if( sd == null ) {
+
+            // the current session does NOT have a SessionData attribute
+            sd = new SessionData();
+        }
+
+        return sd;
+
+    }
+
+    //    private SessionData getSessionData( HttpServletRequest request ) throws IOException {
+    //
+    //        SessionData sd = null;
+    //
+    //        // get current HTTP Session, but do not create new one
+    //        HttpSession httpSession = request.getSession( false );
+    //
+    //        if( httpSession != null ) {
+    //            sd = ( SessionData ) httpSession.getAttribute( SESSION_DATA_ATTRIB_NAME );
+    //        } else {
+    //            // get session from body jsessionId
+    //            String sessionId = getSessionIdFromBody( request );
+    //            sd = ( SessionData ) getHttpSessionById( sessionId ).getAttribute( SESSION_DATA_ATTRIB_NAME );
+    //        }
+    //
+    //        // sessionData was not found, create new one and add it to the current session
+    //        if( sd == null ) {
+    //
+    //            // create and get new session
+    //            httpSession = request.getSession( true );
+    //
+    //            // add sessionData to the current HTTP Session
+    //            sd = new SessionData();
+    //            httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
+    //        }
+    //
+    //        return sd;
+    //    }
+
+    private void validateTestResult( TestcaseResultPojo testcaseResult ) {
 
         TestResult testResult;
 
@@ -359,27 +428,6 @@ public class Logger extends BaseEntry {
         testcaseResult.setTestResult( testResult );
     }
 
-    private void cleanupExpiredSessions() {
-
-        for( String sessionId : sessions.keySet() ) {
-            SessionData sd = sessions.get( sessionId );
-            long lastTimeUsed = sessions.get( sessionId ).getLastUsedFlag();
-            if( new Date().getTime() - lastTimeUsed > SESSION_MAX_IDLE_TIME ) {
-                StringBuilder sb = new StringBuilder();
-                sb.append( "The following session is discarded as it has not been used for the last " );
-                sb.append( SESSION_MAX_IDLE_TIME / 1000 );
-                sb.append( " seconds:" );
-                sb.append( "\nSession unique ID: " );
-                sb.append( sessionId );
-                sb.append( "\nRun DB ID: " );
-                sb.append( sd.getRun().getRunId() );
-                sb.append( "\nRun name: " );
-                sb.append( sd.getRun().getRunName() );
-                log.warn( sb.toString() );
-            }
-        }
-    }
-    
     private void updateSessionDataRunPojo( SessionData sessionData, RunPojo updatedRun ) {
 
         RunPojo oldRun = sessionData.getRun();

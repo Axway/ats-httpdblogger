@@ -3,21 +3,21 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.axway.ats.restlogger</groupId>
-	<artifactId>ats-restlogger</artifactId>
+	<groupId>com.axway.ats.httpdblogger</groupId>
+	<artifactId>ats-httpdblogger</artifactId>
 	<packaging>war</packaging>
 	<version>4.0.0-SNAPSHOT</version>
-	<name>ATS-RestLogger</name>
+	<name>ATS-HttpDbLogger</name>
 	<description>
-    	ATS REST application for logging test data in ATS DB
+    	ATS HTTP application for logging test data in ATS DB
     </description>
-    <url>https://github.com/Axway/ats-restlogger</url>
+	<url>https://github.com/Axway/ats-httpdblogger</url>
 	<properties>
-		
+
 		<java.version>1.8</java.version>
 		<maven.min.version>3.0.5</maven.min.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		
+
 		<org.glassfish.jersey.jersey-server.version>2.3.1</org.glassfish.jersey.jersey-server.version>
 
 		<buildnumber-maven-plugin.version>1.4</buildnumber-maven-plugin.version>
@@ -27,9 +27,9 @@
 		<maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
 		<!-- Travis CI plugin versions -->
 		<org.sonatype.plugins.nexus.staging.maven.plugin.version>1.6.7</org.sonatype.plugins.nexus.staging.maven.plugin.version>
-		
+
 		<maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
-		
+
 		<build.number>SNAPSHOT</build.number>
 
 	</properties>
@@ -129,18 +129,19 @@
 							<springmvc>false</springmvc>
 							<schemes>http</schemes>
 							<host>localhost:8080</host>
-							<basePath>/ats-rest-logger/rest</basePath>
-							<locations>com.axway.ats.logging.rest</locations>
+							<basePath>/ats-httpdblogger/service</basePath>
+							<locations>com.axway.ats.httpdblogger</locations>
 							<info>
-								<title>ATS REST logger</title>
+								<title>ATS HTTP DB logger</title>
 								<version>v1</version>
 								<description>
-									This is a REST logger for ATS TestExplorer
+									ATS HTTP application for logging test data in ATS
+									DB
 								</description>
 								<contact>
-									<email>bu.426.automation.development@axway.com</email>
+									<email>group.ats.team@axway.com</email>
 									<name>ATS Team</name>
-									<url>http://github.com/Axway/ats-restlogger</url>
+									<url>http://github.com/Axway/ats-httpdblogger</url>
 								</contact>
 							</info>
 
@@ -298,8 +299,10 @@
 			<version>2.4</version>
 			<scope>provided</scope>
 		</dependency>
+
 	</dependencies>
-	
+
+
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -325,9 +328,9 @@
 	</distributionManagement>
 
 	<scm>
-		<connection>scm:git:https://github.com/Axway/ats-restlogger.git</connection>
-		<developerConnection>scm:git:git@github.com:Axway/ats-restlogger.git</developerConnection>
-		<url>https://github.com/Axway/ats-restlogger</url>
+		<connection>scm:git:https://github.com/Axway/ats-httpdblogger.git</connection>
+		<developerConnection>scm:git:git@github.com:Axway/ats-httpdblogger.git</developerConnection>
+		<url>https://github.com/Axway/ats-httpdblogger</url>
 	</scm>
 
 	<developers>

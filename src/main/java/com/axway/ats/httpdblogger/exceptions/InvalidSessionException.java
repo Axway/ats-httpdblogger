@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.restlogger.model.pojo;
+package com.axway.ats.httpdblogger.exceptions;
 
-import com.wordnik.swagger.annotations.ApiModel;
-import com.wordnik.swagger.annotations.ApiModelProperty;
+public class InvalidSessionException extends Exception {
 
-@ApiModel(value = "session data")
-public class BasePojo {
+    private static final long serialVersionUID = 1L;
 
-    @ApiModelProperty(required = true, value = "Session ID", example = "f177f4f5-a649-4faa-920e-978ef8d60cb2")
-    protected String sessionId;
+    public InvalidSessionException( String message ) {
 
-    public String getSessionId() {
-
-        return sessionId;
+        super( message );
     }
 
-    public void setSessionId(
-                              String sessionId ) {
+    public InvalidSessionException( String message,
+                                    Throwable cause ) {
 
-        this.sessionId = sessionId;
+        super( message, cause );
     }
+
 }

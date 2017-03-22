@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.restlogger.model;
+package com.axway.ats.httpdblogger.model;
 
 /**
  * Each message can be logged with a different level

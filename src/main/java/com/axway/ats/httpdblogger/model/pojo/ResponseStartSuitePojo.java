@@ -13,24 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.restlogger.model;
+package com.axway.ats.httpdblogger.model.pojo;
 
-/**
- * The result a test can have
- */
-public enum TestResult {
+import com.wordnik.swagger.annotations.ApiModel;
+import com.wordnik.swagger.annotations.ApiModelProperty;
 
-    FAILED(0), PASSED(1), SKIPPED(2), RUNNING(4);
+@ApiModel("response startSuite data")
+public class ResponseStartSuitePojo {
+    @ApiModelProperty(required = true, value = "Suite ID", example = "3340")
+    private int suiteId;
 
-    private int value;
+    public ResponseStartSuitePojo() {}
 
-    TestResult( int value ) {
-
-        this.value = value;
+    public ResponseStartSuitePojo( int suiteId ) {
+        this.suiteId = suiteId;
     }
 
-    public int toInt() {
+    public int getSuiteId() {
 
-        return value;
+        return suiteId;
+    }
+
+    public void setSuiteId( int suiteId ) {
+
+        this.suiteId = suiteId;
     }
 }

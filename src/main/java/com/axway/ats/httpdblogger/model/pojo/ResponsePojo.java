@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.restlogger.model.pojo;
+package com.axway.ats.httpdblogger.model.pojo;
 
 import com.axway.ats.core.utils.ExceptionUtils;
 import com.wordnik.swagger.annotations.ApiModel;

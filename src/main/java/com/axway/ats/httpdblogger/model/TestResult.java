@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.restlogger.exceptions;
+package com.axway.ats.httpdblogger.model;
 
-public class InvalidSessionException extends Exception {
+/**
+ * The result a test can have
+ */
+public enum TestResult {
 
-    private static final long serialVersionUID = 1L;
+    FAILED(0), PASSED(1), SKIPPED(2), RUNNING(4);
 
-    public InvalidSessionException( String message ) {
+    private int value;
 
-        super( message );
+    TestResult( int value ) {
+
+        this.value = value;
     }
 
-    public InvalidSessionException( String message,
-                                    Throwable cause ) {
+    public int toInt() {
 
-        super( message, cause );
+        return value;
     }
-
 }

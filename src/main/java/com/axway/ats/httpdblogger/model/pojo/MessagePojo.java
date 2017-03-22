@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.restlogger.model.pojo;
+package com.axway.ats.httpdblogger.model.pojo;
 
-import com.axway.ats.restlogger.model.MessageLevel;
-import com.axway.ats.restlogger.model.pojo.BasePojo;
+import com.axway.ats.httpdblogger.model.MessageLevel;
+import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 

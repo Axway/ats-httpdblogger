@@ -13,29 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.restlogger.model.pojo;
+package com.axway.ats.httpdblogger.model.pojo;
 
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel("response startSuite data")
-public class ResponseStartSuitePojo {
-    @ApiModelProperty(required = true, value = "Suite ID", example = "3340")
-    private int suiteId;
+@ApiModel(value = "session data")
+public class BasePojo {
 
-    public ResponseStartSuitePojo() {}
+    @ApiModelProperty(required = true, value = "Session ID", example = "f177f4f5-a649-4faa-920e-978ef8d60cb2")
+    protected String sessionId;
 
-    public ResponseStartSuitePojo( int suiteId ) {
-        this.suiteId = suiteId;
+    public String getSessionId() {
+
+        return sessionId;
     }
 
-    public int getSuiteId() {
+    public void setSessionId(
+                              String sessionId ) {
 
-        return suiteId;
-    }
-
-    public void setSuiteId( int suiteId ) {
-
-        this.suiteId = suiteId;
+        this.sessionId = sessionId;
     }
 }

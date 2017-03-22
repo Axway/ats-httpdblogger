@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.restlogger;
+package com.axway.ats.httpdblogger;
 
 import java.util.HashSet;
 import java.util.List;
@@ -30,9 +30,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.axway.ats.core.utils.StringUtils;
+import com.axway.ats.httpdblogger.model.DbRequestProcessor;
 import com.axway.ats.log.autodb.entities.Run;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
-import com.axway.ats.restlogger.model.DbRequestProcessor;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiParam;

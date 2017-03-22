@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.restlogger;
+package com.axway.ats.httpdblogger;
 
 import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
-import com.axway.ats.restlogger.model.pojo.ResponsePojo;
+import com.axway.ats.httpdblogger.model.pojo.ResponsePojo;
 
 public class BaseEntry {
 
