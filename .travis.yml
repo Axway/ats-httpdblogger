@@ -1,0 +1,23 @@
+language: java
+jdk:
+    oraclejdk8
+before_install:
+     - rm ~/.m2/settings.xml
+     - cp settings.xml ~/.m2
+script: mvn clean install deploy
+cache:
+  directories:
+    - $HOME/.m2
+notifications:
+  email:
+    recipients:
+      - group.ats.team@axway.com
+    on_success: change
+    on_failure: always
+env:
+   global:
+     # sonatype username
+     - secure: "YTSFq0r2Z7zaF4v1PDTR5CbBJO0/4L5kwYFbcxnpA8k8gtj3IQnv3K4gvUPISI14qIrIdqJCcypMOMlCElbke+6Pf/NDzYIXtv/i6ZnoxpZ813At/3zOYpEWQxAaUpx9YWmYZYDIFyYXQi/WE/FTev2CL6f9z4g/NqKz8BwFAtiduaL63x5sI1pCvACE+XBPo6IHNMnmPZDC1Xt2cCzWNvUt4yzrVxzg9dWPrnYAFcMfRLlLvkXIKD6lVUmi9CngrnBY5/+bEmOyi/CCm26pdw37RF3I4Zao+1h0PyYdWF0LoLuH8K6DKhK6O01j94JnYILgWHON0U+o89x1Nz/deYBoqfw0Wn077V2Hf0sYsH1wpX63NhwGDta7/xJJzmlg3yKwC5ri2mXHTzjmADzJSFveRA/LbvkdQX0ItY51IYADoGY8FvTyNE1sp6c2+TL1siXPB3X3d0B6aBQqd6FNCgQ+2lKRaGAp7D1KxyBbaIevH7aipO/5MxZPLnp5JZ7UBzF47vuOqQ1hUayPty7lqniQbATn7UFR9D4dPUmhEhBF6PUGP2h2+t39opAjHooKvag/n/KM3zIJUcM65yH1jPiQbknVA/XQLNpWKFYPIH32232Ps0iNsqxds77E9IpbT5RBR/bMV/ggfm7k0+iFPVQJujBUUR34s7r16PF00ac="
+     # sonatype password
+     - secure: "OdDPVTuI6p1kAaSq8/gLSTqgiQRpRDlNsyCN9MfGSaeQLu9SLnMj8Z8/ZKKebmaF283r4MgGbc5YKHszo/Lwdc9YVjbbfXnWLYMePerjayzVcjQs1N/bGQlZ4J9AVyCdrIUyAgoNyoRpl5BXQ9OkKvObkM9qeXOoSVBNay+xY0nc1Zv4A7PvM5k67rCtJAUWh0CiekasRQ4OB4cVJk4s64o3qQlRDKGwE2GkxygHBjgkK+nU/xpHN2/HrEw9yROIOFeQj7UKqJncojw/ab3BN3AZ43TOhNqwKgRzhwfrTdWubmK4HhynkkzJ8OU8OUQcd1iyisPZilWQIdnAEL68yfvIMv8k5Uo3/X5Em78rjYCHa+rfAXongdIUWeSZwElyHdahH/Azj4GSdJCFa/eGxsAxPLajwwTiniW36Ih+121Kuz4kV7II3Eaxq/UautWGcQMesfLlq5e32eScoUmvj/d8c3h0HgUL2GiJv3Q13dLkLL4d8Loq7ZfsBE9GpZUu8PELCvQPcUKIc5Hll8PDJst9t6hd72S0REBOqHk3B04y4K8PS04jbE0W5SCLX+v6XxHpJ20FoEAKp3wWlU6AJWqWcH9cYy1iWQ3c/NEFKH8q9N6GYWwfcHOKxZzfjmyz6dWLRiisrDJrvxvOr9f4qZeg0s9BO7MevSeX6+0IOlE="
+
