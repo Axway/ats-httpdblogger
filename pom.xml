@@ -14,7 +14,7 @@
 	<url>https://github.com/Axway/ats-httpdblogger</url>
 	<properties>
 
-		<java.version>1.8</java.version>
+		<java.version>1.7</java.version>
 		<maven.min.version>3.0.5</maven.min.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -251,20 +251,108 @@
 			</exclusions>
 		</dependency>
 
-		<dependency>
-			<groupId>com.axway.ats.framework</groupId>
-			<artifactId>ats-common</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+		<!-- ATS dependencies -->
 		<dependency>
 			<groupId>com.axway.ats.framework</groupId>
 			<artifactId>ats-core</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+			    <exclusion>
+			        <groupId>com.axway.ats.expectj</groupId>
+			        <artifactId>ats-expectj</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>org.apache.httpcomponents</groupId>
+			        <artifactId>httpclient</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>net.java.dev.jna</groupId>
+			        <artifactId>jna</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>net.java.dev.jna</groupId>
+			        <artifactId>platform</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>com.jcraft</groupId>
+			        <artifactId>jsch</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>com.datastax.cassandra</groupId>
+			        <artifactId>cassandra-driver-core</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>mysql</groupId>
+			        <artifactId>mysql-connector-java</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>net.sourceforge.jtds</groupId>
+			        <artifactId>jtds</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>javax.mail</groupId>
+			        <artifactId>mail</artifactId>
+			    </exclusion>
+			    <exclusion>
+			       <groupId>xerces</groupId>
+			        <artifactId>xercesImpl</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>xalan</groupId>
+			        <artifactId>xalan</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>org.jvnet.winp</groupId>
+			        <artifactId>winp</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>org.bouncycastle</groupId>
+			        <artifactId>bcprov-jdk15on</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>org.apache.commons</groupId>
+			        <artifactId>commons-compress</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>javax.activation</groupId>
+			        <artifactId>activation</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>commons-io</groupId>
+			        <artifactId>commons-io</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>commons-dbcp</groupId>
+			        <artifactId>commons-dbcp</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>commons-pool</groupId>
+			        <artifactId>commons-pool</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>commons-net</groupId>
+			        <artifactId>commons-net</artifactId>
+			    </exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.axway.ats.framework</groupId>
 			<artifactId>ats-log</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+			    <exclusion>
+			        <groupId>javax.mail</groupId>
+			        <artifactId>mail</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>org.apache.httpcomponents</groupId>
+		            <artifactId>httpclient</artifactId>
+			    </exclusion>
+			    <exclusion>
+			        <groupId>org.apache.httpcomponents</groupId>
+		            <artifactId>httpmime</artifactId>
+			    </exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
