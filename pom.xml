@@ -286,10 +286,6 @@
 			        <artifactId>mysql-connector-java</artifactId>
 			    </exclusion>
 			    <exclusion>
-			        <groupId>net.sourceforge.jtds</groupId>
-			        <artifactId>jtds</artifactId>
-			    </exclusion>
-			    <exclusion>
 			        <groupId>javax.mail</groupId>
 			        <artifactId>mail</artifactId>
 			    </exclusion>
