@@ -5,7 +5,7 @@
 	<groupId>com.axway.ats.httpdblogger</groupId>
 	<artifactId>ats-httpdblogger</artifactId>
 	<packaging>war</packaging>
-	<version>4.0.0</version>
+	<version>4.0.1-SNAPSHOT</version>
 	<name>ATS-HttpDbLogger</name>
 	<description>
     	ATS HTTP application for logging test data in ATS DB
@@ -434,7 +434,7 @@
 		<connection>scm:git:https://github.com/Axway/ats-httpdblogger.git</connection>
 		<developerConnection>scm:git:git@github.com:Axway/ats-httpdblogger.git</developerConnection>
 		<url>https://github.com/Axway/ats-httpdblogger</url>
-	  <tag>v4.0.0</tag>
+	  <tag>HEAD</tag>
   </scm>
 
 	<developers>
