@@ -17,6 +17,7 @@
 		<java.version>1.7</java.version>
 		<maven.min.version>3.0.5</maven.min.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<ats.framework.version>4.0.0-SNAPSHOT</ats.framework.version>
 
 		<org.glassfish.jersey.jersey-server.version>2.3.1</org.glassfish.jersey.jersey-server.version>
 
@@ -286,7 +287,7 @@
 		<dependency>
 			<groupId>com.axway.ats.framework</groupId>
 			<artifactId>ats-core</artifactId>
-			<version>${project.version}</version>
+			<version>${ats.framework.version}</version>
 			<exclusions>
 			    <exclusion>
 			        <groupId>com.axway.ats.expectj</groupId>
@@ -353,7 +354,7 @@
 		<dependency>
 			<groupId>com.axway.ats.framework</groupId>
 			<artifactId>ats-log</artifactId>
-			<version>${project.version}</version>
+			<version>${ats.framework.version}</version>
 			<exclusions>
 			    <exclusion>
 			        <groupId>javax.mail</groupId>
