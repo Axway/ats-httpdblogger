@@ -5,3 +5,12 @@
 ATS HTTP application for logging test data in ATS DB.
 
 Other related projects are ATS Framework and ATS TestExplorer.
+
+Other related projects:
+<ul>
+  <li>ATS Framework at https://github.com/Axway/ats-framework</li>
+  <li>ATS Test Explorer at https://github.com/Axway/ats-testexplorer</li>
+  <li>ATS Distribution at https://github.com/Axway/ats-distrib</li>
+</ul>
+
+Contact ATS team at group.ats.team@axway.com
