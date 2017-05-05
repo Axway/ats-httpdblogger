@@ -19,6 +19,7 @@ import java.util.List;
 
 import com.axway.ats.core.dbaccess.DbConnection;
 import com.axway.ats.core.dbaccess.mssql.DbConnSQLServer;
+import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.axway.ats.httpdblogger.model.pojo.MessagePojo;
 import com.axway.ats.httpdblogger.model.pojo.RunMetainfoPojo;
 import com.axway.ats.httpdblogger.model.pojo.RunPojo;
@@ -44,7 +45,7 @@ public class DbRequestProcessor {
     private LifeCycleState state;
 
     // the ATS DB Writer
-    private DbWriteAccess dbWriteAccess;
+    private DbWriteAccess  dbWriteAccess;
 
     private int            internalDbVersion;
 
@@ -71,7 +72,7 @@ public class DbRequestProcessor {
                                             run.getProductName(),
                                             run.getVersionName(),
                                             run.getBuildName(),
-                                            System.currentTimeMillis(),
+                                            getTimestampForTheCurrentEvent( run ),
                                             run.getHostName(),
                                             true );
 
@@ -93,7 +94,7 @@ public class DbRequestProcessor {
 
         int suiteId = dbWriteAccess.startSuite( suite.getPackageName(),
                                                 suite.getSuiteName(),
-                                                System.currentTimeMillis(),
+                                                getTimestampForTheCurrentEvent( suite ),
                                                 run.getRunId(),
                                                 true );
         suite.setSuiteId( suiteId );
@@ -107,76 +108,111 @@ public class DbRequestProcessor {
         evaluateCurrentState( "start TESTCASE",
                               LifeCycleState.SUITE_STARTED,
                               LifeCycleState.TEST_CASE_STARTED );
-        
+
         int testcaseId = dbWriteAccess.startTestCase( run.getSuite().getSuiteName(),
                                                       testcase.getScenarioName(),
                                                       testcase.getScenarioDescription(),
                                                       testcase.getTestcaseName(),
-                                                      System.currentTimeMillis(),
+                                                      getTimestampForTheCurrentEvent( testcase ),
                                                       run.getSuite().getSuiteId(),
                                                       true );
         testcase.setTestcaseId( testcaseId );
         run.getSuite().setTestcase( testcase );
     }
 
-    
-    public void insertRunMessage( RunPojo run, MessagePojo message ) throws DatabaseAccessException {
+    public void insertRunMessage(
+                                  RunPojo run,
+                                  MessagePojo message ) throws DatabaseAccessException {
 
         evaluateCurrentState( "insert RUN MESSAGE", LifeCycleState.RUN_STARTED, LifeCycleState.RUN_STARTED );
 
-        dbWriteAccess.insertRunMessage( message.getMessage(), message.getLogLevel().toInt(), true,
-                                        message.getMachineName(), message.getThreadName(),
-                                        System.currentTimeMillis(), run.getRunId(), true );
+        dbWriteAccess.insertRunMessage( message.getMessage(),
+                                        message.getLogLevel().toInt(),
+                                        true,
+                                        message.getMachineName(),
+                                        message.getThreadName(),
+                                        getTimestampForTheCurrentEvent( message ),
+                                        run.getRunId(),
+                                        true );
     }
 
-    public void insertSuiteMessage( RunPojo run, MessagePojo message ) throws DatabaseAccessException {
+    public void insertSuiteMessage(
+                                    RunPojo run,
+                                    MessagePojo message ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "insert SUITE MESSAGE", LifeCycleState.SUITE_STARTED,
+        evaluateCurrentState( "insert SUITE MESSAGE",
+                              LifeCycleState.SUITE_STARTED,
                               LifeCycleState.SUITE_STARTED );
 
-        dbWriteAccess.insertSuiteMessage( message.getMessage(), message.getLogLevel().toInt(), true,
-                                          message.getMachineName(), message.getThreadName(),
-                                          System.currentTimeMillis(), run.getSuite().getSuiteId(), true );
+        dbWriteAccess.insertSuiteMessage( message.getMessage(),
+                                          message.getLogLevel().toInt(),
+                                          true,
+                                          message.getMachineName(),
+                                          message.getThreadName(),
+                                          getTimestampForTheCurrentEvent( message ),
+                                          run.getSuite().getSuiteId(),
+                                          true );
     }
 
-    public void insertMessage( RunPojo run, MessagePojo message ) throws DatabaseAccessException {
+    public void insertMessage(
+                               RunPojo run,
+                               MessagePojo message ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "insert MESSAGE", LifeCycleState.TEST_CASE_STARTED,
+        evaluateCurrentState( "insert MESSAGE",
+                              LifeCycleState.TEST_CASE_STARTED,
                               LifeCycleState.TEST_CASE_STARTED );
 
-        dbWriteAccess.insertMessage( message.getMessage(), message.getLogLevel().toInt(), true,
-                                     message.getMachineName(), message.getThreadName(),
-                                     System.currentTimeMillis(), run.getSuite().getTestcase().getTestcaseId(),
+        dbWriteAccess.insertMessage( message.getMessage(),
+                                     message.getLogLevel().toInt(),
+                                     true,
+                                     message.getMachineName(),
+                                     message.getThreadName(),
+                                     getTimestampForTheCurrentEvent( message ),
+                                     run.getSuite().getTestcase().getTestcaseId(),
                                      true );
     }
 
-    public void addRunMetainfo( RunPojo run, RunMetainfoPojo runMetainfo ) throws DatabaseAccessException {
+    public void addRunMetainfo(
+                                RunPojo run,
+                                RunMetainfoPojo runMetainfo ) throws DatabaseAccessException {
 
         evaluateCurrentState( "add RunMetainfo", LifeCycleState.RUN_STARTED, LifeCycleState.RUN_STARTED );
 
-        dbWriteAccess.addRunMetainfo( run.getRunId(), runMetainfo.getMetaKey(), runMetainfo.getMetaValue(),
+        dbWriteAccess.addRunMetainfo( run.getRunId(),
+                                      runMetainfo.getMetaKey(),
+                                      runMetainfo.getMetaValue(),
                                       true );
     }
 
-    public void addScenarioMetainfo( RunPojo run,
+    public void addScenarioMetainfo(
+                                     RunPojo run,
                                      ScenarioMetainfoPojo scenarioMetainfo ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "add ScenarioMetainfo", LifeCycleState.TEST_CASE_STARTED,
+        evaluateCurrentState( "add ScenarioMetainfo",
+                              LifeCycleState.TEST_CASE_STARTED,
                               LifeCycleState.TEST_CASE_STARTED );
 
         dbWriteAccess.addScenarioMetainfo( run.getSuite().getTestcase().getTestcaseId(),
-                                           scenarioMetainfo.getMetaKey(), scenarioMetainfo.getMetaValue(),
+                                           scenarioMetainfo.getMetaKey(),
+                                           scenarioMetainfo.getMetaValue(),
                                            true );
     }
 
-    public void updateRun( RunPojo oldRun, RunPojo updatedRun ) throws DatabaseAccessException {
+    public void updateRun(
+                           RunPojo oldRun,
+                           RunPojo updatedRun ) throws DatabaseAccessException {
 
         evaluateCurrentState( "update Run", LifeCycleState.RUN_STARTED, LifeCycleState.RUN_STARTED );
 
-        dbWriteAccess.updateRun( oldRun.getRunId(), updatedRun.getRunName(), updatedRun.getOsName(),
-                                 updatedRun.getProductName(), updatedRun.getVersionName(),
-                                 updatedRun.getBuildName(), updatedRun.getUserNote(),
-                                 updatedRun.getHostName(), true );
+        dbWriteAccess.updateRun( oldRun.getRunId(),
+                                 updatedRun.getRunName(),
+                                 updatedRun.getOsName(),
+                                 updatedRun.getProductName(),
+                                 updatedRun.getVersionName(),
+                                 updatedRun.getBuildName(),
+                                 updatedRun.getUserNote(),
+                                 updatedRun.getHostName(),
+                                 true );
     }
 
     public void endTestcase(
@@ -190,7 +226,7 @@ public class DbRequestProcessor {
 
         try {
             dbWriteAccess.endTestCase( testcaseResult.getTestResult().toInt(),
-                                       System.currentTimeMillis(),
+                                       getTimestampForTheCurrentEvent( testcaseResult ),
                                        testcase.getTestcaseId(),
                                        true );
         } finally {
@@ -204,7 +240,7 @@ public class DbRequestProcessor {
         evaluateCurrentState( "end SUITE", LifeCycleState.SUITE_STARTED, LifeCycleState.RUN_STARTED );
 
         try {
-            dbWriteAccess.endSuite( System.currentTimeMillis(), run.getSuite().getSuiteId(), true );
+            dbWriteAccess.endSuite( getTimestampForTheCurrentEvent( run.getSuite() ), run.getSuite().getSuiteId(), true );
         } finally {
             run.setSuite( null );
         }
@@ -217,7 +253,7 @@ public class DbRequestProcessor {
 
         setDbInternalVersion( -1 );
 
-        dbWriteAccess.endRun( System.currentTimeMillis(), run.getRunId(), true );
+        dbWriteAccess.endRun( getTimestampForTheCurrentEvent( run ), run.getRunId(), true );
     }
 
     private void evaluateCurrentState(
@@ -279,9 +315,20 @@ public class DbRequestProcessor {
 
         return internalDbVersion;
     }
-    
+
     public LifeCycleState getState() {
 
         return state;
+    }
+
+    private long getTimestampForTheCurrentEvent(
+                                                 BasePojo basePojo ) {
+
+        if( basePojo.getTimestamp() != -1 ) {
+            return basePojo.getTimestamp();
+        } else {
+            return System.currentTimeMillis();
+        }
+
     }
 }

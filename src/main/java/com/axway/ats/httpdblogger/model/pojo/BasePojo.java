@@ -23,6 +23,8 @@ public class BasePojo {
 
     @ApiModelProperty(required = true, value = "Session ID", example = "f177f4f5-a649-4faa-920e-978ef8d60cb2")
     protected String sessionId;
+    @ApiModelProperty(required = false, value = "timestamp", example = "1493709734")
+    protected long   timestamp = -1;
 
     public String getSessionId() {
 
@@ -34,4 +36,16 @@ public class BasePojo {
 
         this.sessionId = sessionId;
     }
+
+    public long getTimestamp() {
+
+        return timestamp;
+    }
+
+    public void setTimestamp(
+                              long timestamp ) {
+
+        this.timestamp = timestamp;
+    }
+
 }
