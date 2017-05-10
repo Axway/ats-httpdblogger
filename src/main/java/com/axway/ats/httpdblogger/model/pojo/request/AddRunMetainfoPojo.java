@@ -13,26 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.httpdblogger.model.pojo;
+package com.axway.ats.httpdblogger.model.pojo.request;
 
+import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel("Scenario metainfo details")
-public class ScenarioMetainfoPojo extends BasePojo {
-    @ApiModelProperty(required = true, value = "meta key")
+@ApiModel("Run metainfo details")
+public class AddRunMetainfoPojo extends BasePojo {
+    @ApiModelProperty(required = true, value = "meta key", example="type")
     private String metaKey;
-    @ApiModelProperty(required = true, value = "meta value")
+    @ApiModelProperty(required = true, value = "meta value", example="Regression")
     private String metaValue;
+    @ApiModelProperty(required = false, value = "run id", example="6443")
+    private int    runId = -1;
 
-    public ScenarioMetainfoPojo() {}
+    public AddRunMetainfoPojo() {}
 
     public String getMetaKey() {
 
         return metaKey;
     }
 
-    public void setMetaKey( String metaKey ) {
+    public void setMetaKey(
+                            String metaKey ) {
 
         this.metaKey = metaKey;
     }
@@ -42,8 +46,21 @@ public class ScenarioMetainfoPojo extends BasePojo {
         return metaValue;
     }
 
-    public void setMetaValue( String metaValue ) {
+    public void setMetaValue(
+                              String metaValue ) {
 
         this.metaValue = metaValue;
     }
+
+    public int getRunId() {
+
+        return runId;
+    }
+
+    public void setRunId(
+                          int runId ) {
+
+        this.runId = runId;
+    }
+
 }

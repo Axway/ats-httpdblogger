@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.httpdblogger.model.pojo;
+package com.axway.ats.httpdblogger.model.pojo.response;
 
 import com.axway.ats.core.utils.ExceptionUtils;
 import com.wordnik.swagger.annotations.ApiModel;
@@ -33,12 +33,13 @@ public class ResponsePojo {
         // the no-argument constructor is required for the POJO mapping
     }
 
-    public ResponsePojo( String sessionId) {
+    public ResponsePojo( String sessionId ) {
 
         this.sessionId = sessionId;
     }
 
-    public ResponsePojo( String message, Exception exception ) {
+    public ResponsePojo( String message,
+                         Exception exception ) {
 
         if( exception != null ) {
             this.error = ExceptionUtils.getExceptionMsg( exception, message );
@@ -57,7 +58,8 @@ public class ResponsePojo {
         return sessionId;
     }
 
-    public void setSessionId( String sessionId ) {
+    public void setSessionId(
+                              String sessionId ) {
 
         this.sessionId = sessionId;
     }
@@ -67,7 +69,8 @@ public class ResponsePojo {
         return error;
     }
 
-    public void setError( String error ) {
+    public void setError(
+                          String error ) {
 
         this.error = error;
     }

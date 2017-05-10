@@ -13,20 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.httpdblogger.model.pojo;
+package com.axway.ats.httpdblogger.model.pojo.request;
 
 import com.axway.ats.httpdblogger.model.TestResult;
+import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value = "testcase result")
-public class TestcaseResultPojo extends BasePojo {
+@ApiModel(value = "end testcase details")
+public class EndTestcasePojo extends BasePojo {
 
     @ApiModelProperty(required = true, value = "Testcase result", example = "FAILED|PASSED|SKIPPED|RUNNING")
     private String     result;
 
     @ApiModelProperty(hidden = true)
     private TestResult testResult = TestResult.RUNNING;
+
+    @ApiModelProperty(required = false, value = "Testcase ID", example="8841")
+    private int        testcaseId = -1;
 
     public String getResult() {
 
@@ -49,4 +53,16 @@ public class TestcaseResultPojo extends BasePojo {
 
         this.testResult = testResult;
     }
+
+    public int getTestcaseId() {
+
+        return testcaseId;
+    }
+
+    public void setTestcaseId(
+                               int testcaseId ) {
+
+        this.testcaseId = testcaseId;
+    }
+
 }

@@ -19,14 +19,20 @@ import java.util.List;
 
 import com.axway.ats.core.dbaccess.DbConnection;
 import com.axway.ats.core.dbaccess.mssql.DbConnSQLServer;
+import com.axway.ats.httpdblogger.exceptions.UnknownRunException;
+import com.axway.ats.httpdblogger.exceptions.UnknownSuiteException;
+import com.axway.ats.httpdblogger.exceptions.UnknownTestcaseException;
 import com.axway.ats.httpdblogger.model.pojo.BasePojo;
-import com.axway.ats.httpdblogger.model.pojo.MessagePojo;
-import com.axway.ats.httpdblogger.model.pojo.RunMetainfoPojo;
-import com.axway.ats.httpdblogger.model.pojo.RunPojo;
-import com.axway.ats.httpdblogger.model.pojo.ScenarioMetainfoPojo;
-import com.axway.ats.httpdblogger.model.pojo.SuitePojo;
-import com.axway.ats.httpdblogger.model.pojo.TestcasePojo;
-import com.axway.ats.httpdblogger.model.pojo.TestcaseResultPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.AddRunMetainfoPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.AddScenarioMetainfoPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.EndRunPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.EndSuitePojo;
+import com.axway.ats.httpdblogger.model.pojo.request.EndTestcasePojo;
+import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagePojo;
+import com.axway.ats.httpdblogger.model.pojo.request.StartRunPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.StartSuitePojo;
+import com.axway.ats.httpdblogger.model.pojo.request.StartTestcasePojo;
+import com.axway.ats.httpdblogger.model.pojo.request.UpdateRunPojo;
 import com.axway.ats.log.autodb.DbReadAccess;
 import com.axway.ats.log.autodb.DbWriteAccess;
 import com.axway.ats.log.autodb.LifeCycleState;
@@ -49,13 +55,13 @@ public class DbRequestProcessor {
 
     private int            internalDbVersion;
 
-    public DbRequestProcessor() throws DatabaseAccessException {
+    public DbRequestProcessor() {
 
         state = LifeCycleState.INITIALIZED;
     }
 
     public void startRun(
-                          RunPojo run ) throws DatabaseAccessException {
+                          StartRunPojo run ) throws DatabaseAccessException {
 
         evaluateCurrentState( "start RUN", LifeCycleState.INITIALIZED, LifeCycleState.RUN_STARTED );
 
@@ -86,123 +92,220 @@ public class DbRequestProcessor {
         run.setRunId( runId );
     }
 
-    public void startSuite(
-                            RunPojo run,
-                            SuitePojo suite ) throws DatabaseAccessException {
+    public int startSuite(
+                           SessionData sd,
+                           StartSuitePojo suite,
+                           boolean setAsCurrentSuite ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "start SUITE", LifeCycleState.RUN_STARTED, LifeCycleState.SUITE_STARTED );
+        // no run id was provided by the request, so set the suite as a current one
+        if( setAsCurrentSuite ) {
 
-        int suiteId = dbWriteAccess.startSuite( suite.getPackageName(),
-                                                suite.getSuiteName(),
-                                                getTimestampForTheCurrentEvent( suite ),
-                                                run.getRunId(),
-                                                true );
-        suite.setSuiteId( suiteId );
-        run.setSuite( suite );
+            evaluateCurrentState( "start SUITE", LifeCycleState.RUN_STARTED, LifeCycleState.SUITE_STARTED );
+
+            return dbWriteAccess.startSuite( suite.getPackageName(),
+                                             suite.getSuiteName(),
+                                             getTimestampForTheCurrentEvent( suite ),
+                                             sd.getRun().getRunId(), // use current runId
+                                             true );
+        } else {// run id was provided by the request, so try to add it to the specified run
+            validateRunId( sd.getRun().getRunId(), suite.getRunId(), suite.getSessionId() );
+
+            return dbWriteAccess.startSuite( suite.getPackageName(),
+                                             suite.getSuiteName(),
+                                             getTimestampForTheCurrentEvent( suite ),
+                                             suite.getRunId(), // use suite's runId (as provided by the REST request)
+                                             true );
+        }
     }
 
-    public void startTestcase(
-                               RunPojo run,
-                               TestcasePojo testcase ) throws DatabaseAccessException {
+    public int startTestcase(
+                              SessionData sd,
+                              StartTestcasePojo testcase,
+                              boolean setAsCurrentTestcase ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "start TESTCASE",
-                              LifeCycleState.SUITE_STARTED,
-                              LifeCycleState.TEST_CASE_STARTED );
+        if( setAsCurrentTestcase ) {
 
-        int testcaseId = dbWriteAccess.startTestCase( run.getSuite().getSuiteName(),
-                                                      testcase.getScenarioName(),
-                                                      testcase.getScenarioDescription(),
-                                                      testcase.getTestcaseName(),
-                                                      getTimestampForTheCurrentEvent( testcase ),
-                                                      run.getSuite().getSuiteId(),
-                                                      true );
-        testcase.setTestcaseId( testcaseId );
-        run.getSuite().setTestcase( testcase );
+            evaluateCurrentState( "start TESTCASE",
+                                  LifeCycleState.SUITE_STARTED,
+                                  LifeCycleState.TEST_CASE_STARTED );
+
+            return dbWriteAccess.startTestCase( sd.getRun().getSuite().getSuiteName(),
+                                                testcase.getScenarioName(),
+                                                testcase.getScenarioDescription(),
+                                                testcase.getTestcaseName(),
+                                                getTimestampForTheCurrentEvent( testcase ),
+                                                sd.getRun().getSuite().getSuiteId(),
+                                                true );
+
+        } else {// suite id was provided by the request, so try to add it to the specified suite 
+
+            validateSuiteId( sd, testcase.getSuiteId(), testcase.getSessionId() );
+
+            return dbWriteAccess.startTestCase( sd.getRun().getSuite().getSuiteName(),
+                                                testcase.getScenarioName(),
+                                                testcase.getScenarioDescription(),
+                                                testcase.getTestcaseName(),
+                                                getTimestampForTheCurrentEvent( testcase ),
+                                                testcase.getSuiteId(),
+                                                true );
+        }
+
     }
 
     public void insertRunMessage(
-                                  RunPojo run,
-                                  MessagePojo message ) throws DatabaseAccessException {
+                                  SessionData sd,
+                                  InsertMessagePojo message,
+                                  boolean skipLifeCycleStateCheck ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "insert RUN MESSAGE", LifeCycleState.RUN_STARTED, LifeCycleState.RUN_STARTED );
+        if( skipLifeCycleStateCheck ) {
+            // we will skip the lifecycle check and add the run message, to the run, referred by the message's runId
+            dbWriteAccess.insertRunMessage( message.getMessage(),
+                                            message.getLogLevel().toInt(),
+                                            true,
+                                            message.getMachineName(),
+                                            message.getThreadName(),
+                                            getTimestampForTheCurrentEvent( message ),
+                                            message.getRunId(),
+                                            true );
 
-        dbWriteAccess.insertRunMessage( message.getMessage(),
-                                        message.getLogLevel().toInt(),
-                                        true,
-                                        message.getMachineName(),
-                                        message.getThreadName(),
-                                        getTimestampForTheCurrentEvent( message ),
-                                        run.getRunId(),
-                                        true );
+        } else {
+            evaluateCurrentState( "insert RUN MESSAGE",
+                                  LifeCycleState.RUN_STARTED,
+                                  LifeCycleState.RUN_STARTED );
+
+            dbWriteAccess.insertRunMessage( message.getMessage(),
+                                            message.getLogLevel().toInt(),
+                                            true,
+                                            message.getMachineName(),
+                                            message.getThreadName(),
+                                            getTimestampForTheCurrentEvent( message ),
+                                            sd.getRun().getRunId(),
+                                            true );
+
+        }
+
     }
 
     public void insertSuiteMessage(
-                                    RunPojo run,
-                                    MessagePojo message ) throws DatabaseAccessException {
+                                    SessionData sd,
+                                    InsertMessagePojo message,
+                                    boolean skipLifeCycleStateCheck ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "insert SUITE MESSAGE",
-                              LifeCycleState.SUITE_STARTED,
-                              LifeCycleState.SUITE_STARTED );
+        if( skipLifeCycleStateCheck ) {
+            // we will skip the lifecycle check and add the suite message, to the suite, referred by the message's suiteId
 
-        dbWriteAccess.insertSuiteMessage( message.getMessage(),
-                                          message.getLogLevel().toInt(),
-                                          true,
-                                          message.getMachineName(),
-                                          message.getThreadName(),
-                                          getTimestampForTheCurrentEvent( message ),
-                                          run.getSuite().getSuiteId(),
-                                          true );
+            validateSuiteId( sd, message.getSuiteId(), message.getSessionId() );
+
+            dbWriteAccess.insertSuiteMessage( message.getMessage(),
+                                              message.getLogLevel().toInt(),
+                                              true,
+                                              message.getMachineName(),
+                                              message.getThreadName(),
+                                              getTimestampForTheCurrentEvent( message ),
+                                              message.getSuiteId(),
+                                              true );
+        } else {
+            evaluateCurrentState( "insert SUITE MESSAGE",
+                                  LifeCycleState.SUITE_STARTED,
+                                  LifeCycleState.SUITE_STARTED );
+
+            dbWriteAccess.insertSuiteMessage( message.getMessage(),
+                                              message.getLogLevel().toInt(),
+                                              true,
+                                              message.getMachineName(),
+                                              message.getThreadName(),
+                                              getTimestampForTheCurrentEvent( message ),
+                                              sd.getRun().getSuite().getSuiteId(),
+                                              true );
+
+        }
+
     }
 
     public void insertMessage(
-                               RunPojo run,
-                               MessagePojo message ) throws DatabaseAccessException {
+                               SessionData sd,
+                               InsertMessagePojo message,
+                               boolean skipLifeCycleStateCheck ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "insert MESSAGE",
-                              LifeCycleState.TEST_CASE_STARTED,
-                              LifeCycleState.TEST_CASE_STARTED );
+        if( skipLifeCycleStateCheck ) {
+            // we will skip the lifecycle check and add the testcase message, to the testcase, referred by the message's testcaseId
 
-        dbWriteAccess.insertMessage( message.getMessage(),
-                                     message.getLogLevel().toInt(),
-                                     true,
-                                     message.getMachineName(),
-                                     message.getThreadName(),
-                                     getTimestampForTheCurrentEvent( message ),
-                                     run.getSuite().getTestcase().getTestcaseId(),
-                                     true );
+            validateTestcaseId( sd, message.getTestcaseId(), message.getSessionId() );
+
+            dbWriteAccess.insertMessage( message.getMessage(),
+                                         message.getLogLevel().toInt(),
+                                         true,
+                                         message.getMachineName(),
+                                         message.getThreadName(),
+                                         getTimestampForTheCurrentEvent( message ),
+                                         message.getTestcaseId(),
+                                         true );
+
+        } else {
+            evaluateCurrentState( "insert MESSAGE",
+                                  LifeCycleState.TEST_CASE_STARTED,
+                                  LifeCycleState.TEST_CASE_STARTED );
+
+            dbWriteAccess.insertMessage( message.getMessage(),
+                                         message.getLogLevel().toInt(),
+                                         true,
+                                         message.getMachineName(),
+                                         message.getThreadName(),
+                                         getTimestampForTheCurrentEvent( message ),
+                                         sd.getRun().getSuite().getTestcase().getTestcaseId(),
+                                         true );
+        }
+
     }
 
     public void addRunMetainfo(
-                                RunPojo run,
-                                RunMetainfoPojo runMetainfo ) throws DatabaseAccessException {
+                                StartRunPojo run,
+                                AddRunMetainfoPojo runMetainfo ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "add RunMetainfo", LifeCycleState.RUN_STARTED, LifeCycleState.RUN_STARTED );
+        /* We did not check the state as in startRun, startTestcase,
+         * because we want to always be able to add run metainfo, as long as a run was started
+         */
 
         dbWriteAccess.addRunMetainfo( run.getRunId(),
                                       runMetainfo.getMetaKey(),
                                       runMetainfo.getMetaValue(),
                                       true );
+
     }
 
     public void addScenarioMetainfo(
-                                     RunPojo run,
-                                     ScenarioMetainfoPojo scenarioMetainfo ) throws DatabaseAccessException {
+                                     SessionData sd,
+                                     AddScenarioMetainfoPojo scenarioMetainfo,
+                                     boolean addScenarioMetaInfoToCurrentTestcase ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "add ScenarioMetainfo",
-                              LifeCycleState.TEST_CASE_STARTED,
-                              LifeCycleState.TEST_CASE_STARTED );
+        if( addScenarioMetaInfoToCurrentTestcase ) {
+            evaluateCurrentState( "add ScenarioMetainfo",
+                                  LifeCycleState.TEST_CASE_STARTED,
+                                  LifeCycleState.TEST_CASE_STARTED );
 
-        dbWriteAccess.addScenarioMetainfo( run.getSuite().getTestcase().getTestcaseId(),
-                                           scenarioMetainfo.getMetaKey(),
-                                           scenarioMetainfo.getMetaValue(),
-                                           true );
+            dbWriteAccess.addScenarioMetainfo( sd.getRun().getSuite().getTestcase().getTestcaseId(),
+                                               scenarioMetainfo.getMetaKey(),
+                                               scenarioMetainfo.getMetaValue(),
+                                               true );
+        } else {
+
+            validateTestcaseId( sd, scenarioMetainfo.getTestcaseId(), scenarioMetainfo.getSessionId() );
+
+            dbWriteAccess.addScenarioMetainfo( scenarioMetainfo.getTestcaseId(),
+                                               scenarioMetainfo.getMetaKey(),
+                                               scenarioMetainfo.getMetaValue(),
+                                               true );
+        }
+
     }
 
     public void updateRun(
-                           RunPojo oldRun,
-                           RunPojo updatedRun ) throws DatabaseAccessException {
+                           StartRunPojo oldRun,
+                           UpdateRunPojo updatedRun ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "update Run", LifeCycleState.RUN_STARTED, LifeCycleState.RUN_STARTED );
+        /* We did not check the state as in startRun, startTestcase,
+         * because we want to always be able to update run, as long as a run was started
+         */
 
         dbWriteAccess.updateRun( oldRun.getRunId(),
                                  updatedRun.getRunName(),
@@ -216,44 +319,79 @@ public class DbRequestProcessor {
     }
 
     public void endTestcase(
-                             RunPojo run,
-                             TestcasePojo testcase,
-                             TestcaseResultPojo testcaseResult ) throws DatabaseAccessException {
+                             SessionData sd,
+                             StartTestcasePojo testcase,
+                             EndTestcasePojo endTestcasePojo,
+                             boolean endCurrentTestcase ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "end TESTCASE",
-                              LifeCycleState.TEST_CASE_STARTED,
-                              LifeCycleState.SUITE_STARTED );
+        if( endCurrentTestcase ) {
+            evaluateCurrentState( "end TESTCASE",
+                                  LifeCycleState.TEST_CASE_STARTED,
+                                  LifeCycleState.SUITE_STARTED );
 
-        try {
-            dbWriteAccess.endTestCase( testcaseResult.getTestResult().toInt(),
-                                       getTimestampForTheCurrentEvent( testcaseResult ),
-                                       testcase.getTestcaseId(),
+            try {
+                dbWriteAccess.endTestCase( endTestcasePojo.getTestResult().toInt(),
+                                           getTimestampForTheCurrentEvent( endTestcasePojo ),
+                                           testcase.getTestcaseId(),
+                                           true );
+            } finally {
+                sd.getRun().getSuite().setTestcase( null );
+            }
+
+        } else {
+            
+            validateTestcaseId( sd, endTestcasePojo.getTestcaseId(), endTestcasePojo.getSessionId() );
+            
+            dbWriteAccess.endTestCase( endTestcasePojo.getTestResult().toInt(),
+                                       getTimestampForTheCurrentEvent( endTestcasePojo ),
+                                       endTestcasePojo.getTestcaseId(),
                                        true );
-        } finally {
-            run.getSuite().setTestcase( null );
         }
+
     }
 
     public void endSuite(
-                          RunPojo run ) throws DatabaseAccessException {
+                          SessionData sd,
+                          EndSuitePojo endSuitePojo,
+                          boolean endCurrentSuite ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "end SUITE", LifeCycleState.SUITE_STARTED, LifeCycleState.RUN_STARTED );
+        if( endCurrentSuite ) {
+            evaluateCurrentState( "end SUITE", LifeCycleState.SUITE_STARTED, LifeCycleState.RUN_STARTED );
 
-        try {
-            dbWriteAccess.endSuite( getTimestampForTheCurrentEvent( run.getSuite() ), run.getSuite().getSuiteId(), true );
-        } finally {
-            run.setSuite( null );
+            try {
+                dbWriteAccess.endSuite( getTimestampForTheCurrentEvent( endSuitePojo ),
+                                        sd.getRun().getSuite().getSuiteId(),
+                                        true );
+            } finally {
+                sd.getRun().setSuite( null );
+            }
+        } else {
+            
+            validateSuiteId( sd, endSuitePojo.getSuiteId(), endSuitePojo.getSessionId() );
+            
+            dbWriteAccess.endSuite( getTimestampForTheCurrentEvent( endSuitePojo ),
+                                    endSuitePojo.getSuiteId(),
+                                    true );
+            
+            // check if the provided suiteId is the same as the current suite' id
+            if(sd.getRun().getSuite() != null && endSuitePojo.getSuiteId() == sd.getRun().getSuite().getSuiteId()){
+                // close the current suite
+                this.state = LifeCycleState.RUN_STARTED;
+                sd.getRun().setSuite( null );
+            }
         }
+
     }
 
     public void endRun(
-                        RunPojo run ) throws DatabaseAccessException {
+                        StartRunPojo run,
+                        EndRunPojo endRunPojo ) throws DatabaseAccessException {
 
         evaluateCurrentState( "end RUN", LifeCycleState.RUN_STARTED, LifeCycleState.INITIALIZED );
 
         setDbInternalVersion( -1 );
 
-        dbWriteAccess.endRun( getTimestampForTheCurrentEvent( run ), run.getRunId(), true );
+        dbWriteAccess.endRun( getTimestampForTheCurrentEvent( endRunPojo ), run.getRunId(), true );
     }
 
     private void evaluateCurrentState(
@@ -328,6 +466,47 @@ public class DbRequestProcessor {
             return basePojo.getTimestamp();
         } else {
             return System.currentTimeMillis();
+        }
+
+    }
+
+    private void validateRunId(
+                                int expectedRunId,
+                                int providedRunId,
+                                String sessionId ) {
+
+        if( expectedRunId != providedRunId ) {
+            throw new UnknownRunException( "The provided run id does not match the run id from this session. Session id was '"
+                                           + sessionId + "', provided run id was '" + providedRunId
+                                           + "' and expected run id was '" + expectedRunId + "'." );
+        }
+    }
+
+    private void validateSuiteId(
+                                  SessionData sd,
+                                  int providedSuiteId,
+                                  String sessionId ) {
+
+        boolean isKnownSuiteId = sd.hasSuiteId( providedSuiteId );
+
+        if( !isKnownSuiteId ) {
+            throw new UnknownSuiteException( "The provided suite id does not match any suite id from this session. Session id was '"
+                                             + sessionId + "'and provided suite id was '" + providedSuiteId
+                                             + "'." );
+        }
+    }
+
+    private void validateTestcaseId(
+                                     SessionData sd,
+                                     int providedTestcaseId,
+                                     String sessionId ) {
+
+        boolean isKnownTestcaseId = sd.hasTestcaseId( providedTestcaseId );
+
+        if( !isKnownTestcaseId ) {
+            throw new UnknownTestcaseException( "The provided testcase id does not match any testcase id from this session. Session id was '"
+                                                + sessionId + "'and provided testcase id was '"
+                                                + providedTestcaseId + "'." );
         }
 
     }

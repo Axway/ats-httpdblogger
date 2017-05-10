@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.httpdblogger.model.pojo;
+package com.axway.ats.httpdblogger.model.pojo.response;
 
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
@@ -27,7 +27,8 @@ public class ResponseStartRunPojo {
 
     public ResponseStartRunPojo() {}
 
-    public ResponseStartRunPojo( String sessionId, int runId ) {
+    public ResponseStartRunPojo( String sessionId,
+                                 int runId ) {
         this.sessionId = sessionId;
         this.runId = runId;
     }
@@ -37,7 +38,8 @@ public class ResponseStartRunPojo {
         return sessionId;
     }
 
-    public void setSessionId( String sessionId ) {
+    public void setSessionId(
+                              String sessionId ) {
 
         this.sessionId = sessionId;
     }
@@ -47,7 +49,8 @@ public class ResponseStartRunPojo {
         return runId;
     }
 
-    public void setRunId( int runId ) {
+    public void setRunId(
+                          int runId ) {
 
         this.runId = runId;
     }

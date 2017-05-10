@@ -13,28 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.httpdblogger.model.pojo;
+package com.axway.ats.httpdblogger.model.pojo.request;
 
+import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value = "testcase details")
-public class TestcasePojo extends BasePojo {
+@ApiModel(value = "start testcase details")
+public class StartTestcasePojo extends BasePojo {
 
     @ApiModelProperty(hidden = true)
-    private int            testcaseId;
+    private int    testcaseId;
 
-    @ApiModelProperty(required = true, value = "Testcase name")
-    private String         testcaseName;
+    @ApiModelProperty(required = true, value = "Testcase name", example = "testGetHomePathUnix")
+    private String testcaseName;
 
-    @ApiModelProperty(required = true, value = "Scenario name")
-    private String             scenarioName;
+    @ApiModelProperty(required = true, value = "Scenario name", example = "testGetHomePath")
+    private String scenarioName;
 
-    @ApiModelProperty(required = true, value = "Scenario description")
-    private String             scenarioDescription;
+    @ApiModelProperty(required = true, value = "Scenario description", example = "testGetHomePath")
+    private String scenarioDescription;
 
-    @ApiModelProperty(hidden = true)
-    private TestcaseResultPojo testcaseResult;
+    @ApiModelProperty(required = false, value = "Suite ID", example = "939")
+    private int    suiteId = -1;
 
     public int getTestcaseId() {
 
@@ -58,17 +59,6 @@ public class TestcasePojo extends BasePojo {
         this.testcaseName = testcaseName;
     }
 
-    public TestcaseResultPojo getTestcaseResult() {
-
-        return testcaseResult;
-    }
-
-    public void setTestcaseResult(
-                                   TestcaseResultPojo testcaseResult ) {
-
-        this.testcaseResult = testcaseResult;
-    }
-
     public String getScenarioName() {
 
         return scenarioName;
@@ -89,6 +79,17 @@ public class TestcasePojo extends BasePojo {
                                         String scenarioDescription ) {
 
         this.scenarioDescription = scenarioDescription;
+    }
+
+    public int getSuiteId() {
+
+        return suiteId;
+    }
+
+    public void setSuiteId(
+                            int suiteId ) {
+
+        this.suiteId = suiteId;
     }
 
 }

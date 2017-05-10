@@ -20,7 +20,7 @@ import java.util.Enumeration;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
-import com.axway.ats.httpdblogger.model.pojo.ResponsePojo;
+import com.axway.ats.httpdblogger.model.pojo.response.ResponsePojo;
 
 public class BaseEntry {
 

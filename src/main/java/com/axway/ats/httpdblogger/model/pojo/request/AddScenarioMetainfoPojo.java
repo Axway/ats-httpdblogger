@@ -13,26 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.httpdblogger.model.pojo;
+package com.axway.ats.httpdblogger.model.pojo.request;
 
+import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel("Run metainfo details")
-public class RunMetainfoPojo extends BasePojo {
-    @ApiModelProperty(required = true, value = "meta key")
+@ApiModel("Scenario metainfo details")
+public class AddScenarioMetainfoPojo extends BasePojo {
+    @ApiModelProperty(required = true, value = "meta key", example="group")
     private String metaKey;
-    @ApiModelProperty(required = true, value = "meta value")
+    @ApiModelProperty(required = true, value = "meta value", example="File transfer")
     private String metaValue;
+    @ApiModelProperty(required = false, value = "Testcase ID")
+    private int    testcaseId = -1;
 
-    public RunMetainfoPojo() {}
+    public AddScenarioMetainfoPojo() {}
 
     public String getMetaKey() {
 
         return metaKey;
     }
 
-    public void setMetaKey( String metaKey ) {
+    public void setMetaKey(
+                            String metaKey ) {
 
         this.metaKey = metaKey;
     }
@@ -42,8 +46,21 @@ public class RunMetainfoPojo extends BasePojo {
         return metaValue;
     }
 
-    public void setMetaValue( String metaValue ) {
+    public void setMetaValue(
+                              String metaValue ) {
 
         this.metaValue = metaValue;
     }
+
+    public int getTestcaseId() {
+
+        return testcaseId;
+    }
+
+    public void setTestcaseId(
+                               int testcaseId ) {
+
+        this.testcaseId = testcaseId;
+    }
+
 }

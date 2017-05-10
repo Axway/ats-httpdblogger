@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.httpdblogger.model.pojo;
+package com.axway.ats.httpdblogger.model.pojo.request;
 
 import com.axway.ats.httpdblogger.model.MessageLevel;
 import com.axway.ats.httpdblogger.model.pojo.BasePojo;
@@ -21,16 +21,22 @@ import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
 @ApiModel(value = "message details")
-public class MessagePojo extends BasePojo {
+public class InsertMessagePojo extends BasePojo {
 
-    @ApiModelProperty(required = true, value = "Log level")
+    @ApiModelProperty(required = true, value = "Log level", example="TRACE|DEBUG|INFO|WARN|ERROR|FATAL")
     private String level;
-    @ApiModelProperty(required = true, value = "Host message is logged from")
+    @ApiModelProperty(required = true, value = "Host message is logged from", example="127.0.0.1")
     private String machineName;
-    @ApiModelProperty(required = true, value = "Thread name")
+    @ApiModelProperty(required = true, value = "Thread name", example="main")
     private String threadName;
-    @ApiModelProperty(required = true, value = "Message")
+    @ApiModelProperty(required = true, value = "Message", example="Beginning http tests")
     private String message;
+    @ApiModelProperty(required = false, value = "Run ID", example="323")
+    private int    runId      = -1;
+    @ApiModelProperty(required = false, value = "Suite ID", example="100")
+    private int    suiteId    = -1;
+    @ApiModelProperty(required = false, value = "Testcase ID", example="2")
+    private int    testcaseId = -1;
 
     public String getLevel() {
 
@@ -80,4 +86,38 @@ public class MessagePojo extends BasePojo {
 
         return MessageLevel.valueOf( level );
     }
+
+    public int getRunId() {
+
+        return runId;
+    }
+
+    public void setRunId(
+                          int runId ) {
+
+        this.runId = runId;
+    }
+
+    public int getSuiteId() {
+
+        return suiteId;
+    }
+
+    public void setSuiteId(
+                            int suiteId ) {
+
+        this.suiteId = suiteId;
+    }
+
+    public int getTestcaseId() {
+
+        return testcaseId;
+    }
+
+    public void setTestcaseId(
+                               int testcaseId ) {
+
+        this.testcaseId = testcaseId;
+    }
+
 }

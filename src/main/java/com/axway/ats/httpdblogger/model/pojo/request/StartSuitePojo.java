@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.httpdblogger.model.pojo;
+package com.axway.ats.httpdblogger.model.pojo.request;
 
+import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
 @ApiModel(value = "suite details")
-public class SuitePojo extends BasePojo {
+public class StartSuitePojo extends BasePojo {
 
     @ApiModelProperty(hidden = true)
-    private int      suiteId;
+    private int               suiteId;
 
-    @ApiModelProperty(required = true, value = "Suite name")
-    private String   suiteName;
+    @ApiModelProperty(required = true, value = "Suite name", example = "Test_Http")
+    private String            suiteName;
 
     @ApiModelProperty(required = true, value = "Suite package name", example = "com.foo.bar.http")
-    private String   packageName;
+    private String            packageName;
 
     @ApiModelProperty(hidden = true)
-    private TestcasePojo testcase;
+    private StartTestcasePojo testcase;
+
+    @ApiModelProperty(required = false, value = "Run ID", example = "8920")
+    private int               runId = -1;
 
     public int getSuiteId() {
 
@@ -66,14 +70,26 @@ public class SuitePojo extends BasePojo {
         this.packageName = packageName;
     }
 
-    public TestcasePojo getTestcase() {
+    public StartTestcasePojo getTestcase() {
 
         return testcase;
     }
 
     public void setTestcase(
-                             TestcasePojo testcase ) {
+                             StartTestcasePojo testcase ) {
 
         this.testcase = testcase;
     }
+
+    public int getRunId() {
+
+        return runId;
+    }
+
+    public void setRunId(
+                          int runId ) {
+
+        this.runId = runId;
+    }
+
 }

@@ -19,20 +19,24 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 
-public class HttpSessionListener implements javax.servlet.http.HttpSessionListener{
+public class HttpSessionListener implements javax.servlet.http.HttpSessionListener {
 
     @Override
-    public void sessionCreated(final HttpSessionEvent se) {
+    public void sessionCreated(
+                                final HttpSessionEvent se ) {
+
         HttpSession session = se.getSession();
         ServletContext context = session.getServletContext();
-        context.setAttribute(session.getId(), session);
+        context.setAttribute( session.getId(), session );
     }
 
     @Override
-    public void sessionDestroyed(final HttpSessionEvent se) {
+    public void sessionDestroyed(
+                                  final HttpSessionEvent se ) {
+
         HttpSession session = se.getSession();
         ServletContext context = session.getServletContext();
-        context.removeAttribute(session.getId());
+        context.removeAttribute( session.getId() );
     }
 
 }

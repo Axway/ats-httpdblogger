@@ -15,8 +15,10 @@
  */
 package com.axway.ats.httpdblogger.model;
 
-import com.axway.ats.httpdblogger.model.pojo.RunPojo;
-import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.axway.ats.httpdblogger.model.pojo.request.StartRunPojo;
 
 /**
  * The session data
@@ -24,16 +26,23 @@ import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
 public class SessionData {
 
     // the current RUN
-    private RunPojo                run;
-    
+    private StartRunPojo       run;
+
+    // keep track of suites (only their IDs), that were started/ended by the current session
+    private Set<Integer>       suitesIds;
+
+    // keep track of testcases (only their IDs), that were started/ended by the current session
+    private Set<Integer>       testcasesIds;
+
     // a wrapper around the ATS DB Writer
     private DbRequestProcessor dbRequestProcessor;
 
     public SessionData() {
-
+        suitesIds = new HashSet<>();
+        testcasesIds = new HashSet<>();
     }
 
-    public DbRequestProcessor getDbRequestProcessor() throws DatabaseAccessException {
+    public DbRequestProcessor getDbRequestProcessor() {
 
         if( dbRequestProcessor == null ) {
             dbRequestProcessor = new DbRequestProcessor();
@@ -41,15 +50,45 @@ public class SessionData {
         return dbRequestProcessor;
     }
 
-    public RunPojo getRun() {
+    public StartRunPojo getRun() {
 
         return this.run;
     }
 
     public void setRun(
-                        RunPojo run ) {
+                        StartRunPojo run ) {
 
         this.run = run;
+    }
+
+    public Set<Integer> getSuitesIds() {
+
+        return suitesIds;
+    }
+
+    public Set<Integer> getTestcasesIds() {
+
+        return testcasesIds;
+    }
+
+    public void addTestcaseId(
+                               int id ) {
+
+        testcasesIds.add( id );
+    }
+
+    public void addSuiteId(
+                            int id ) {
+
+        suitesIds.add( id );
+    }
+    
+    public boolean hasSuiteId(int suiteId){
+        return suitesIds.contains( suiteId );
+    }
+    
+    public boolean hasTestcaseId(int testcaseId){
+        return testcasesIds.contains( testcaseId );
     }
 
 }

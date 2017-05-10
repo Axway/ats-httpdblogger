@@ -13,29 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.httpdblogger.model.pojo;
+package com.axway.ats.httpdblogger.model.pojo.response;
 
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel("response startSuite data")
-public class ResponseStartSuitePojo {
-    @ApiModelProperty(required = true, value = "Suite ID", example = "3340")
-    private int suiteId;
+@ApiModel("response startTestcase data")
+public class ResponseStartTestcasePojo {
+    @ApiModelProperty(required = true, value = "Testcase ID", example = "3340")
+    private int testcaseId;
 
-    public ResponseStartSuitePojo() {}
+    public ResponseStartTestcasePojo() {}
 
-    public ResponseStartSuitePojo( int suiteId ) {
-        this.suiteId = suiteId;
+    public ResponseStartTestcasePojo( int testcaseId ) {
+        this.testcaseId = testcaseId;
     }
 
-    public int getSuiteId() {
+    public int getTestcaseId() {
 
-        return suiteId;
+        return testcaseId;
     }
 
-    public void setSuiteId( int suiteId ) {
+    public void setTestcaseId(
+                               int testcaseId ) {
 
-        this.suiteId = suiteId;
+        this.testcaseId = testcaseId;
     }
 }

@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.axway.ats.httpdblogger.model.pojo;
+package com.axway.ats.httpdblogger.model.pojo.request;
 
+import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
 @ApiModel(value = "run and DB details")
-public class RunPojo extends BasePojo {
+public class StartRunPojo extends BasePojo {
 
     @ApiModelProperty(hidden = true)
     private int      runId;
@@ -58,7 +59,7 @@ public class RunPojo extends BasePojo {
     private String    userNote;
 
     @ApiModelProperty(hidden = true)
-    private SuitePojo    suite;
+    private StartSuitePojo    suite;
 
     /*
      * Overriding the session id getter, in order to hide that field from the documentation generation,
@@ -144,13 +145,13 @@ public class RunPojo extends BasePojo {
         this.hostName = hostName;
     }
 
-    public SuitePojo getSuite() {
+    public StartSuitePojo getSuite() {
 
         return suite;
     }
 
     public void setSuite(
-                          SuitePojo suite ) {
+                          StartSuitePojo suite ) {
 
         this.suite = suite;
     }

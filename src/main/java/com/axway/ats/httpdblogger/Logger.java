@@ -29,19 +29,24 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.axway.ats.core.utils.StringUtils;
+import com.axway.ats.httpdblogger.exceptions.NoSessionIdException;
+import com.axway.ats.httpdblogger.exceptions.UnknownSessionException;
+import com.axway.ats.httpdblogger.exceptions.UnknownSuiteException;
 import com.axway.ats.httpdblogger.model.SessionData;
 import com.axway.ats.httpdblogger.model.TestResult;
-import com.axway.ats.httpdblogger.model.pojo.BasePojo;
-import com.axway.ats.httpdblogger.model.pojo.MessagePojo;
-import com.axway.ats.httpdblogger.model.pojo.ResponseStartRunPojo;
-import com.axway.ats.httpdblogger.model.pojo.ResponseStartSuitePojo;
-import com.axway.ats.httpdblogger.model.pojo.ResponseStartTestcasePojo;
-import com.axway.ats.httpdblogger.model.pojo.RunMetainfoPojo;
-import com.axway.ats.httpdblogger.model.pojo.RunPojo;
-import com.axway.ats.httpdblogger.model.pojo.ScenarioMetainfoPojo;
-import com.axway.ats.httpdblogger.model.pojo.SuitePojo;
-import com.axway.ats.httpdblogger.model.pojo.TestcasePojo;
-import com.axway.ats.httpdblogger.model.pojo.TestcaseResultPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.AddRunMetainfoPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.AddScenarioMetainfoPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.EndRunPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.EndSuitePojo;
+import com.axway.ats.httpdblogger.model.pojo.request.EndTestcasePojo;
+import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagePojo;
+import com.axway.ats.httpdblogger.model.pojo.request.StartRunPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.StartSuitePojo;
+import com.axway.ats.httpdblogger.model.pojo.request.StartTestcasePojo;
+import com.axway.ats.httpdblogger.model.pojo.request.UpdateRunPojo;
+import com.axway.ats.httpdblogger.model.pojo.response.ResponseStartRunPojo;
+import com.axway.ats.httpdblogger.model.pojo.response.ResponseStartSuitePojo;
+import com.axway.ats.httpdblogger.model.pojo.response.ResponseStartTestcasePojo;
 import com.axway.ats.log.autodb.LifeCycleState;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
 import com.wordnik.swagger.annotations.Api;
@@ -58,6 +63,9 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @Api(value = "/logger")
 public class Logger extends BaseEntry {
 
+    @Context
+    private ServletContext     servletContext;
+
     public static final String SESSION_DATA_ATTRIB_NAME = "sessionData";
 
     @POST
@@ -69,10 +77,16 @@ public class Logger extends BaseEntry {
     @Produces(MediaType.APPLICATION_JSON)
     public Response startRun(
                               @Context HttpServletRequest request,
-                              @ApiParam(value = "Run details", required = true) RunPojo run ) {
+                              @ApiParam(value = "Run details", required = true) StartRunPojo run ) {
 
-        HttpSession httpSession = getHttpSession( request, run.getSessionId() );
-        SessionData sd = ( SessionData ) getSessionData( httpSession );
+        // clear provided sessionId, since we want to always start a new session on this REST call
+        if( !StringUtils.isNullOrEmpty( run.getSessionId() ) ) {
+            logInfo( "SessionId, provided by the request, will be ignored." );
+            run.setSessionId( null );
+        }
+
+        HttpSession httpSession = getHttpSession( request, run.getSessionId(), true );
+        SessionData sd = ( SessionData ) getSessionData( httpSession, true );
 
         //start the new RUN
         logInfo( request,
@@ -81,8 +95,6 @@ public class Logger extends BaseEntry {
         try {
             sd.getDbRequestProcessor().startRun( run );
             sd.setRun( run );
-            // update httpSession's SessionData
-            httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
             return Response.ok( new ResponseStartRunPojo( httpSession.getId(), run.getRunId() ) ).build();
         } catch( DatabaseAccessException e ) {
             return returnError( e, "Unable to start run" );
@@ -98,18 +110,41 @@ public class Logger extends BaseEntry {
     @Produces(MediaType.APPLICATION_JSON)
     public Response startSuite(
                                 @Context HttpServletRequest request,
-                                @ApiParam(value = "Suite details", required = true) SuitePojo suite ) {
+                                @ApiParam(value = "Suite details", required = true) StartSuitePojo suite ) {
+
+        if( StringUtils.isNullOrEmpty( suite.getSessionId() ) ) {
+            return returnError( new NoSessionIdException( "Session ID not found in the request." ),
+                                "Unable to start suite." );
+        }
+
+        HttpSession httpSession = getHttpSession( request, suite.getSessionId(), false );
+        SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
+        boolean setAsCurrentSuite = suite.getRunId() == -1;
 
         logInfo( request, "Starting suite " + suite.getSuiteName() );
 
         try {
-            HttpSession httpSession = getHttpSession( request, suite.getSessionId() );
-            SessionData sd = ( SessionData ) getSessionData( httpSession );
 
-            sd.getDbRequestProcessor().startSuite( sd.getRun(), suite );
-            // update httpSession's SessionData
-            httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
-            return Response.ok( new ResponseStartSuitePojo( suite.getSuiteId() ) ).build();
+            if( httpSession == null ) {
+                throw new UnknownSessionException( "Could not obtain session with id '" + suite.getSessionId()
+                                                   + "'" );
+            }
+
+            int suiteId = sd.getDbRequestProcessor().startSuite( sd, suite, setAsCurrentSuite );
+
+            /* set the started suite as a current suite to the current run, so we can ensure, 
+             * that if the user does not specify a suite id, 
+             * we will use this suite
+            */
+            if( setAsCurrentSuite ) {
+                suite.setSuiteId( suiteId );
+                sd.getRun().setSuite( suite );
+            }
+            // add the suite id to already known suiteIds
+            sd.addSuiteId( suiteId );
+
+            return Response.ok( new ResponseStartSuitePojo( suiteId ) ).build();
         } catch( Exception e ) {
             return returnError( e, "Unable to start suite" );
         }
@@ -124,18 +159,42 @@ public class Logger extends BaseEntry {
     @Produces(MediaType.APPLICATION_JSON)
     public Response startTestcase(
                                    @Context HttpServletRequest request,
-                                   @ApiParam(value = "Testcase details", required = true) TestcasePojo testcase ) {
+                                   @ApiParam(value = "Testcase details", required = true) StartTestcasePojo testcase ) {
+
+        if( StringUtils.isNullOrEmpty( testcase.getSessionId() ) ) {
+            return returnError( new NoSessionIdException( "Session ID not found in the request." ),
+                                "Unable to start testcase." );
+        }
+
+        HttpSession httpSession = getHttpSession( request, testcase.getSessionId(), false );
+        SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
+        boolean setAsCurrentTestcase = testcase.getSuiteId() == -1;
 
         logInfo( request, "Starting testcase " + testcase.getTestcaseName() );
 
         try {
-            HttpSession httpSession = getHttpSession( request, testcase.getSessionId() );
-            SessionData sd = ( SessionData ) getSessionData( httpSession );
 
-            sd.getDbRequestProcessor().startTestcase( sd.getRun(), testcase );
-            // update httpSession's SessionData
-            httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
-            return Response.ok( new ResponseStartTestcasePojo( testcase.getTestcaseId() ) ).build();
+            if( httpSession == null ) {
+                throw new UnknownSessionException( "Could not obtain session with id '"
+                                                   + testcase.getSessionId() + "'" );
+            }
+
+            int testcaseId = sd.getDbRequestProcessor().startTestcase( sd, testcase, setAsCurrentTestcase );
+
+            /* set the started testcase as a current testcase to the current suite, so we can ensure, 
+             * that if the user does not specify a testcase id, 
+             * we will use this suite
+            */
+            if( setAsCurrentTestcase ) {
+                testcase.setTestcaseId( testcaseId );
+                sd.getRun().getSuite().setTestcase( testcase );
+            }
+
+            // add the testcase id to already known testcaseIds
+            sd.addTestcaseId( testcaseId );
+
+            return Response.ok( new ResponseStartTestcasePojo( testcaseId ) ).build();
         } catch( Exception e ) {
             return returnError( e, "Unable to start testcase" );
         }
@@ -150,33 +209,24 @@ public class Logger extends BaseEntry {
     @Produces(MediaType.APPLICATION_JSON)
     public Response insertMessage(
                                    @Context HttpServletRequest request,
-                                   @ApiParam(value = "Message details", required = true) MessagePojo message ) {
+                                   @ApiParam(value = "Message details", required = true) InsertMessagePojo message ) {
+
+        if( StringUtils.isNullOrEmpty( message.getSessionId() ) ) {
+            return returnError( new NoSessionIdException( "Session ID not found in the request." ),
+                                "Unable to insert message." );
+        }
 
         try {
-            HttpSession httpSession = getHttpSession( request, message.getSessionId() );
-            SessionData sd = ( SessionData ) getSessionData( httpSession );
+            HttpSession httpSession = getHttpSession( request, message.getSessionId(), false );
+            SessionData sd = ( SessionData ) getSessionData( httpSession, false );
 
-            if( sd.getDbRequestProcessor().getState() == LifeCycleState.RUN_STARTED ) {
-
-                logInfo( request, "Inserting message for run" + sd.getRun().getRunName() );
-                sd.getDbRequestProcessor().insertRunMessage( sd.getRun(), message );
-
-            } else if( sd.getDbRequestProcessor().getState() == LifeCycleState.SUITE_STARTED ) {
-
-                logInfo( request, "Inserting message for suite" + sd.getRun().getSuite().getSuiteName() );
-                sd.getDbRequestProcessor().insertSuiteMessage( sd.getRun(), message );
-
-            } else if( sd.getDbRequestProcessor().getState() == LifeCycleState.TEST_CASE_STARTED ) {
-
-                logInfo( request,
-                         "Inserting message for testcase"
-                                  + sd.getRun().getSuite().getTestcase().getTestcaseName() );
-                sd.getDbRequestProcessor().insertMessage( sd.getRun(), message );
-
+            if( message.getTestcaseId() != -1 || message.getSuiteId() != -1 || message.getRunId() != -1 ) {
+                // use the provided run/suite/testcase id to choose where to insert the message
+                // testcaseId has the highest priority, followed by suiteId and runId
+                insertMessageUsingRequestData( request, sd, message );
             } else {
-
-                throw new IllegalStateException( "Unable to insert message, because no run, suite or testcase has been previously started." );
-
+                // use the SessionData's DbEventRequestProcessor's lifecycle state to choose where to insert the message
+                insertMessageUsingCurrentSessionState( request, sd, message );
             }
 
             return Response.ok().build();
@@ -194,14 +244,19 @@ public class Logger extends BaseEntry {
     @Produces({ "application/json" })
     public Response addRunMetainfo(
                                     @Context HttpServletRequest request,
-                                    @ApiParam(value = "Run metainfo details", required = true) RunMetainfoPojo runMetainfo ) {
+                                    @ApiParam(value = "Run metainfo details", required = true) AddRunMetainfoPojo runMetainfo ) {
+
+        if( StringUtils.isNullOrEmpty( runMetainfo.getSessionId() ) ) {
+            return returnError( new NoSessionIdException( "Session ID not found in the request." ),
+                                "Unable to add run metainfo." );
+        }
+
+        HttpSession httpSession = getHttpSession( request, runMetainfo.getSessionId(), false );
+        SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
+        logInfo( request, "Adding run metainfo for run " + sd.getRun().getRunName() );
 
         try {
-            HttpSession httpSession = getHttpSession( request, runMetainfo.getSessionId() );
-            SessionData sd = ( SessionData ) getSessionData( httpSession );
-
-            logInfo( request, "Adding run metainfo for run" + sd.getRun().getRunName() );
-
             sd.getDbRequestProcessor().addRunMetainfo( sd.getRun(), runMetainfo );
             return Response.ok().build();
         } catch( Exception e ) {
@@ -218,17 +273,31 @@ public class Logger extends BaseEntry {
     @Produces({ "application/json" })
     public Response addScenarioMetainfo(
                                          @Context HttpServletRequest request,
-                                         @ApiParam(value = "Scenario metainfo details", required = true) ScenarioMetainfoPojo scenarioMetainfo ) {
+                                         @ApiParam(value = "Scenario metainfo details", required = true) AddScenarioMetainfoPojo scenarioMetainfo ) {
+
+        if( StringUtils.isNullOrEmpty( scenarioMetainfo.getSessionId() ) ) {
+            return returnError( new NoSessionIdException( "Session ID not found in the request." ),
+                                "Unable to add scenario metainfo." );
+        }
+
+        HttpSession httpSession = getHttpSession( request, scenarioMetainfo.getSessionId(), false );
+        SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
+        boolean addScenarioMetaInfoToCurrentTestcase = scenarioMetainfo.getTestcaseId() == -1;
+
+        if( addScenarioMetaInfoToCurrentTestcase ) {
+            logInfo( request,
+                     "Adding scenario metainfo for testcase "
+                              + sd.getRun().getSuite().getTestcase().getTestcaseName() );
+        } else {
+            logInfo( request,
+                     "Adding scenario metainfo for testcase with id '" + scenarioMetainfo.getTestcaseId()
+                              + "'" );
+        }
 
         try {
-            HttpSession httpSession = getHttpSession( request, scenarioMetainfo.getSessionId() );
-            SessionData sd = ( SessionData ) getSessionData( httpSession );
-
-            logInfo( request,
-                     "Adding scenario metainfo for testcase"
-                              + sd.getRun().getSuite().getTestcase().getTestcaseName() );
-
-            sd.getDbRequestProcessor().addScenarioMetainfo( sd.getRun(), scenarioMetainfo );
+            sd.getDbRequestProcessor()
+              .addScenarioMetainfo( sd, scenarioMetainfo, addScenarioMetaInfoToCurrentTestcase );
             return Response.ok().build();
         } catch( Exception e ) {
             return returnError( e, "Unable to add scenario metainfo" );
@@ -244,19 +313,22 @@ public class Logger extends BaseEntry {
     @Produces({ "application/json" })
     public Response updateRun(
                                @Context HttpServletRequest request,
-                               @ApiParam(value = "New Run details", required = true) RunPojo run ) {
+                               @ApiParam(value = "New Run details", required = true) UpdateRunPojo run ) {
+
+        if( StringUtils.isNullOrEmpty( run.getSessionId() ) ) {
+            return returnError( new NoSessionIdException( "Session ID not found in the request." ),
+                                "Unable to update run." );
+        }
 
         try {
-            HttpSession httpSession = getHttpSession( request, run.getSessionId() );
-            SessionData sd = ( SessionData ) getSessionData( httpSession );
+            HttpSession httpSession = getHttpSession( request, run.getSessionId() , false);
+            SessionData sd = ( SessionData ) getSessionData( httpSession , false);
 
-            logInfo( request, "Updating run details for run" + sd.getRun().getRunName() );
+            logInfo( request, "Updating run details for run " + sd.getRun().getRunName() );
 
             sd.getDbRequestProcessor().updateRun( sd.getRun(), run );
 
             updateSessionDataRunPojo( sd, run );
-            // update httpSession's SessionData
-            httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
             return Response.ok().build();
         } catch( Exception e ) {
             return returnError( e, "Unable to update run details" );
@@ -272,20 +344,32 @@ public class Logger extends BaseEntry {
     @Produces(MediaType.APPLICATION_JSON)
     public Response endTestcase(
                                  @Context HttpServletRequest request,
-                                 @ApiParam(value = "Testcase result", required = true) TestcaseResultPojo testcaseResult ) {
+                                 @ApiParam(value = "End testcase details", required = true) EndTestcasePojo endTestcasePojo ) {
+
+        if( StringUtils.isNullOrEmpty( endTestcasePojo.getSessionId() ) ) {
+            return returnError( new NoSessionIdException( "Session ID not found in the request." ),
+                                "Unable to end testcase." );
+        }
+
+        HttpSession httpSession = getHttpSession( request, endTestcasePojo.getSessionId() , false);
+        SessionData sd = ( SessionData ) getSessionData( httpSession , false);
+
+        validateTestResult( endTestcasePojo );
+
+        boolean endCurrentTestcase = endTestcasePojo.getTestcaseId() == -1;
+
+        StartTestcasePojo testcase = sd.getRun().getSuite().getTestcase();
+        if( endCurrentTestcase ) {
+            logInfo( request, "Ending testcase " + testcase.getTestcaseName() );
+        } else {
+            logInfo( request, "Ending testcase with id '" + endTestcasePojo.getTestcaseId() + "'" );
+        }
 
         try {
-            validateTestResult( testcaseResult );
-
-            HttpSession httpSession = getHttpSession( request, testcaseResult.getSessionId() );
-            SessionData sd = ( SessionData ) getSessionData( httpSession );
-
-            TestcasePojo testcase = sd.getRun().getSuite().getTestcase();
-            logInfo( request, "Ending testcase " + testcase.getTestcaseName() );
-
-            sd.getDbRequestProcessor().endTestcase( sd.getRun(), testcase, testcaseResult );
-            // update httpSession's SessionData
-            httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
+            sd.getDbRequestProcessor().endTestcase( sd,
+                                                    testcase,
+                                                    endTestcasePojo,
+                                                    endCurrentTestcase );
             return Response.ok().build();
         } catch( Exception e ) {
             return returnError( e, "Unable to end testcase" );
@@ -301,23 +385,26 @@ public class Logger extends BaseEntry {
     @Produces(MediaType.APPLICATION_JSON)
     public Response endSuite(
                               @Context HttpServletRequest request,
-                              @ApiParam(value = "session data", required = true) BasePojo baseData ) {
+                              @ApiParam(value = "End suite details", required = true) EndSuitePojo endSuitePojo ) {
+
+        if( StringUtils.isNullOrEmpty( endSuitePojo.getSessionId() ) ) {
+            return returnError( new NoSessionIdException( "Session ID not found in the request." ),
+                                "Unable to end suite." );
+        }
+
+        HttpSession httpSession = getHttpSession( request, endSuitePojo.getSessionId() , false);
+        SessionData sd = ( SessionData ) getSessionData( httpSession , false);
+
+        boolean endCurrentSuite = endSuitePojo.getSuiteId() == -1;
+
+        if( endCurrentSuite ) {
+            logInfo( request, "Ending suite " + sd.getRun().getSuite().getSuiteName() );
+        } else {
+            logInfo( request, "Ending suite with id '" + endSuitePojo.getSuiteId() + "'" );
+        }
 
         try {
-            HttpSession httpSession = getHttpSession( request, baseData.getSessionId() );
-            SessionData sd = ( SessionData ) getSessionData( httpSession );
-
-            /*  
-             * save the provided timestamp in the current suite pojo for this session,
-             * so we can use it later when determining the timestamp for logging endSuite event
-             */
-            sd.getRun().getSuite().setTimestamp( baseData.getTimestamp() );
-
-            logInfo( request, "Ending suite " + sd.getRun().getSuite().getSuiteName() );
-
-            sd.getDbRequestProcessor().endSuite( sd.getRun() );
-            // update httpSession's SessionData
-            httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
+            sd.getDbRequestProcessor().endSuite( sd, endSuitePojo, endCurrentSuite );
             return Response.ok().build();
         } catch( Exception e ) {
             return returnError( e, "Unable to end suite" );
@@ -333,31 +420,31 @@ public class Logger extends BaseEntry {
     @Produces(MediaType.APPLICATION_JSON)
     public Response endRun(
                             @Context HttpServletRequest request,
-                            @ApiParam(value = "session data", required = true) BasePojo baseData ) {
+                            @ApiParam(value = "End run details", required = true) EndRunPojo endRunPojo ) {
+
+        if( StringUtils.isNullOrEmpty( endRunPojo.getSessionId() ) ) {
+            return returnError( new NoSessionIdException( "Session ID not found in the request." ),
+                                "Unable to end run." );
+        }
+
+        HttpSession httpSession = getHttpSession( request, endRunPojo.getSessionId() , false);
+        SessionData sd = ( SessionData ) getSessionData( httpSession , false);
 
         try {
-            HttpSession httpSession = getHttpSession( request, baseData.getSessionId() );
-            SessionData sd = ( SessionData ) getSessionData( httpSession );
-
-            /* 
-             * save the provided timestamp in the current run pojo for this session,
-             * so we can use it later when determining the timestamp for logging endRun event
-             */
-            sd.getRun().setTimestamp( baseData.getTimestamp() );
-
             logInfo( request, "Ending run " + sd.getRun().getRunName() );
-            
-            sd.getDbRequestProcessor().endRun( sd.getRun() );
-            // remove session here
+            sd.getDbRequestProcessor().endRun( sd.getRun(), endRunPojo );
+            // remove (invalidate) session
+            httpSession.invalidate();
             return Response.ok().build();
         } catch( Exception e ) {
-            return returnError( e, "Unable to end run" );
+            return returnError( e, "Unable to end run." );
         }
     }
 
     private HttpSession getHttpSession(
                                         HttpServletRequest request,
-                                        String sessionId ) {
+                                        String sessionId,
+                                        boolean createNewSession ) {
 
         HttpSession httpSession = request.getSession( false );
 
@@ -365,12 +452,14 @@ public class Logger extends BaseEntry {
         if( httpSession == null ) {
 
             // try getting httpSession by sessionId
-            httpSession = getHttpSessionById( request, sessionId );
+            httpSession = getHttpSessionById( sessionId );
 
             if( httpSession == null ) {
-
-                // no sessions was obtained, so create new one
-                httpSession = request.getSession( true );
+                // no sessions was obtained
+                if( createNewSession ) {
+                    // create new session
+                    httpSession = request.getSession( true );
+                }
             }
 
         }
@@ -380,28 +469,29 @@ public class Logger extends BaseEntry {
     }
 
     private HttpSession getHttpSessionById(
-                                            HttpServletRequest request,
                                             String sessionId ) {
-
-        // we need the context, so we create a session just to get it
-        ServletContext context = request.getSession().getServletContext();
 
         if( StringUtils.isNullOrEmpty( sessionId ) ) {
             return null;
         }
 
-        return ( HttpSession ) context.getAttribute( sessionId );
+        return ( HttpSession ) servletContext.getAttribute( sessionId );
     }
 
     private SessionData getSessionData(
-                                        HttpSession httpSession ) {
+                                        HttpSession httpSession,
+                                        boolean createNew ) {
 
         SessionData sd = ( SessionData ) httpSession.getAttribute( SESSION_DATA_ATTRIB_NAME );
 
+        // the current session does NOT have a SessionData attribute
         if( sd == null ) {
+            if( createNew ) {
+                sd = new SessionData();
 
-            // the current session does NOT have a SessionData attribute
-            sd = new SessionData();
+                // add the newly created SessionData to the current session
+                httpSession.setAttribute( SESSION_DATA_ATTRIB_NAME, sd );
+            }
         }
 
         return sd;
@@ -409,7 +499,7 @@ public class Logger extends BaseEntry {
     }
 
     private void validateTestResult(
-                                     TestcaseResultPojo testcaseResult ) {
+                                     EndTestcasePojo testcaseResult ) {
 
         TestResult testResult;
 
@@ -427,9 +517,9 @@ public class Logger extends BaseEntry {
 
     private void updateSessionDataRunPojo(
                                            SessionData sessionData,
-                                           RunPojo updatedRun ) {
+                                           UpdateRunPojo updatedRun ) {
 
-        RunPojo oldRun = sessionData.getRun();
+        StartRunPojo oldRun = sessionData.getRun();
 
         if( !StringUtils.isNullOrEmpty( updatedRun.getRunName() ) ) {
             oldRun.setRunName( updatedRun.getRunName() );
@@ -455,26 +545,60 @@ public class Logger extends BaseEntry {
             oldRun.setHostName( updatedRun.getHostName() );
         }
 
-        if( !StringUtils.isNullOrEmpty( updatedRun.getDbHost() ) ) {
-            oldRun.setDbHost( updatedRun.getDbHost() );
-        }
-
-        if( !StringUtils.isNullOrEmpty( updatedRun.getDbName() ) ) {
-            oldRun.setDbName( updatedRun.getDbName() );
-        }
-
-        if( !StringUtils.isNullOrEmpty( updatedRun.getDbUser() ) ) {
-            oldRun.setDbUser( updatedRun.getDbUser() );
-        }
-
-        if( !StringUtils.isNullOrEmpty( updatedRun.getDbPassword() ) ) {
-            oldRun.setDbPassword( updatedRun.getDbPassword() );
-        }
-
         if( !StringUtils.isNullOrEmpty( updatedRun.getUserNote() ) ) {
             oldRun.setUserNote( updatedRun.getUserNote() );
         }
 
         sessionData.setRun( oldRun );
     }
+
+    private void insertMessageUsingCurrentSessionState(
+                                                        HttpServletRequest request,
+                                                        SessionData sd,
+                                                        InsertMessagePojo message ) throws DatabaseAccessException {
+
+        if( sd.getDbRequestProcessor().getState() == LifeCycleState.RUN_STARTED ) {
+
+            logInfo( request, "Inserting message for run " + sd.getRun().getRunName() );
+            sd.getDbRequestProcessor().insertRunMessage( sd, message, false );
+
+        } else if( sd.getDbRequestProcessor().getState() == LifeCycleState.SUITE_STARTED ) {
+
+            logInfo( request, "Inserting message for suite " + sd.getRun().getSuite().getSuiteName() );
+            sd.getDbRequestProcessor().insertSuiteMessage( sd, message, false );
+
+        } else if( sd.getDbRequestProcessor().getState() == LifeCycleState.TEST_CASE_STARTED ) {
+
+            logInfo( request,
+                     "Inserting message for testcase "
+                              + sd.getRun().getSuite().getTestcase().getTestcaseName() );
+            sd.getDbRequestProcessor().insertMessage( sd, message, false );
+
+        } else {
+
+            throw new IllegalStateException( "Unable to insert message, because no run, suite or testcase has been previously started." );
+
+        }
+
+    }
+
+    private void insertMessageUsingRequestData(
+                                                HttpServletRequest request,
+                                                SessionData sd,
+                                                InsertMessagePojo message ) throws DatabaseAccessException,
+                                                                            UnknownSuiteException {
+
+        if( message.getTestcaseId() != -1 ) {
+            logInfo( request, "Inserting message for testcase with id '" + message.getTestcaseId() + "'" );
+            sd.getDbRequestProcessor().insertMessage( sd, message, true );
+        } else if( message.getSuiteId() != -1 ) {
+            logInfo( request, "Inserting message for suite with id '" + message.getSuiteId() + "'" );
+            sd.getDbRequestProcessor().insertSuiteMessage( sd, message, true );
+        } else {
+            logInfo( request, "Inserting message for run with id" + message.getRunId() + "'" );
+            sd.getDbRequestProcessor().insertRunMessage( sd, message, true );
+        }
+
+    }
+
 }

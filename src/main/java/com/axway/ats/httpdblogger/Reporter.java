@@ -79,7 +79,7 @@ public class Reporter extends BaseEntry {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRuns(
                              @Context HttpServletRequest request,
-                             @ApiParam(value = "DB name", required = true ) @QueryParam("dbName") String dbName,
+                             @ApiParam(value = "DB name", required = true) @QueryParam("dbName") String dbName,
                              @ApiParam(value = "DB host. Default is 127.0.0.1", required = false) @DefaultValue("127.0.0.1") @QueryParam("dbHost") String dbHost,
                              @ApiParam(value = "DB user. Default is AutoUser", required = false) @DefaultValue("AutoUser") @QueryParam("dbUser") String dbUser,
                              @ApiParam(value = "DB password. Default is SECRET123", required = false) @DefaultValue("SECRET123") @QueryParam("dbPassword") String dbPassword,
@@ -93,7 +93,7 @@ public class Reporter extends BaseEntry {
                              @ApiParam(value = "Token contained in the product name.", required = false) @QueryParam("product") String product,
                              @ApiParam(value = "Token contained in the version name.", required = false) @QueryParam("version") String version,
                              @ApiParam(value = "Token contained in the build name.", required = false) @QueryParam("build") String build,
-                             @ApiParam(value = "Token contained in the os name.", required = false) @QueryParam("os") String os) {
+                             @ApiParam(value = "Token contained in the os name.", required = false) @QueryParam("os") String os ) {
 
         if( dbName == null ) {
             // database name is mandatory
