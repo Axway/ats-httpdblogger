@@ -433,8 +433,6 @@ public class Logger extends BaseEntry {
         try {
             logInfo( request, "Ending run " + sd.getRun().getRunName() );
             sd.getDbRequestProcessor().endRun( sd.getRun(), endRunPojo );
-            // remove (invalidate) session
-            httpSession.invalidate();
             return Response.ok().build();
         } catch( Exception e ) {
             return returnError( e, "Unable to end run." );
