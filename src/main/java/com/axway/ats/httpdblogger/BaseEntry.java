@@ -15,8 +15,6 @@
  */
 package com.axway.ats.httpdblogger;
 
-//import java.util.Enumeration;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
