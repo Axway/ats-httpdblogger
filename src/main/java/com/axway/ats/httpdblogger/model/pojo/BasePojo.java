@@ -25,14 +25,17 @@ public class BasePojo {
     protected String sessionId;
     @ApiModelProperty(required = false, value = "timestamp", example = "1493709734")
     protected long   timestamp = -1;
+    @ApiModelProperty(required = false, value = "Parent ID", example = "323")
+    private int      parentId  = -1;
+    @ApiModelProperty(required = false, value = "Parent Type", example = "RUN|SUITE|TESTCASE")
+    private String   parentType;
 
     public String getSessionId() {
 
         return sessionId;
     }
 
-    public void setSessionId(
-                              String sessionId ) {
+    public void setSessionId( String sessionId ) {
 
         this.sessionId = sessionId;
     }
@@ -42,10 +45,31 @@ public class BasePojo {
         return timestamp;
     }
 
-    public void setTimestamp(
-                              long timestamp ) {
+    public void setTimestamp( long timestamp ) {
 
         this.timestamp = timestamp;
     }
+
+    public int getParentId() {
+    
+        return parentId;
+    }
+
+    public void setParentId( int parentId ) {
+    
+        this.parentId = parentId;
+    }
+
+    public String getParentType() {
+    
+        return parentType;
+    }
+
+    public void setParentType( String parentType ) {
+    
+        this.parentType = parentType;
+    }
+    
+    
 
 }

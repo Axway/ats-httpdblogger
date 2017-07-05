@@ -15,8 +15,8 @@
  */
 package com.axway.ats.httpdblogger.model;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.axway.ats.httpdblogger.model.pojo.request.StartRunPojo;
 
@@ -26,20 +26,20 @@ import com.axway.ats.httpdblogger.model.pojo.request.StartRunPojo;
 public class SessionData {
 
     // the current RUN
-    private StartRunPojo       run;
+    private StartRunPojo         run;
 
-    // keep track of suites (only their IDs), that were started/ended by the current session
-    private Set<Integer>       suitesIds;
+    // keep track of suites (their IDs and names), that were started/ended by the current session
+    private Map<Integer, String> suitesMap;
 
-    // keep track of testcases (only their IDs), that were started/ended by the current session
-    private Set<Integer>       testcasesIds;
+    // keep track of testcases (their IDs and names), that were started/ended by the current session
+    private Map<Integer, String> testcasesMap;
 
     // a wrapper around the ATS DB Writer
-    private DbRequestProcessor dbRequestProcessor;
+    private DbRequestProcessor   dbRequestProcessor;
 
     public SessionData() {
-        suitesIds = new HashSet<>();
-        testcasesIds = new HashSet<>();
+        suitesMap = new HashMap<>();
+        testcasesMap = new HashMap<>();
     }
 
     public DbRequestProcessor getDbRequestProcessor() {
@@ -55,40 +55,39 @@ public class SessionData {
         return this.run;
     }
 
-    public void setRun(
-                        StartRunPojo run ) {
+    public void setRun( StartRunPojo run ) {
 
         this.run = run;
     }
 
-    public Set<Integer> getSuitesIds() {
+    public Map<Integer, String> getSuitesMap() {
 
-        return suitesIds;
+        return suitesMap;
     }
 
-    public Set<Integer> getTestcasesIds() {
+    public Map<Integer, String> getTestcasesMap() {
 
-        return testcasesIds;
+        return testcasesMap;
     }
 
-    public void addTestcaseId(
-                               int id ) {
+    public void addTestcaseId( int id, String name ) {
 
-        testcasesIds.add( id );
+        testcasesMap.put( id, name );
     }
 
-    public void addSuiteId(
-                            int id ) {
+    public void addSuiteId( int id, String name ) {
 
-        suitesIds.add( id );
+        suitesMap.put( id, name );
     }
-    
-    public boolean hasSuiteId(int suiteId){
-        return suitesIds.contains( suiteId );
+
+    public boolean hasSuiteId( int suiteId ) {
+
+        return suitesMap.containsKey( suiteId );
     }
-    
-    public boolean hasTestcaseId(int testcaseId){
-        return testcasesIds.contains( testcaseId );
+
+    public boolean hasTestcaseId( int testcaseId ) {
+
+        return testcasesMap.containsKey( testcaseId );
     }
 
 }

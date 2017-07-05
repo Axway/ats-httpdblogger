@@ -34,9 +34,6 @@ public class StartTestcasePojo extends BasePojo {
     @ApiModelProperty(required = true, value = "Scenario description", example = "testGetHomePath")
     private String scenarioDescription;
 
-    @ApiModelProperty(required = false, value = "Suite ID", example = "939")
-    private int    suiteId = -1;
-
     public int getTestcaseId() {
 
         return testcaseId;
@@ -79,17 +76,6 @@ public class StartTestcasePojo extends BasePojo {
                                         String scenarioDescription ) {
 
         this.scenarioDescription = scenarioDescription;
-    }
-
-    public int getSuiteId() {
-
-        return suiteId;
-    }
-
-    public void setSuiteId(
-                            int suiteId ) {
-
-        this.suiteId = suiteId;
     }
 
 }

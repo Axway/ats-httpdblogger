@@ -25,8 +25,6 @@ public class AddRunMetainfoPojo extends BasePojo {
     private String metaKey;
     @ApiModelProperty(required = true, value = "meta value", example="Regression")
     private String metaValue;
-    @ApiModelProperty(required = false, value = "run id", example="6443")
-    private int    runId = -1;
 
     public AddRunMetainfoPojo() {}
 
@@ -50,17 +48,6 @@ public class AddRunMetainfoPojo extends BasePojo {
                               String metaValue ) {
 
         this.metaValue = metaValue;
-    }
-
-    public int getRunId() {
-
-        return runId;
-    }
-
-    public void setRunId(
-                          int runId ) {
-
-        this.runId = runId;
     }
 
 }

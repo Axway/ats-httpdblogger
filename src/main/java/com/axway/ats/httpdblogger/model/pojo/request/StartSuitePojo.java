@@ -34,9 +34,6 @@ public class StartSuitePojo extends BasePojo {
     @ApiModelProperty(hidden = true)
     private StartTestcasePojo testcase;
 
-    @ApiModelProperty(required = false, value = "Run ID", example = "8920")
-    private int               runId = -1;
-
     public int getSuiteId() {
 
         return suiteId;
@@ -79,17 +76,6 @@ public class StartSuitePojo extends BasePojo {
                              StartTestcasePojo testcase ) {
 
         this.testcase = testcase;
-    }
-
-    public int getRunId() {
-
-        return runId;
-    }
-
-    public void setRunId(
-                          int runId ) {
-
-        this.runId = runId;
     }
 
 }

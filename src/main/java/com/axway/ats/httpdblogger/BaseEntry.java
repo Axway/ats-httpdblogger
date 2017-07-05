@@ -15,7 +15,7 @@
  */
 package com.axway.ats.httpdblogger;
 
-import java.util.Enumeration;
+//import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
@@ -81,52 +81,5 @@ public class BaseEntry {
 
         log.error( message, e );
         return Response.serverError().entity( new ResponsePojo( message, e ) ).build();
-    }
-
-    /**
-     * Returns request parameter value. 
-     * The parameter is found even when the case is not right. 
-     * If not found - returns the default value.
-     * 
-     * @param request
-     * @param parameterName
-     * @param defaultValue
-     * @return
-     */
-    protected String getRequestParameter(
-                                          HttpServletRequest request,
-                                          String parameterName,
-                                          String defaultValue ) {
-
-        String parameterValue = getRequestParameter( request, parameterName );
-        if( parameterValue == null ) {
-            parameterValue = defaultValue;
-        }
-
-        return parameterValue;
-    }
-
-    /**
-     * Returns request parameter value. 
-     * The parameter is found even when the case is not right. 
-     * If not found - returns null.
-     * 
-     * @param request
-     * @param parameterName
-     * @return
-     */
-    protected String getRequestParameter(
-                                          HttpServletRequest request,
-                                          String parameterName ) {
-
-        Enumeration<String> paramNames = request.getParameterNames();
-        while( paramNames.hasMoreElements() ) {
-            String paramName = paramNames.nextElement();
-            if( paramName.equalsIgnoreCase( parameterName ) ) {
-                return request.getParameter( paramName );
-            }
-        }
-
-        return null;
     }
 }

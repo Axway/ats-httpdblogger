@@ -16,6 +16,7 @@
 package com.axway.ats.httpdblogger;
 
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -31,7 +32,6 @@ import javax.ws.rs.core.Response;
 import com.axway.ats.core.utils.StringUtils;
 import com.axway.ats.httpdblogger.exceptions.NoSessionIdException;
 import com.axway.ats.httpdblogger.exceptions.UnknownSessionException;
-import com.axway.ats.httpdblogger.exceptions.UnknownSuiteException;
 import com.axway.ats.httpdblogger.model.SessionData;
 import com.axway.ats.httpdblogger.model.TestResult;
 import com.axway.ats.httpdblogger.model.pojo.request.AddRunMetainfoPojo;
@@ -40,10 +40,12 @@ import com.axway.ats.httpdblogger.model.pojo.request.EndRunPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.EndSuitePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.EndTestcasePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagePojo;
+import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagesPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.StartRunPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.StartSuitePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.StartTestcasePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.UpdateRunPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.UpdateSuitePojo;
 import com.axway.ats.httpdblogger.model.pojo.response.ResponseStartRunPojo;
 import com.axway.ats.httpdblogger.model.pojo.response.ResponseStartSuitePojo;
 import com.axway.ats.httpdblogger.model.pojo.response.ResponseStartTestcasePojo;
@@ -75,8 +77,7 @@ public class Logger extends BaseEntry {
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response startRun(
-                              @Context HttpServletRequest request,
+    public Response startRun( @Context HttpServletRequest request,
                               @ApiParam(value = "Run details", required = true) StartRunPojo run ) {
 
         // clear provided sessionId, since we want to always start a new session on this REST call
@@ -85,14 +86,23 @@ public class Logger extends BaseEntry {
             run.setSessionId( null );
         }
 
-        HttpSession httpSession = getHttpSession( request, run.getSessionId(), true );
-        SessionData sd = ( SessionData ) getSessionData( httpSession, true );
+        if( !StringUtils.isNullOrEmpty( run.getParentType() ) ) {
+            logInfo( "Parent type specified in request to start a run. This field will be ignored." );
+        }
 
-        //start the new RUN
-        logInfo( request,
-                 "Starting run " + run.getRunName() + " with sessionId='" + httpSession.getId() + "'" );
+        if( run.getParentId() != -1 ) {
+            logInfo( "Parent ID specified in request to start a run. This field will be ignored." );
+        }
 
         try {
+
+            HttpSession httpSession = getHttpSession( request, run.getSessionId(), true );
+            SessionData sd = ( SessionData ) getSessionData( httpSession, true );
+
+            //start the new RUN
+            logInfo( request,
+                     "Starting run " + run.getRunName() + " with sessionId='" + httpSession.getId() + "'" );
+
             sd.getDbRequestProcessor().startRun( run );
             sd.setRun( run );
             return Response.ok( new ResponseStartRunPojo( httpSession.getId(), run.getRunId() ) ).build();
@@ -108,8 +118,7 @@ public class Logger extends BaseEntry {
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response startSuite(
-                                @Context HttpServletRequest request,
+    public Response startSuite( @Context HttpServletRequest request,
                                 @ApiParam(value = "Suite details", required = true) StartSuitePojo suite ) {
 
         if( StringUtils.isNullOrEmpty( suite.getSessionId() ) ) {
@@ -117,19 +126,18 @@ public class Logger extends BaseEntry {
                                 "Unable to start suite." );
         }
 
-        HttpSession httpSession = getHttpSession( request, suite.getSessionId(), false );
-        SessionData sd = ( SessionData ) getSessionData( httpSession, false );
-
-        boolean setAsCurrentSuite = suite.getRunId() == -1;
-
-        logInfo( request, "Starting suite " + suite.getSuiteName() );
-
         try {
 
-            if( httpSession == null ) {
-                throw new UnknownSessionException( "Could not obtain session with id '" + suite.getSessionId()
-                                                   + "'" );
+            HttpSession httpSession = getHttpSession( request, suite.getSessionId(), false );
+            SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
+            if( !StringUtils.isNullOrEmpty( suite.getParentType() ) ) {
+                logInfo( "Parent type specified in request to start a suite. This field will be ignored." );
             }
+
+            boolean setAsCurrentSuite = suite.getParentId() == -1;
+
+            logInfo( request, "Starting suite " + suite.getSuiteName() );
 
             int suiteId = sd.getDbRequestProcessor().startSuite( sd, suite, setAsCurrentSuite );
 
@@ -141,8 +149,8 @@ public class Logger extends BaseEntry {
                 suite.setSuiteId( suiteId );
                 sd.getRun().setSuite( suite );
             }
-            // add the suite id to already known suiteIds
-            sd.addSuiteId( suiteId );
+            // add the suite to already known suites
+            sd.addSuiteId( suiteId, suite.getSuiteName() );
 
             return Response.ok( new ResponseStartSuitePojo( suiteId ) ).build();
         } catch( Exception e ) {
@@ -157,33 +165,32 @@ public class Logger extends BaseEntry {
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response startTestcase(
-                                   @Context HttpServletRequest request,
-                                   @ApiParam(value = "Testcase details", required = true) StartTestcasePojo testcase ) {
+    public Response
+            startTestcase( @Context HttpServletRequest request,
+                           @ApiParam(value = "Testcase details", required = true) StartTestcasePojo testcase ) {
 
         if( StringUtils.isNullOrEmpty( testcase.getSessionId() ) ) {
             return returnError( new NoSessionIdException( "Session ID not found in the request." ),
                                 "Unable to start testcase." );
         }
 
-        HttpSession httpSession = getHttpSession( request, testcase.getSessionId(), false );
-        SessionData sd = ( SessionData ) getSessionData( httpSession, false );
-
-        boolean setAsCurrentTestcase = testcase.getSuiteId() == -1;
-
-        logInfo( request, "Starting testcase " + testcase.getTestcaseName() );
+        if( !StringUtils.isNullOrEmpty( testcase.getParentType() ) ) {
+            logInfo( "Parent type specified in request to start a testcase. This field will be ignored." );
+        }
 
         try {
 
-            if( httpSession == null ) {
-                throw new UnknownSessionException( "Could not obtain session with id '"
-                                                   + testcase.getSessionId() + "'" );
-            }
+            HttpSession httpSession = getHttpSession( request, testcase.getSessionId(), false );
+            SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
+            boolean setAsCurrentTestcase = testcase.getParentId() == -1;
+
+            logInfo( request, "Starting testcase " + testcase.getTestcaseName() );
 
             int testcaseId = sd.getDbRequestProcessor().startTestcase( sd, testcase, setAsCurrentTestcase );
 
             /* set the started testcase as a current testcase to the current suite, so we can ensure, 
-             * that if the user does not specify a testcase id, 
+             * that if the user does not specify a suite id, 
              * we will use this suite
             */
             if( setAsCurrentTestcase ) {
@@ -192,7 +199,7 @@ public class Logger extends BaseEntry {
             }
 
             // add the testcase id to already known testcaseIds
-            sd.addTestcaseId( testcaseId );
+            sd.addTestcaseId( testcaseId, testcase.getTestcaseName() );
 
             return Response.ok( new ResponseStartTestcasePojo( testcaseId ) ).build();
         } catch( Exception e ) {
@@ -207,9 +214,9 @@ public class Logger extends BaseEntry {
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response insertMessage(
-                                   @Context HttpServletRequest request,
-                                   @ApiParam(value = "Message details", required = true) InsertMessagePojo message ) {
+    public Response
+            insertMessage( @Context HttpServletRequest request,
+                           @ApiParam(value = "Message details", required = true) InsertMessagePojo message ) {
 
         if( StringUtils.isNullOrEmpty( message.getSessionId() ) ) {
             return returnError( new NoSessionIdException( "Session ID not found in the request." ),
@@ -220,13 +227,24 @@ public class Logger extends BaseEntry {
             HttpSession httpSession = getHttpSession( request, message.getSessionId(), false );
             SessionData sd = ( SessionData ) getSessionData( httpSession, false );
 
-            if( message.getTestcaseId() != -1 || message.getSuiteId() != -1 || message.getRunId() != -1 ) {
-                // use the provided run/suite/testcase id to choose where to insert the message
-                // testcaseId has the highest priority, followed by suiteId and runId
-                insertMessageUsingRequestData( request, sd, message );
+            if( StringUtils.isNullOrEmpty( message.getParentType() ) ) {
+                throw new IllegalArgumentException( "Parent type does not specified for message with Parent ID = "
+                                                    + message.getParentId()
+                                                    + ". Message with missing Parent type could not be logged to database." );
+            }
+
+            if( message.getParentType().equals( "TESTCASE" ) ) {
+                logInfo( request, "Inserting message for testcase with id '" + message.getParentId() + "'" );
+                sd.getDbRequestProcessor().insertMessage( sd, message, message.getParentId() != -1 );
+            } else if( message.getParentType().equals( "SUITE" ) ) {
+                logInfo( request, "Inserting message for suite with id '" + message.getParentId() + "'" );
+                sd.getDbRequestProcessor().insertSuiteMessage( sd, message, message.getParentId() != -1 );
+            } else if( message.getParentType().equals( "RUN" ) ) {
+                logInfo( request, "Inserting message for run with id " + message.getParentId() + "'" );
+                sd.getDbRequestProcessor().insertRunMessage( sd, message, message.getParentId() != -1 );
             } else {
-                // use the SessionData's DbEventRequestProcessor's lifecycle state to choose where to insert the message
-                insertMessageUsingCurrentSessionState( request, sd, message );
+                throw new IllegalArgumentException( "'" + message.getParentType()
+                                                    + "' is not a valid Parent type value. Supported values are 'RUN', 'SUITE' and 'TESTCASE'" );
             }
 
             return Response.ok().build();
@@ -236,27 +254,78 @@ public class Logger extends BaseEntry {
     }
 
     @POST
+    @Path("insertMessages")
+    @ApiOperation(value = "Insert Messages", notes = "")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Successful inserted messages"),
+                            @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response
+            insertMessages( @Context HttpServletRequest request,
+                            @ApiParam(value = "List of Messages details", required = true) InsertMessagesPojo messages ) {
+
+        if( StringUtils.isNullOrEmpty( messages.getSessionId() ) ) {
+            return returnError( new NoSessionIdException( "Session ID not found in the request." ),
+                                "Unable to insert messages." );
+        }
+
+        try {
+            HttpSession httpSession = getHttpSession( request, messages.getSessionId(), false );
+            SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
+            if( StringUtils.isNullOrEmpty( messages.getParentType() ) ) {
+                throw new NoSuchElementException( "Parent type does not specified for messages with Parent ID = "
+                                                    + messages.getParentId()
+                                                    + ". Message with missing Parent type could not be logged to database." );
+            }
+
+            boolean skipLifeCycleStateCheck = messages.getParentId() != -1;
+
+            if( messages.getParentType().equals( "TESTCASE" ) ) {
+                sd.getDbRequestProcessor().insertMessages( sd, messages, skipLifeCycleStateCheck );
+            } else if( messages.getParentType().equals( "SUITE" ) ) {
+                sd.getDbRequestProcessor().insertSuiteMessages( sd, messages, skipLifeCycleStateCheck );
+            } else if( messages.getParentType().equals( "RUN" ) ) {
+                sd.getDbRequestProcessor().insertRunMessages( sd, messages, skipLifeCycleStateCheck );
+            } else {
+                throw new IllegalArgumentException( "'" + messages.getParentType()
+                                                    + "' is not a valid Parent type value. Supported values are 'RUN', 'SUITE' and 'TESTCASE'" );
+            }
+
+            return Response.ok().build();
+        } catch( Exception e ) {
+            return returnError( e, "Unable to insert message" );
+        }
+
+    }
+
+    @POST
     @Path("addRunMetainfo")
     @ApiOperation(value = "Add RunMetainfo", notes = "")
     @ApiResponses({ @com.wordnik.swagger.annotations.ApiResponse(code = 200, message = "Successful added run metainfo"),
                     @com.wordnik.swagger.annotations.ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    public Response addRunMetainfo(
-                                    @Context HttpServletRequest request,
-                                    @ApiParam(value = "Run metainfo details", required = true) AddRunMetainfoPojo runMetainfo ) {
+    public Response
+            addRunMetainfo( @Context HttpServletRequest request,
+                            @ApiParam(value = "Run metainfo details", required = true) AddRunMetainfoPojo runMetainfo ) {
 
         if( StringUtils.isNullOrEmpty( runMetainfo.getSessionId() ) ) {
             return returnError( new NoSessionIdException( "Session ID not found in the request." ),
                                 "Unable to add run metainfo." );
         }
 
-        HttpSession httpSession = getHttpSession( request, runMetainfo.getSessionId(), false );
-        SessionData sd = ( SessionData ) getSessionData( httpSession, false );
-
-        logInfo( request, "Adding run metainfo for run " + sd.getRun().getRunName() );
+        if( !StringUtils.isNullOrEmpty( runMetainfo.getParentType() ) ) {
+            logInfo( "Parent type specified in request to add a run metainfo. This field will be ignored." );
+        }
 
         try {
+
+            HttpSession httpSession = getHttpSession( request, runMetainfo.getSessionId(), false );
+            SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
+            logInfo( request, "Adding run metainfo for run " + sd.getRun().getRunName() );
+
             sd.getDbRequestProcessor().addRunMetainfo( sd.getRun(), runMetainfo );
             return Response.ok().build();
         } catch( Exception e ) {
@@ -271,33 +340,36 @@ public class Logger extends BaseEntry {
                     @com.wordnik.swagger.annotations.ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    public Response addScenarioMetainfo(
-                                         @Context HttpServletRequest request,
-                                         @ApiParam(value = "Scenario metainfo details", required = true) AddScenarioMetainfoPojo scenarioMetainfo ) {
+    public Response
+            addScenarioMetainfo( @Context HttpServletRequest request,
+                                 @ApiParam(value = "Scenario metainfo details", required = true) AddScenarioMetainfoPojo scenarioMetainfo ) {
 
         if( StringUtils.isNullOrEmpty( scenarioMetainfo.getSessionId() ) ) {
             return returnError( new NoSessionIdException( "Session ID not found in the request." ),
                                 "Unable to add scenario metainfo." );
         }
 
-        HttpSession httpSession = getHttpSession( request, scenarioMetainfo.getSessionId(), false );
-        SessionData sd = ( SessionData ) getSessionData( httpSession, false );
-
-        boolean addScenarioMetaInfoToCurrentTestcase = scenarioMetainfo.getTestcaseId() == -1;
-
-        if( addScenarioMetaInfoToCurrentTestcase ) {
-            logInfo( request,
-                     "Adding scenario metainfo for testcase "
-                              + sd.getRun().getSuite().getTestcase().getTestcaseName() );
-        } else {
-            logInfo( request,
-                     "Adding scenario metainfo for testcase with id '" + scenarioMetainfo.getTestcaseId()
-                              + "'" );
+        if( !StringUtils.isNullOrEmpty( scenarioMetainfo.getParentType() ) ) {
+            logInfo( "Parent type specified in request to add a scenario metainfo. This field will be ignored." );
         }
 
         try {
-            sd.getDbRequestProcessor()
-              .addScenarioMetainfo( sd, scenarioMetainfo, addScenarioMetaInfoToCurrentTestcase );
+
+            HttpSession httpSession = getHttpSession( request, scenarioMetainfo.getSessionId(), false );
+            SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
+            boolean addScenarioMetaInfoToCurrentTestcase = scenarioMetainfo.getParentId() == -1;
+
+            if( addScenarioMetaInfoToCurrentTestcase ) {
+                logInfo( request, "Adding scenario metainfo for testcase "
+                                  + sd.getRun().getSuite().getTestcase().getTestcaseName() );
+            } else {
+                logInfo( request, "Adding scenario metainfo for testcase with id '"
+                                  + scenarioMetainfo.getParentId() + "'" );
+            }
+
+            sd.getDbRequestProcessor().addScenarioMetainfo( sd, scenarioMetainfo,
+                                                            addScenarioMetaInfoToCurrentTestcase );
             return Response.ok().build();
         } catch( Exception e ) {
             return returnError( e, "Unable to add scenario metainfo" );
@@ -311,8 +383,7 @@ public class Logger extends BaseEntry {
                     @com.wordnik.swagger.annotations.ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    public Response updateRun(
-                               @Context HttpServletRequest request,
+    public Response updateRun( @Context HttpServletRequest request,
                                @ApiParam(value = "New Run details", required = true) UpdateRunPojo run ) {
 
         if( StringUtils.isNullOrEmpty( run.getSessionId() ) ) {
@@ -320,9 +391,17 @@ public class Logger extends BaseEntry {
                                 "Unable to update run." );
         }
 
+        if( !StringUtils.isNullOrEmpty( run.getParentType() ) ) {
+            logInfo( "Parent type specified in request to update a run. This field will be ignored." );
+        }
+
+        if( run.getParentId() != -1 ) {
+            logInfo( "Parent ID specified in request to update a run. This field will be ignored." );
+        }
+
         try {
-            HttpSession httpSession = getHttpSession( request, run.getSessionId() , false);
-            SessionData sd = ( SessionData ) getSessionData( httpSession , false);
+            HttpSession httpSession = getHttpSession( request, run.getSessionId(), false );
+            SessionData sd = ( SessionData ) getSessionData( httpSession, false );
 
             logInfo( request, "Updating run details for run " + sd.getRun().getRunName() );
 
@@ -336,40 +415,116 @@ public class Logger extends BaseEntry {
     }
 
     @POST
+    @Path("updateSuite")
+    @ApiOperation(value = "Update suite", notes = "")
+    @ApiResponses({ @com.wordnik.swagger.annotations.ApiResponse(code = 200, message = "Successful updating suite"),
+                    @com.wordnik.swagger.annotations.ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    public Response
+            updateSuite( @Context HttpServletRequest request,
+                         @ApiParam(value = "New Suite details", required = true) UpdateSuitePojo suite ) {
+
+        if( StringUtils.isNullOrEmpty( suite.getSessionId() ) ) {
+            return returnError( new NoSessionIdException( "Session ID not found in the request." ),
+                                "Unable to update suite." );
+        }
+
+        if( !StringUtils.isNullOrEmpty( suite.getParentType() ) ) {
+            logInfo( "Parent type specified in request to update a suite. This field will be ignored." );
+        }
+
+        if( suite.getParentId() != -1 ) {
+            logInfo( "Parent ID specified in request to update a sute. This field will be ignored." );
+        }
+
+        try {
+            HttpSession httpSession = getHttpSession( request, suite.getSessionId(), false );
+            SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
+            boolean updateCurrentSuite = suite.getSuiteId() == -1;
+
+            String suiteName = null;
+            int suiteId = -1;
+            if( updateCurrentSuite ) {
+                /*
+                 * Since it is possible to update closed/ended suite,
+                 * and the current suite needs to be updated,
+                 * check if there are current suite indeed
+                 * */
+                if( sd.getRun().getSuite() == null ) {
+                    throw new IllegalStateException( "Cannot update SUITE" + " as the current state is "
+                                                     + sd.getDbRequestProcessor().getState()
+                                                     + ", but it is expected to be "
+                                                     + LifeCycleState.ATLEAST_SUITE_STARTED );
+                }
+                suiteId = sd.getRun().getSuite().getSuiteId();
+                suiteName = sd.getRun().getSuite().getSuiteName();
+            } else {
+                suiteId = suite.getSuiteId();
+                suiteName = sd.getSuitesMap().get( suite.getSuiteId() );
+            }
+
+            logInfo( "Updating info for suite '" + suiteName + "'" );
+
+            // here reverse the value of updateCurrentSuite, because if current suite needs to be updated,
+            // life cycle check must not be skipped
+            sd.getDbRequestProcessor().updateSuite( sd, suiteId, suite, !updateCurrentSuite );
+
+            sd.getSuitesMap().put( suiteId, suiteName );
+
+            return Response.ok().build();
+        } catch( Exception e ) {
+            return returnError( e, "Unable to update suite details" );
+        }
+    }
+
+    @POST
     @Path("endTestcase")
     @ApiOperation(value = "End testcase", notes = "")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Successful ending testcase"),
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response endTestcase(
-                                 @Context HttpServletRequest request,
-                                 @ApiParam(value = "End testcase details", required = true) EndTestcasePojo endTestcasePojo ) {
+    public Response
+            endTestcase( @Context HttpServletRequest request,
+                         @ApiParam(value = "End testcase details", required = true) EndTestcasePojo endTestcasePojo ) {
 
         if( StringUtils.isNullOrEmpty( endTestcasePojo.getSessionId() ) ) {
             return returnError( new NoSessionIdException( "Session ID not found in the request." ),
                                 "Unable to end testcase." );
         }
 
-        HttpSession httpSession = getHttpSession( request, endTestcasePojo.getSessionId() , false);
-        SessionData sd = ( SessionData ) getSessionData( httpSession , false);
+        if( !StringUtils.isNullOrEmpty( endTestcasePojo.getParentType() ) ) {
+            logInfo( "Parent type specified in request to end a testcase. This field will be ignored." );
+        }
 
-        validateTestResult( endTestcasePojo );
-
-        boolean endCurrentTestcase = endTestcasePojo.getTestcaseId() == -1;
-
-        StartTestcasePojo testcase = sd.getRun().getSuite().getTestcase();
-        if( endCurrentTestcase ) {
-            logInfo( request, "Ending testcase " + testcase.getTestcaseName() );
-        } else {
-            logInfo( request, "Ending testcase with id '" + endTestcasePojo.getTestcaseId() + "'" );
+        if( endTestcasePojo.getParentId() != -1 ) {
+            logInfo( "Parent ID specified in request to end a testcase. This field will be ignored." );
         }
 
         try {
-            sd.getDbRequestProcessor().endTestcase( sd,
-                                                    testcase,
-                                                    endTestcasePojo,
-                                                    endCurrentTestcase );
+
+            HttpSession httpSession = getHttpSession( request, endTestcasePojo.getSessionId(), false );
+            SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
+            validateTestResult( endTestcasePojo );
+
+            boolean endCurrentTestcase = endTestcasePojo.getTestcaseId() == -1;
+
+            int testcaseId = -1;
+            String testcaseName = null;
+            if( endCurrentTestcase ) {
+                testcaseId = sd.getRun().getSuite().getTestcase().getTestcaseId();
+                testcaseName = sd.getRun().getSuite().getTestcase().getTestcaseName();
+                logInfo( request, "Ending testcase " + testcaseName );
+            } else {
+                testcaseId = endTestcasePojo.getTestcaseId();
+                testcaseName = sd.getTestcasesMap().get( testcaseId );
+                logInfo( request, "Ending testcase '" + testcaseName + "'" );
+            }
+
+            sd.getDbRequestProcessor().endTestcase( sd, testcaseId, endTestcasePojo, endCurrentTestcase );
             return Response.ok().build();
         } catch( Exception e ) {
             return returnError( e, "Unable to end testcase" );
@@ -383,27 +538,39 @@ public class Logger extends BaseEntry {
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response endSuite(
-                              @Context HttpServletRequest request,
-                              @ApiParam(value = "End suite details", required = true) EndSuitePojo endSuitePojo ) {
+    public Response
+            endSuite( @Context HttpServletRequest request,
+                      @ApiParam(value = "End suite details", required = true) EndSuitePojo endSuitePojo ) {
 
         if( StringUtils.isNullOrEmpty( endSuitePojo.getSessionId() ) ) {
             return returnError( new NoSessionIdException( "Session ID not found in the request." ),
                                 "Unable to end suite." );
         }
 
-        HttpSession httpSession = getHttpSession( request, endSuitePojo.getSessionId() , false);
-        SessionData sd = ( SessionData ) getSessionData( httpSession , false);
+        if( !StringUtils.isNullOrEmpty( endSuitePojo.getParentType() ) ) {
+            logInfo( "Parent type specified in request to end a suite. This field will be ignored." );
+        }
 
-        boolean endCurrentSuite = endSuitePojo.getSuiteId() == -1;
-
-        if( endCurrentSuite ) {
-            logInfo( request, "Ending suite " + sd.getRun().getSuite().getSuiteName() );
-        } else {
-            logInfo( request, "Ending suite with id '" + endSuitePojo.getSuiteId() + "'" );
+        if( endSuitePojo.getParentId() != -1 ) {
+            logInfo( "Parent ID specified in request to end a suite. This field will be ignored." );
         }
 
         try {
+
+            HttpSession httpSession = getHttpSession( request, endSuitePojo.getSessionId(), false );
+            SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
+            boolean endCurrentSuite = endSuitePojo.getSuiteId() == -1;
+
+            String suiteName = null;
+            if( endCurrentSuite ) {
+                suiteName = sd.getRun().getSuite().getSuiteName();
+                logInfo( request, "Ending suite " + suiteName );
+            } else {
+                suiteName = sd.getSuitesMap().get( endSuitePojo.getSuiteId() );
+                logInfo( request, "Ending suite " + suiteName );
+            }
+
             sd.getDbRequestProcessor().endSuite( sd, endSuitePojo, endCurrentSuite );
             return Response.ok().build();
         } catch( Exception e ) {
@@ -418,8 +585,7 @@ public class Logger extends BaseEntry {
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response endRun(
-                            @Context HttpServletRequest request,
+    public Response endRun( @Context HttpServletRequest request,
                             @ApiParam(value = "End run details", required = true) EndRunPojo endRunPojo ) {
 
         if( StringUtils.isNullOrEmpty( endRunPojo.getSessionId() ) ) {
@@ -427,10 +593,19 @@ public class Logger extends BaseEntry {
                                 "Unable to end run." );
         }
 
-        HttpSession httpSession = getHttpSession( request, endRunPojo.getSessionId() , false);
-        SessionData sd = ( SessionData ) getSessionData( httpSession , false);
+        if( !StringUtils.isNullOrEmpty( endRunPojo.getParentType() ) ) {
+            logInfo( "Parent type specified in request to end a run. This field will be ignored." );
+        }
+
+        if( endRunPojo.getParentId() != -1 ) {
+            logInfo( "Parent ID specified in request to end a run. This field will be ignored." );
+        }
 
         try {
+
+            HttpSession httpSession = getHttpSession( request, endRunPojo.getSessionId(), false );
+            SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
             logInfo( request, "Ending run " + sd.getRun().getRunName() );
             sd.getDbRequestProcessor().endRun( sd.getRun(), endRunPojo );
             return Response.ok().build();
@@ -439,9 +614,7 @@ public class Logger extends BaseEntry {
         }
     }
 
-    private HttpSession getHttpSession(
-                                        HttpServletRequest request,
-                                        String sessionId,
+    private HttpSession getHttpSession( HttpServletRequest request, String sessionId,
                                         boolean createNewSession ) {
 
         HttpSession httpSession = request.getSession( false );
@@ -462,12 +635,15 @@ public class Logger extends BaseEntry {
 
         }
 
+        if( httpSession == null ) {
+            throw new UnknownSessionException( "Could not obtain session with id '" + sessionId + "'" );
+        }
+
         return httpSession;
 
     }
 
-    private HttpSession getHttpSessionById(
-                                            String sessionId ) {
+    private HttpSession getHttpSessionById( String sessionId ) {
 
         if( StringUtils.isNullOrEmpty( sessionId ) ) {
             return null;
@@ -476,9 +652,7 @@ public class Logger extends BaseEntry {
         return ( HttpSession ) servletContext.getAttribute( sessionId );
     }
 
-    private SessionData getSessionData(
-                                        HttpSession httpSession,
-                                        boolean createNew ) {
+    private SessionData getSessionData( HttpSession httpSession, boolean createNew ) {
 
         SessionData sd = ( SessionData ) httpSession.getAttribute( SESSION_DATA_ATTRIB_NAME );
 
@@ -496,8 +670,7 @@ public class Logger extends BaseEntry {
 
     }
 
-    private void validateTestResult(
-                                     EndTestcasePojo testcaseResult ) {
+    private void validateTestResult( EndTestcasePojo testcaseResult ) {
 
         TestResult testResult;
 
@@ -513,9 +686,7 @@ public class Logger extends BaseEntry {
         testcaseResult.setTestResult( testResult );
     }
 
-    private void updateSessionDataRunPojo(
-                                           SessionData sessionData,
-                                           UpdateRunPojo updatedRun ) {
+    private void updateSessionDataRunPojo( SessionData sessionData, UpdateRunPojo updatedRun ) {
 
         StartRunPojo oldRun = sessionData.getRun();
 
@@ -548,55 +719,6 @@ public class Logger extends BaseEntry {
         }
 
         sessionData.setRun( oldRun );
-    }
-
-    private void insertMessageUsingCurrentSessionState(
-                                                        HttpServletRequest request,
-                                                        SessionData sd,
-                                                        InsertMessagePojo message ) throws DatabaseAccessException {
-
-        if( sd.getDbRequestProcessor().getState() == LifeCycleState.RUN_STARTED ) {
-
-            logInfo( request, "Inserting message for run " + sd.getRun().getRunName() );
-            sd.getDbRequestProcessor().insertRunMessage( sd, message, false );
-
-        } else if( sd.getDbRequestProcessor().getState() == LifeCycleState.SUITE_STARTED ) {
-
-            logInfo( request, "Inserting message for suite " + sd.getRun().getSuite().getSuiteName() );
-            sd.getDbRequestProcessor().insertSuiteMessage( sd, message, false );
-
-        } else if( sd.getDbRequestProcessor().getState() == LifeCycleState.TEST_CASE_STARTED ) {
-
-            logInfo( request,
-                     "Inserting message for testcase "
-                              + sd.getRun().getSuite().getTestcase().getTestcaseName() );
-            sd.getDbRequestProcessor().insertMessage( sd, message, false );
-
-        } else {
-
-            throw new IllegalStateException( "Unable to insert message, because no run, suite or testcase has been previously started." );
-
-        }
-
-    }
-
-    private void insertMessageUsingRequestData(
-                                                HttpServletRequest request,
-                                                SessionData sd,
-                                                InsertMessagePojo message ) throws DatabaseAccessException,
-                                                                            UnknownSuiteException {
-
-        if( message.getTestcaseId() != -1 ) {
-            logInfo( request, "Inserting message for testcase with id '" + message.getTestcaseId() + "'" );
-            sd.getDbRequestProcessor().insertMessage( sd, message, true );
-        } else if( message.getSuiteId() != -1 ) {
-            logInfo( request, "Inserting message for suite with id '" + message.getSuiteId() + "'" );
-            sd.getDbRequestProcessor().insertSuiteMessage( sd, message, true );
-        } else {
-            logInfo( request, "Inserting message for run with id" + message.getRunId() + "'" );
-            sd.getDbRequestProcessor().insertRunMessage( sd, message, true );
-        }
-
     }
 
 }
