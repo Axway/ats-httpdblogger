@@ -233,13 +233,13 @@ public class Logger extends BaseEntry {
                                                     + ". Message with missing Parent type could not be logged to database." );
             }
 
-            if( message.getParentType().equals( "TESTCASE" ) ) {
+            if( message.getParentType().equalsIgnoreCase( "TESTCASE" ) ) {
                 logInfo( request, "Inserting message for testcase with id '" + message.getParentId() + "'" );
                 sd.getDbRequestProcessor().insertMessage( sd, message, message.getParentId() != -1 );
-            } else if( message.getParentType().equals( "SUITE" ) ) {
+            } else if( message.getParentType().equalsIgnoreCase( "SUITE" ) ) {
                 logInfo( request, "Inserting message for suite with id '" + message.getParentId() + "'" );
                 sd.getDbRequestProcessor().insertSuiteMessage( sd, message, message.getParentId() != -1 );
-            } else if( message.getParentType().equals( "RUN" ) ) {
+            } else if( message.getParentType().equalsIgnoreCase( "RUN" ) ) {
                 logInfo( request, "Inserting message for run with id " + message.getParentId() + "'" );
                 sd.getDbRequestProcessor().insertRunMessage( sd, message, message.getParentId() != -1 );
             } else {
@@ -281,11 +281,11 @@ public class Logger extends BaseEntry {
 
             boolean skipLifeCycleStateCheck = messages.getParentId() != -1;
 
-            if( messages.getParentType().equals( "TESTCASE" ) ) {
+            if( messages.getParentType().equalsIgnoreCase( "TESTCASE" ) ) {
                 sd.getDbRequestProcessor().insertMessages( sd, messages, skipLifeCycleStateCheck );
-            } else if( messages.getParentType().equals( "SUITE" ) ) {
+            } else if( messages.getParentType().equalsIgnoreCase( "SUITE" ) ) {
                 sd.getDbRequestProcessor().insertSuiteMessages( sd, messages, skipLifeCycleStateCheck );
-            } else if( messages.getParentType().equals( "RUN" ) ) {
+            } else if( messages.getParentType().equalsIgnoreCase( "RUN" ) ) {
                 sd.getDbRequestProcessor().insertRunMessages( sd, messages, skipLifeCycleStateCheck );
             } else {
                 throw new IllegalArgumentException( "'" + messages.getParentType()

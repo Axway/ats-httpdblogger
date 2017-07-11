@@ -40,7 +40,7 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
 /**
- * The REPORTER entry point for this REST application. 
+ * The REPORTER entry point for this HTTP application. 
  * All available public methods are listed in this class.
  */
 @Path("reporter")
