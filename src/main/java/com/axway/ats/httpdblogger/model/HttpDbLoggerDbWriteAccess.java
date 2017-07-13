@@ -18,6 +18,7 @@ package com.axway.ats.httpdblogger.model;
 import java.sql.CallableStatement;
 
 import com.axway.ats.core.dbaccess.DbConnection;
+import com.axway.ats.core.dbaccess.DbUtils;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagesPojo;
 import com.axway.ats.log.autodb.DbWriteAccess;
@@ -31,77 +32,104 @@ public class HttpDbLoggerDbWriteAccess extends DbWriteAccess {
 
     public void insertMessages( InsertMessagesPojo messages ) throws DatabaseAccessException {
 
-        int testcaseId = messages.getParentId();
+        DbEventsCache dbEventsCache = null;
 
-        DbEventsCache dbEventsCache = new DbEventsCache( this );
-        InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory( true );
+        try {
 
-        for( InsertMessagePojo message : messages.getMessages() ) {
+            dbEventsCache = new DbEventsCache( this );
 
-            CallableStatement insertMessageStatement = eventStatementsFactory.getInsertTestcaseMessageStatement( dbEventsCache.getConnection(),
-                                                                                                                 message.getMessage(),
-                                                                                                                 message.getLogLevel()
-                                                                                                                        .toInt(),
-                                                                                                                 false,
-                                                                                                                 message.getMachineName(),
-                                                                                                                 message.getThreadName(),
-                                                                                                                 message.getTimestamp(),
-                                                                                                                 testcaseId );
-            dbEventsCache.addInsertTestcaseMessageEventToBatch( insertMessageStatement );
+            int testcaseId = messages.getParentId();
 
+            InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory( true );
+
+            for( InsertMessagePojo message : messages.getMessages() ) {
+
+                CallableStatement insertMessageStatement = eventStatementsFactory.getInsertTestcaseMessageStatement( dbEventsCache.getConnection(),
+                                                                                                                     message.getMessage(),
+                                                                                                                     message.getLogLevel()
+                                                                                                                            .toInt(),
+                                                                                                                     false,
+                                                                                                                     message.getMachineName(),
+                                                                                                                     message.getThreadName(),
+                                                                                                                     message.getTimestamp(),
+                                                                                                                     testcaseId );
+                dbEventsCache.addInsertTestcaseMessageEventToBatch( insertMessageStatement );
+
+            }
+
+            dbEventsCache.flushCache();
+        } finally {
+            DbUtils.closeConnection( dbEventsCache.getConnection() );
         }
 
-        dbEventsCache.flushCache();
     }
 
     public void insertSuiteMessages( InsertMessagesPojo messages ) throws DatabaseAccessException {
 
-        int suiteId = messages.getParentId();
+        DbEventsCache dbEventsCache = null;
 
-        DbEventsCache dbEventsCache = new DbEventsCache( this );
-        InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory( true );
+        try {
 
-        for( InsertMessagePojo message : messages.getMessages() ) {
+            int suiteId = messages.getParentId();
 
-            CallableStatement insertMessageStatement = eventStatementsFactory.getInsertSuiteMessageStatement( dbEventsCache.getConnection(),
-                                                                                                              message.getMessage(),
-                                                                                                              message.getLogLevel()
-                                                                                                                     .toInt(),
-                                                                                                              false,
-                                                                                                              message.getMachineName(),
-                                                                                                              message.getThreadName(),
-                                                                                                              message.getTimestamp(),
-                                                                                                              suiteId );
-            dbEventsCache.addInsertSuiteMessageEventToBatch( insertMessageStatement );
+            dbEventsCache = new DbEventsCache( this );
+            InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory( true );
 
+            for( InsertMessagePojo message : messages.getMessages() ) {
+
+                CallableStatement insertMessageStatement = eventStatementsFactory.getInsertSuiteMessageStatement( dbEventsCache.getConnection(),
+                                                                                                                  message.getMessage(),
+                                                                                                                  message.getLogLevel()
+                                                                                                                         .toInt(),
+                                                                                                                  false,
+                                                                                                                  message.getMachineName(),
+                                                                                                                  message.getThreadName(),
+                                                                                                                  message.getTimestamp(),
+                                                                                                                  suiteId );
+                dbEventsCache.addInsertSuiteMessageEventToBatch( insertMessageStatement );
+
+            }
+
+            dbEventsCache.flushCache();
+
+        } finally {
+            DbUtils.closeConnection( dbEventsCache.getConnection() );
         }
 
-        dbEventsCache.flushCache();
     }
 
     public void insertRunMessages( InsertMessagesPojo messages ) throws DatabaseAccessException {
 
-        int runId = messages.getParentId();
+        DbEventsCache dbEventsCache = null;
 
-        DbEventsCache dbEventsCache = new DbEventsCache( this );
-        InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory( true );
+        try {
 
-        for( InsertMessagePojo message : messages.getMessages() ) {
+            int runId = messages.getParentId();
 
-            CallableStatement insertMessageStatement = eventStatementsFactory.getInsertRunMessageStatement( dbEventsCache.getConnection(),
-                                                                                                            message.getMessage(),
-                                                                                                            message.getLogLevel()
-                                                                                                                   .toInt(),
-                                                                                                            false,
-                                                                                                            message.getMachineName(),
-                                                                                                            message.getThreadName(),
-                                                                                                            message.getTimestamp(),
-                                                                                                            runId );
-            dbEventsCache.addInsertRunMessageEventToBatch( insertMessageStatement );
+            dbEventsCache = new DbEventsCache( this );
+            InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory( true );
 
+            for( InsertMessagePojo message : messages.getMessages() ) {
+
+                CallableStatement insertMessageStatement = eventStatementsFactory.getInsertRunMessageStatement( dbEventsCache.getConnection(),
+                                                                                                                message.getMessage(),
+                                                                                                                message.getLogLevel()
+                                                                                                                       .toInt(),
+                                                                                                                false,
+                                                                                                                message.getMachineName(),
+                                                                                                                message.getThreadName(),
+                                                                                                                message.getTimestamp(),
+                                                                                                                runId );
+                dbEventsCache.addInsertRunMessageEventToBatch( insertMessageStatement );
+
+            }
+
+            dbEventsCache.flushCache();
+
+        } finally {
+            DbUtils.closeConnection( dbEventsCache.getConnection() );
         }
 
-        dbEventsCache.flushCache();
     }
 
 }
