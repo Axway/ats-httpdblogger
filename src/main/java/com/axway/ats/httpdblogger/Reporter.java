@@ -77,27 +77,38 @@ public class Reporter extends BaseEntry {
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully got runs info", response = Response.class),
                             @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getRuns(
-                             @Context HttpServletRequest request,
-                             @ApiParam(value = "DB name", required = true) @QueryParam("dbName") String dbName,
-                             @ApiParam(value = "DB host. Default is 127.0.0.1", required = false) @DefaultValue("127.0.0.1") @QueryParam("dbHost") String dbHost,
-                             @ApiParam(value = "DB user. Default is AutoUser", required = false) @DefaultValue("AutoUser") @QueryParam("dbUser") String dbUser,
-                             @ApiParam(value = "DB password. Default is SECRET123", required = false) @DefaultValue("SECRET123") @QueryParam("dbPassword") String dbPassword,
-                             @ApiParam(value = "Columns to show from the result set as they show up in Test Explorer UI. "
-                                               + "Possible values: name, product, version, build, os, "
-                                               + "scenariosTotal, scenariosFailed, testcasesTotal, testcasesfailed, testcasesSkipped, "
-                                               + "dateStart, dateEnd, duration, userNote, hostName. "
-                                               + "If not specified - all columns are returned", required = false) @QueryParam("columns") String columns,
-                             @ApiParam(value = "Max number of runs to return. Default is 1000", required = false) @DefaultValue("1000") @QueryParam("top") int top,
-                             @ApiParam(value = "Token contained in the run name.", required = false) @QueryParam("name") String name,
-                             @ApiParam(value = "Token contained in the product name.", required = false) @QueryParam("product") String product,
-                             @ApiParam(value = "Token contained in the version name.", required = false) @QueryParam("version") String version,
-                             @ApiParam(value = "Token contained in the build name.", required = false) @QueryParam("build") String build,
-                             @ApiParam(value = "Token contained in the os name.", required = false) @QueryParam("os") String os ) {
+    public Response
+            getRuns( @Context HttpServletRequest request,
+                     @ApiParam(value = "DB name", required = true) @QueryParam("dbName") String dbName,
+                     @ApiParam(value = "DB host. Default is 127.0.0.1", required = false) @DefaultValue("127.0.0.1") @QueryParam("dbHost") String dbHost,
+                     @ApiParam(value = "DB user. Default is AutoUser", required = false) @DefaultValue("AutoUser") @QueryParam("dbUser") String dbUser,
+                     @ApiParam(value = "DB password. Default is AtsPassword", required = false) @DefaultValue("AtsPassword") @QueryParam("dbPassword") String dbPassword,
+                     @ApiParam(value = "Columns to show from the result set as they show up in Test Explorer UI. "
+                                       + "Possible values: name, product, version, build, os, "
+                                       + "scenariosTotal, scenariosFailed, testcasesTotal, testcasesfailed, testcasesSkipped, "
+                                       + "dateStart, dateEnd, duration, userNote, hostName. "
+                                       + "If not specified - all columns are returned", required = false) @QueryParam("columns") String columns,
+                     @ApiParam(value = "Max number of runs to return. Default is 1000", required = false) @DefaultValue("1000") @QueryParam("top") int top,
+                     @ApiParam(value = "Token contained in the run name.", required = false) @QueryParam("name") String name,
+                     @ApiParam(value = "Token contained in the product name.", required = false) @QueryParam("product") String product,
+                     @ApiParam(value = "Token contained in the version name.", required = false) @QueryParam("version") String version,
+                     @ApiParam(value = "Token contained in the build name.", required = false) @QueryParam("build") String build,
+                     @ApiParam(value = "Token contained in the os name.", required = false) @QueryParam("os") String os,
+                     @ApiParam(value = "Token containing the time offset (in milliseconds) from UTC of the caller.", required = false) @QueryParam("timeOffset") String timeOffset,
+                     @ApiParam(value = "Token containing the current request time (in milliseconds).", required = false) @QueryParam("currentTimestamp") String currentTimestamp ) {
 
         if( dbName == null ) {
             // database name is mandatory
             return returnError( request, "No 'dbName' parameter provided" );
+        }
+        
+        //
+        if(StringUtils.isNullOrEmpty( timeOffset )){
+            timeOffset = "0";
+        }
+        
+        if(StringUtils.isNullOrEmpty( currentTimestamp )){
+            currentTimestamp = System.currentTimeMillis()+"";
         }
 
         if( top < 1 ) {
@@ -111,16 +122,12 @@ public class Reporter extends BaseEntry {
 
         try {
             dbRequestProcessor = new DbRequestProcessor();
-            List<Run> runs = dbRequestProcessor.getRuns( dbHost,
-                                                         dbName,
-                                                         dbUser,
-                                                         dbPassword,
-                                                         whereClause,
-                                                         top );
+            List<Run> runs = dbRequestProcessor.getRuns( dbHost, dbName, dbUser, dbPassword, whereClause,
+                                                         top, timeOffset );
 
             internalDbVersion = dbRequestProcessor.getDbInternalVersion();
 
-            String runsInfo = toJsonFormat( runs, columns );
+            String runsInfo = toJsonFormat( runs, columns, currentTimestamp );
             logInfo( request, "Found the folloing runs:\n" + runsInfo );
 
             return Response.ok( runsInfo ).build();
@@ -129,11 +136,7 @@ public class Reporter extends BaseEntry {
         }
     }
 
-    private String constructWhereClause(
-                                         String name,
-                                         String product,
-                                         String version,
-                                         String build,
+    private String constructWhereClause( String name, String product, String version, String build,
                                          String os ) {
 
         StringBuilder where = new StringBuilder();
@@ -164,8 +167,7 @@ public class Reporter extends BaseEntry {
         return where.toString();
     }
 
-    private String escapeSqlSearchValue(
-                                         String searchValue ) {
+    private String escapeSqlSearchValue( String searchValue ) {
 
         // replacing the '\' and '%'
         searchValue = searchValue.replace( "\\", "\\\\" ).replace( "%", "\\%" );
@@ -191,9 +193,7 @@ public class Reporter extends BaseEntry {
      * @param columnsToSelectParameter
      * @return
      */
-    private String toJsonFormat(
-                                 List<Run> runs,
-                                 String columnsToSelectParameter ) {
+    private String toJsonFormat( List<Run> runs, String columnsToSelectParameter, String currentTimestamp ) {
 
         // all columns are pulled from the DB, 
         // user may desire to narrow the list of columns displayed
@@ -288,19 +288,19 @@ public class Reporter extends BaseEntry {
 
             if( columns.contains( "dateStart".toLowerCase() ) ) {
                 sb.append( "\"Start\":\"" );
-                sb.append( run.dateStart );
+                sb.append( run.getDateStart() );
                 sb.append( "\", " );
             }
 
             if( columns.contains( "dateEnd".toLowerCase() ) ) {
                 sb.append( "\"End\":\"" );
-                sb.append( run.dateEnd );
+                sb.append( run.getDateEnd() );
                 sb.append( "\", " );
             }
 
             if( columns.contains( "duration" ) ) {
                 sb.append( "\"Duration\":\"" );
-                sb.append( run.duration );
+                sb.append( run.getDuration( Long.parseLong( currentTimestamp ) ) );
                 sb.append( "\", " );
             }
 

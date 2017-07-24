@@ -439,7 +439,7 @@ public class DbRequestProcessor {
      * @throws DatabaseAccessException
      */
     public List<Run> getRuns( String host, String db, String user, String password, String whereClause,
-                              int recordsCount ) throws DatabaseAccessException {
+                              int recordsCount, String timeOffset ) throws DatabaseAccessException {
 
         // establish DB connection
         DbReadAccess dbReadAccess = new DbReadAccess( new DbConnSQLServer( host, db, user, password ) );
@@ -452,7 +452,7 @@ public class DbRequestProcessor {
         }
 
         // return the matching runs
-        return dbReadAccess.getRuns( 0, recordsCount, whereClause, "runId", true );
+        return dbReadAccess.getRuns( 0, recordsCount, whereClause, "runId", true, Integer.parseInt( timeOffset ) );
 
     }
 
