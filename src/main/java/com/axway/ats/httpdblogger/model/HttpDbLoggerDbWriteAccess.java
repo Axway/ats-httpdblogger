@@ -44,6 +44,13 @@ public class HttpDbLoggerDbWriteAccess extends DbWriteAccess {
 
             for( InsertMessagePojo message : messages.getMessages() ) {
 
+                // if no time stamp is provided with this message, use the one from the InsertMessagesPojo
+                if( message.getTimestamp() == -1 ) {
+                    message.setTimestamp( messages.getTimestamp() );
+                }
+
+                message.setTimestamp( inUTC( message.getTimestamp() ) );
+
                 CallableStatement insertMessageStatement = eventStatementsFactory.getInsertTestcaseMessageStatement( dbEventsCache.getConnection(),
                                                                                                                      message.getMessage(),
                                                                                                                      message.getLogLevel()
@@ -76,6 +83,13 @@ public class HttpDbLoggerDbWriteAccess extends DbWriteAccess {
             InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory( true );
 
             for( InsertMessagePojo message : messages.getMessages() ) {
+
+                // if no time stamp is provided with this message, use the one from the InsertMessagesPojo
+                if( message.getTimestamp() == -1 ) {
+                    message.setTimestamp( messages.getTimestamp() );
+                }
+
+                message.setTimestamp( inUTC( message.getTimestamp() ) );
 
                 CallableStatement insertMessageStatement = eventStatementsFactory.getInsertSuiteMessageStatement( dbEventsCache.getConnection(),
                                                                                                                   message.getMessage(),
