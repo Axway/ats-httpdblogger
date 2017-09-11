@@ -17,16 +17,16 @@ package com.axway.ats.httpdblogger.model;
 
 import java.sql.CallableStatement;
 
-import com.axway.ats.core.dbaccess.DbConnection;
 import com.axway.ats.core.dbaccess.DbUtils;
+import com.axway.ats.core.dbaccess.postgresql.DbConnPostgreSQL;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagesPojo;
-import com.axway.ats.log.autodb.DbWriteAccess;
+import com.axway.ats.log.autodb.PGDbWriteAccess;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
 
-public class HttpDbLoggerDbWriteAccess extends DbWriteAccess {
+public class HttpDbLoggerPGWriteAccess extends PGDbWriteAccess implements IHttpDbLoggerWriteAccess {
 
-    public HttpDbLoggerDbWriteAccess( DbConnection dbConnection ) throws DatabaseAccessException {
+    public HttpDbLoggerPGWriteAccess( DbConnPostgreSQL dbConnection ) throws DatabaseAccessException {
         super( dbConnection, false );
     }
 
@@ -40,7 +40,7 @@ public class HttpDbLoggerDbWriteAccess extends DbWriteAccess {
 
             int testcaseId = messages.getParentId();
 
-            InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory( true );
+            PGInsertEventStatementsFactory eventStatementsFactory = new PGInsertEventStatementsFactory( true );
 
             for( InsertMessagePojo message : messages.getMessages() ) {
 
@@ -80,7 +80,7 @@ public class HttpDbLoggerDbWriteAccess extends DbWriteAccess {
             int suiteId = messages.getParentId();
 
             dbEventsCache = new DbEventsCache( this );
-            InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory( true );
+            PGInsertEventStatementsFactory eventStatementsFactory = new PGInsertEventStatementsFactory( true );
 
             for( InsertMessagePojo message : messages.getMessages() ) {
 
@@ -121,7 +121,7 @@ public class HttpDbLoggerDbWriteAccess extends DbWriteAccess {
             int runId = messages.getParentId();
 
             dbEventsCache = new DbEventsCache( this );
-            InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory( true );
+            PGInsertEventStatementsFactory eventStatementsFactory = new PGInsertEventStatementsFactory( true );
 
             for( InsertMessagePojo message : messages.getMessages() ) {
 

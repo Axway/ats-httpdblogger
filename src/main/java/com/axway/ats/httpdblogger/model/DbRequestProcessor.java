@@ -17,8 +17,9 @@ package com.axway.ats.httpdblogger.model;
 
 import java.util.List;
 
-import com.axway.ats.core.dbaccess.DbConnection;
+import com.axway.ats.core.dbaccess.DbUtils;
 import com.axway.ats.core.dbaccess.mssql.DbConnSQLServer;
+import com.axway.ats.core.dbaccess.postgresql.DbConnPostgreSQL;
 import com.axway.ats.httpdblogger.exceptions.UnknownRunException;
 import com.axway.ats.httpdblogger.exceptions.UnknownSuiteException;
 import com.axway.ats.httpdblogger.exceptions.UnknownTestcaseException;
@@ -35,8 +36,9 @@ import com.axway.ats.httpdblogger.model.pojo.request.StartSuitePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.StartTestcasePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.UpdateRunPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.UpdateSuitePojo;
-import com.axway.ats.log.autodb.DbReadAccess;
 import com.axway.ats.log.autodb.LifeCycleState;
+import com.axway.ats.log.autodb.PGDbReadAccess;
+import com.axway.ats.log.autodb.SQLServerDbReadAccess;
 import com.axway.ats.log.autodb.entities.Run;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
 
@@ -49,12 +51,12 @@ import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
 public class DbRequestProcessor {
 
     // the current state
-    private LifeCycleState            state;
+    private LifeCycleState           state;
 
     // the ATS DB Writer
-    private HttpDbLoggerDbWriteAccess dbWriteAccess;
+    private IHttpDbLoggerWriteAccess dbWriteAccess;
 
-    private int                       internalDbVersion;
+    private int                      internalDbVersion;
 
     public DbRequestProcessor() {
 
@@ -65,10 +67,26 @@ public class DbRequestProcessor {
 
         evaluateCurrentState( "start RUN", LifeCycleState.INITIALIZED, LifeCycleState.RUN_STARTED );
 
-        // establish DB connection
-        DbConnection dbConnection = new DbConnSQLServer( run.getDbHost(), run.getDbName(), run.getDbUser(),
-                                                         run.getDbPassword() );
-        dbWriteAccess = new HttpDbLoggerDbWriteAccess( dbConnection );
+        /*run.getDbHost(), run.getDbName(), run.getDbUser(), run.getDbPassword()*/
+
+        if( DbUtils.isMSSQLDatabaseAvailable( run.getDbHost(), run.getDbName(), run.getDbUser(),
+                                              run.getDbPassword() ) ) {
+            dbWriteAccess = new HttpDbLoggerSQLServerWriteAccess( new DbConnSQLServer( run.getDbHost(),
+                                                                                       run.getDbName(),
+                                                                                       run.getDbUser(),
+                                                                                       run.getDbPassword() ) );
+        } else if( DbUtils.isPostgreSQLDatabaseAvailable( run.getDbHost(), run.getDbName(), run.getDbUser(),
+                                                     run.getDbPassword() ) ) {
+            dbWriteAccess = new HttpDbLoggerPGWriteAccess( new DbConnPostgreSQL( run.getDbHost(),
+                                                                                 run.getDbName(),
+                                                                                 run.getDbUser(),
+                                                                                 run.getDbPassword() ) );
+        } else {
+
+            String errMsg = "Neither MSSQL, nor PostgreSQL server at '" + run.getDbHost()
+                            + "' contains ATS log database with name '" + run.getDbName() + "'.";
+            throw new DatabaseAccessException( errMsg );
+        }
 
         // start the RUN
         int runId = dbWriteAccess.startRun( run.getRunName(), run.getOsName(), run.getProductName(),
@@ -441,8 +459,17 @@ public class DbRequestProcessor {
     public List<Run> getRuns( String host, String db, String user, String password, String whereClause,
                               int recordsCount, String timeOffset ) throws DatabaseAccessException {
 
+        SQLServerDbReadAccess dbReadAccess = null;
         // establish DB connection
-        DbReadAccess dbReadAccess = new DbReadAccess( new DbConnSQLServer( host, db, user, password ) );
+        if( dbWriteAccess instanceof HttpDbLoggerSQLServerWriteAccess ) {
+            dbReadAccess = new SQLServerDbReadAccess( new DbConnSQLServer( host, db, user, password ) );
+        } else if( dbWriteAccess instanceof HttpDbLoggerPGWriteAccess ) {
+            dbReadAccess = new PGDbReadAccess( new DbConnPostgreSQL( host, db, user, password ) );
+        } else {
+            String errMsg = "Neither MSSQL, nor PostgreSQL server at '" + host
+                            + "' contains ATS log database with name '" + db + "'.";
+            throw new DatabaseAccessException( errMsg );
+        }
 
         try {
             setDbInternalVersion( dbReadAccess.getDatabaseInternalVersion() );
@@ -452,7 +479,8 @@ public class DbRequestProcessor {
         }
 
         // return the matching runs
-        return dbReadAccess.getRuns( 0, recordsCount, whereClause, "runId", true, Integer.parseInt( timeOffset ) );
+        return dbReadAccess.getRuns( 0, recordsCount, whereClause, "runId", true,
+                                     Integer.parseInt( timeOffset ) );
 
     }
 
