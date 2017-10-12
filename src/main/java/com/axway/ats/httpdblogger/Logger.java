@@ -15,20 +15,28 @@
  */
 package com.axway.ats.httpdblogger;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.io.FileUtils;
+
+import com.axway.ats.core.utils.IoUtils;
 import com.axway.ats.core.utils.StringUtils;
 import com.axway.ats.httpdblogger.exceptions.NoSessionIdException;
 import com.axway.ats.httpdblogger.exceptions.UnknownSessionException;
@@ -46,9 +54,6 @@ import com.axway.ats.httpdblogger.model.pojo.request.StartSuitePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.StartTestcasePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.UpdateRunPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.UpdateSuitePojo;
-import com.axway.ats.httpdblogger.model.pojo.response.ResponseStartRunPojo;
-import com.axway.ats.httpdblogger.model.pojo.response.ResponseStartSuitePojo;
-import com.axway.ats.httpdblogger.model.pojo.response.ResponseStartTestcasePojo;
 import com.axway.ats.log.autodb.LifeCycleState;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
 import com.wordnik.swagger.annotations.Api;
@@ -68,7 +73,10 @@ public class Logger extends BaseEntry {
     @Context
     private ServletContext     servletContext;
 
-    public static final String SESSION_DATA_ATTRIB_NAME = "sessionData";
+    public static final String  SESSION_DATA_ATTRIB_NAME = "sessionData";
+    private static final String ATTACHED_FILES_PROPERTY  = "ats.attached.files.dir";
+
+    private final long         MAX_FILE_SIZE            = 10 * 1024 * 1024; // 10MB
 
     @POST
     @Path("startRun")
@@ -105,7 +113,10 @@ public class Logger extends BaseEntry {
 
             sd.getDbRequestProcessor().startRun( run );
             sd.setRun( run );
-            return Response.ok( new ResponseStartRunPojo( httpSession.getId(), run.getRunId() ) ).build();
+            return Response.ok()
+                           .header( "sessionId", httpSession.getId() )
+                           .header( "runId", run.getRunId() )
+                           .build();
         } catch( DatabaseAccessException e ) {
             return returnError( e, "Unable to start run" );
         }
@@ -152,7 +163,7 @@ public class Logger extends BaseEntry {
             // add the suite to already known suites
             sd.addSuiteId( suiteId, suite.getSuiteName() );
 
-            return Response.ok( new ResponseStartSuitePojo( suiteId ) ).build();
+            return Response.ok().header( "suiteId", suiteId ).build();
         } catch( Exception e ) {
             return returnError( e, "Unable to start suite" );
         }
@@ -201,7 +212,7 @@ public class Logger extends BaseEntry {
             // add the testcase id to already known testcaseIds
             sd.addTestcaseId( testcaseId, testcase.getTestcaseName() );
 
-            return Response.ok( new ResponseStartTestcasePojo( testcaseId ) ).build();
+            return Response.ok().header( "testcaseId", testcaseId ).build();
         } catch( Exception e ) {
             return returnError( e, "Unable to start testcase" );
         }
@@ -275,8 +286,8 @@ public class Logger extends BaseEntry {
 
             if( StringUtils.isNullOrEmpty( messages.getParentType() ) ) {
                 throw new NoSuchElementException( "Parent type does not specified for messages with Parent ID = "
-                                                    + messages.getParentId()
-                                                    + ". Message with missing Parent type could not be logged to database." );
+                                                  + messages.getParentId()
+                                                  + ". Message with missing Parent type could not be logged to database." );
             }
 
             boolean skipLifeCycleStateCheck = messages.getParentId() != -1;
@@ -614,6 +625,103 @@ public class Logger extends BaseEntry {
         }
     }
 
+    @PUT
+    @Path("attachFile")
+    @ApiOperation(value = "Attach multipart file", notes = "")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully attached file"),
+                            @ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response
+            attachFileToCurrentTest( @Context HttpServletRequest request,
+                                     @ApiParam(value = "file input stream", required = true) InputStream is ) {
+
+        String sessionId = request.getHeader( "sessionId" );
+        String testcaseId = request.getHeader( "testcaseId" );
+        String fileName = request.getHeader( "fileName" );
+
+        HttpSession httpSession = getHttpSession( request, sessionId, false );
+        SessionData sd = ( SessionData ) getSessionData( httpSession, false );
+
+        String databaseName = sd.getRun().getDbName();
+        if( StringUtils.isNullOrEmpty( databaseName ) ) {
+            return returnError( new NoSuchElementException( "Database name not found in the request." ),
+                                "Unable to attach file." );
+        }
+
+        int runId = sd.getRun().getRunId();
+        int suiteId = sd.getRun().getSuite().getSuiteId();
+        if( StringUtils.isNullOrEmpty( testcaseId ) ) {
+            testcaseId = String.valueOf( sd.getRun().getSuite().getTestcase().getTestcaseId() );
+        }
+
+        String attachmentsDir = System.getProperty( ATTACHED_FILES_PROPERTY );
+        if( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
+            attachmentsDir = System.getenv( ATTACHED_FILES_PROPERTY );
+        }
+        if( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
+            attachmentsDir = getProperties().getProperty( ATTACHED_FILES_PROPERTY );
+        }
+        if( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
+            attachmentsDir = System.getenv( "CATALINA_BASE" );
+        }
+        if( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
+            attachmentsDir = System.getenv( "CATALINA_HOME" );
+        }
+
+        if( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
+            String errorMessage = "No directory for attached files was configured. "
+                                  + "You can set such directory in one of the following ways: " + "key '"
+                                  + ATTACHED_FILES_PROPERTY
+                                  + "' as a system variable, environment variable or property in the WEB-INF/classes/ats.config.properties configuration file in the Test Explorer war file. "
+                                  + "Last option is to set 'CATALINA_BASE' or 'CATALINA_HOME' when running on Tomcat.";
+
+            return Response.status( 500 ).type( "text/plain" ).entity( errorMessage ).build();
+        } else 
+
+        attachmentsDir = attachmentsDir.replace( "\\", "/" );
+
+        String attachedFilesDir = attachmentsDir + "/ats-attached-files" + "/" + databaseName;
+        attachedFilesDir = attachedFilesDir + "/" + runId + "/" + suiteId + "/" + testcaseId;
+        attachedFilesDir = IoUtils.normalizeFilePath( attachedFilesDir );
+        File attachedDirFile = new File( attachedFilesDir );
+        if( !attachedDirFile.exists() ) {
+            attachedDirFile.mkdirs();
+        }
+
+        String filePath = attachedFilesDir + "/" + fileName;
+        File newFile = new File( filePath );
+        try {
+            FileUtils.copyInputStreamToFile( is, newFile );
+        } catch( IOException e ) {
+            return returnError( e, "Unable to attach file." );
+        }
+
+        File fileToAttach = new File( filePath );
+        long fileSize = fileToAttach.length();
+        if( fileSize > MAX_FILE_SIZE ) {
+            log.warn( "Cannot not attach file \"{FILE}\" to the current testcase: as its size of \""
+                      + fileSize + "\" bytes is larger than the allowed 10MB" );
+        }
+
+        return Response.ok().build();
+
+    }
+    
+    private Properties getProperties() {
+
+        Properties configProperties = new Properties();
+
+        try {
+            configProperties.load( this.getClass()
+                                       .getClassLoader()
+                                       .getResourceAsStream( "ats.config.properties" ) );
+        } catch( Exception e ) {
+            logInfo( "Can't load ats.config.properties file" );
+        }
+
+        return configProperties;
+    }
+
     private HttpSession getHttpSession( HttpServletRequest request, String sessionId,
                                         boolean createNewSession ) {
 
@@ -632,7 +740,6 @@ public class Logger extends BaseEntry {
                     httpSession = request.getSession( true );
                 }
             }
-
         }
 
         if( httpSession == null ) {
@@ -720,5 +827,4 @@ public class Logger extends BaseEntry {
 
         sessionData.setRun( oldRun );
     }
-
 }
