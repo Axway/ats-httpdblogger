@@ -139,10 +139,9 @@
                             <locations>com.axway.ats.httpdblogger</locations>
                             <info>
                                 <title>ATS HTTP DB logger</title>
-                                <version>v1</version>
+                                <version>v${version}</version>
                                 <description>
-                                    ATS HTTP application for logging test data in ATS
-                                    DB
+                                    ATS HTTP application for logging test data in ATS DB
                                 </description>
                                 <contact>
                                     <email>group.ats.team@axway.com</email>
