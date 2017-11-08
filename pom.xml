@@ -139,7 +139,7 @@
                             <locations>com.axway.ats.httpdblogger</locations>
                             <info>
                                 <title>ATS HTTP DB logger</title>
-                                <version>v${version}</version>
+                                <version>v${project.version}</version>
                                 <description>
                                     ATS HTTP application for logging test data in ATS DB
                                 </description>
