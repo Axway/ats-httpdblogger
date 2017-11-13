@@ -461,9 +461,9 @@ public class DbRequestProcessor {
 
         SQLServerDbReadAccess dbReadAccess = null;
         // establish DB connection
-        if( dbWriteAccess instanceof HttpDbLoggerSQLServerWriteAccess ) {
+        if( DbUtils.isMSSQLDatabaseAvailable( host, db, user, password ) ) {
             dbReadAccess = new SQLServerDbReadAccess( new DbConnSQLServer( host, db, user, password ) );
-        } else if( dbWriteAccess instanceof HttpDbLoggerPGWriteAccess ) {
+        } else if( DbUtils.isPostgreSQLDatabaseAvailable( host, db, user, password ) ) {
             dbReadAccess = new PGDbReadAccess( new DbConnPostgreSQL( host, db, user, password ) );
         } else {
             String errMsg = "Neither MSSQL, nor PostgreSQL server at '" + host

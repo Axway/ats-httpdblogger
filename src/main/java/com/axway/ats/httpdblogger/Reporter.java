@@ -81,14 +81,14 @@ public class Reporter extends BaseEntry {
             getRuns( @Context HttpServletRequest request,
                      @ApiParam(value = "DB name", required = true) @QueryParam("dbName") String dbName,
                      @ApiParam(value = "DB host. Default is 127.0.0.1", required = false) @DefaultValue("127.0.0.1") @QueryParam("dbHost") String dbHost,
-                     @ApiParam(value = "DB user. Default is AutoUser", required = false) @DefaultValue("AutoUser") @QueryParam("dbUser") String dbUser,
+                     @ApiParam(value = "DB user. Default is AutoUser", required = false) @DefaultValue("AtsUser") @QueryParam("dbUser") String dbUser,
                      @ApiParam(value = "DB password. Default is AtsPassword", required = false) @DefaultValue("AtsPassword") @QueryParam("dbPassword") String dbPassword,
                      @ApiParam(value = "Columns to show from the result set as they show up in Test Explorer UI. "
                                        + "Possible values: name, product, version, build, os, "
                                        + "scenariosTotal, scenariosFailed, testcasesTotal, testcasesfailed, testcasesSkipped, "
                                        + "dateStart, dateEnd, duration, userNote, hostName. "
                                        + "If not specified - all columns are returned", required = false) @QueryParam("columns") String columns,
-                     @ApiParam(value = "Max number of runs to return. Default is 1000", required = false) @DefaultValue("1000") @QueryParam("top") int top,
+                     @ApiParam(value = "Max number of runs to return. Default is 1000", required = false) @DefaultValue("1000") @QueryParam("numberItems") int numberItems,
                      @ApiParam(value = "Token contained in the run name.", required = false) @QueryParam("name") String name,
                      @ApiParam(value = "Token contained in the product name.", required = false) @QueryParam("product") String product,
                      @ApiParam(value = "Token contained in the version name.", required = false) @QueryParam("version") String version,
@@ -111,9 +111,9 @@ public class Reporter extends BaseEntry {
             currentTimestamp = System.currentTimeMillis()+"";
         }
 
-        if( top < 1 ) {
+        if( numberItems < 1 ) {
             // the number to runs to fetch must be positive
-            top = 1000;
+            numberItems = 1000;
         }
 
         String whereClause = constructWhereClause( name, product, version, build, os );
@@ -123,7 +123,7 @@ public class Reporter extends BaseEntry {
         try {
             dbRequestProcessor = new DbRequestProcessor();
             List<Run> runs = dbRequestProcessor.getRuns( dbHost, dbName, dbUser, dbPassword, whereClause,
-                                                         top, timeOffset );
+                                                         numberItems, timeOffset );
 
             internalDbVersion = dbRequestProcessor.getDbInternalVersion();
 
