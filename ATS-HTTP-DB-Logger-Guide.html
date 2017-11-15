@@ -1,49 +1,97 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-    <head>
-        <title>ATS : Using the HTTP DB Logger</title>
-        <link rel="stylesheet" href="styles/site.css" type="text/css" />
-        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    </head>
-
-    <body class="theme-default aui-theme-default">
-        <div id="page">
-            <div id="main" class="aui-page-panel">
-                <div id="main-header">
-<a><img class="axway_logo" src="images/AxwayLogo.png" alt="Axway Inc"></a>
-
-                    <div id="breadcrumb-section">
-                        <ol id="breadcrumbs">
-                            <li class="first">
-                                <span><a href="index.html">ATS</a></span>
-                            </li>
-                                                </ol>
-                    </div>
-                    <h1 id="title-heading" class="pagetitle">
-                                                <span id="title-text">
-                            ATS : Using the HTTP DB Logger
-                        </span>
-                    </h1>
-                </div>
-
-                <div id="content" class="view">
-                    
-                    <div id="main-content" class="wiki-content group">
-                    <p><span style="color: rgb(153,51,0);"><strong>Introduction</strong></span></p><hr/><p>Imagine you have your own tests written in a language different than java, but you would like to use Test Explorer for your needs.</p><p>All that needs to be done is to allow you to send the proper log events into a Test Explorer DB and then you can review the test results in same way as when you run your tests from java.</p><p><strong style="color: rgb(153,51,0);font-size: 20.0px;"><br/></strong></p><p><strong style="color: rgb(153,51,0);font-size: 20.0px;">Installing the logging server</strong></p><hr/><p>You need to have somewhere a running instance of the ATS HTTP DB Logging Server. It is distributed as a regular <em>war</em> file which needs to be started as any other web application by Tomcat or a similar web server.</p><p>You can download the latest version from <a class="external-link" href="https://oss.sonatype.org/content/repositories/releases/com/axway/ats/httpdblogger/ats-httpdblogger/" rel="nofollow">here</a></p><p><br/></p><div class="confluence-information-macro confluence-information-macro-information"><span class="aui-icon aui-icon-small aui-iconfont-info confluence-information-macro-icon"></span><div class="confluence-information-macro-body"><p>One HTTP Db Server can be used to log into different databases located on different hosts. You just have to specify the right target database host in the REST requests.<br/>Anyway, usually it makes sense to have the HTTP DB Logging Server located on the same host where the Test Explorer DB is.</p></div></div><p class="auto-cursor-target">As soon as the <span>HTTP DB Logging </span> server is running, you can start using it.</p><p><br/></p><p><strong style="color: rgb(120,0,0);font-size: 20.0px;">HTTP API for sending data to Test Explorer database</strong></p><hr/><p>All communication goes through &quot;application/json&quot; requests and response, so you have to specify accordingly the &quot;Content-Type&quot; and &quot;Accept&quot; headers.</p><p>The JSON body in your request will contain all the info each log event needs to send.</p><p>If there is an error, it will be in the response body.</p><p><br/></p><h3 id="UsingtheHTTPDBLogger-SequenceofrunningtheHTTPcalls"><strong style="color: rgb(120,0,0);font-size: 20.0px;"><span>Sequence of running the HTTP calls</span></strong></h3><h4 id="UsingtheHTTPDBLogger-Overviewofcommonrequestinformation"><strong style="color: rgb(242,0,0);font-size: 14.0px;"><span style="color: rgb(120,0,0);">Overview of common request information</span></strong></h4><p><br/></p><p>Each HTTP request (except startRun) needs a session ID field. This field maps the request to an existing HTTP session. The session stores information like connection to a DB, previously started run, suites and test cases.</p><p>The only exception to the above rule is the start run call/request. When a request like it is received, the logging server will ignore any session ID value (if one is presented), create both new session and run and return the session and run ID to the client.</p><p><br/></p><p>Additionally to the session ID, each request can have a time stamp, parent ID and parent type (&quot;RUN&quot;, &quot;SUITE&quot; or &quot;TESTCASE&quot;).</p><p><br/></p><p>The time stamp (expected to be in milliseconds) is the time and date of the event. If the request does not specify it, the logging server will use its current time (the one of the machine where it is deployed) as a time stamp for the event.</p><p><br/></p><p>The parent type is used when inserting one or more messages and determines what the message type is, whether it is a RUN, SUITE or TESTCASE message.</p><p><br/></p><p>And finally the parent ID determines the actual run, suite or testcase.</p><p><br/></p><p>If parent ID or parent type are send with any other request, except insert a message or insert messages, it will be ignored by the server and a message will be logged notifying the discarding of these field.</p><p><br/></p><p><strong><span style="color: rgb(153,51,0);">Default Sequence - using the HTTP DB Logger event processor</span></strong></p><p><br/></p><div class="confluence-information-macro confluence-information-macro-note"><p class="title">Parent type and parent ID</p><span class="aui-icon aui-icon-small aui-iconfont-warning confluence-information-macro-icon"></span><div class="confluence-information-macro-body"><p>When call to the server does not provide both parent type and parent ID, the server uses its own event processing logic and expects the order of events as described below.</p><p>This also means that according to the state of the session (whether a run, suite or a testcase is started), some events can only be processed after certain preconditions are met.</p><p>For example you can not start two testcases or two suites in parallel. To do that you will have to disable the usage of the default event processor.</p><p>More information on how to disable the event processor can be found in the <span style="color: rgb(0,0,0);"><strong><em>Logging events without using the default event processor</em> </strong>section below.</span></p><p>Also note that whether using default sequence or not, session ID is always required, except in the startRun event.</p></div></div><p><strong style="color: rgb(153,51,0);"><br/></strong></p><p><strong style="color: rgb(153,51,0);">Start a Run</strong></p><p><strong>startRun</strong> event is executed as the very first log event. It enabled the logging to a database and start a new run.</p><p>First, you have to start a RUN which means you have to provide some info about the tested application.</p><div class="confluence-information-macro confluence-information-macro-note"><p class="title">Session ID</p><span class="aui-icon aui-icon-small aui-iconfont-warning confluence-information-macro-icon"></span><div class="confluence-information-macro-body"><p>Successful start of a RUN will give you back a sessionId token in the response body.</p><p>From that moment on, you must send back to the server this token, so we will know which RUN you are referring to.</p><p>This also ensures that RUNs, SUITEs or TESTCASEs, started from one session, could not be manipulated by another.</p></div></div><p><span style="color: rgb(153,51,0);"><strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong>Add a Run metainfo</strong></span></p><p><span style="color: rgb(0,0,0);"><strong>addRunMetainfo</strong> event allows adding meta-info about whole run execution or a particular test scenario.</span></p><p>Currently the only key that will affect the Test Explorer's work is the &quot;type&quot;.</p><div class="confluence-information-macro confluence-information-macro-note"><span class="aui-icon aui-icon-small aui-iconfont-warning confluence-information-macro-icon"></span><div class="confluence-information-macro-body"><p>You can send this event to the server at any time after a RUN is started, even after this run is closed.</p></div></div><p><span style="color: rgb(153,51,0);"><strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong>Insert a Run message</strong></span></p><p><span style="color: rgb(0,0,0);"><strong>insertMessage</strong> and <strong>insertMessages</strong> calls log run messages to the database.</span></p><div class="confluence-information-macro confluence-information-macro-information"><span class="aui-icon aui-icon-small aui-iconfont-info confluence-information-macro-icon"></span><div class="confluence-information-macro-body"><p><span style="color: rgb(0,0,0);">There are two HTTP calls regarding inserting of message - insertMessage and insertMessages.</span></p><p><span style="color: rgb(0,0,0);">Both methods are used to insert messages to run, suite or test case.</span></p><p><span style="color: rgb(0,0,0);">The only difference is that by using insertMessage, you can log one and only one message at a time, and by using insertMessages, you can insert more than one message with a single HTTP call.</span></p></div></div><p><span style="color: rgb(153,51,0);"><strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong>Start a Suite</strong></span></p><p><span style="color: rgb(0,0,0);"><strong>startSuite</strong> event is executed when a number of tests are to started. In java world this corresponds to the java class which contains all tests(the actual java methods).<strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong>Insert a Suite message</strong></span></p><p><span style="color: rgb(0,0,0);"><strong>insertMessage</strong> and <strong>insertMessages</strong> calls log suite messages to the database.</span></p><p><span style="color: rgb(153,51,0);"><strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong>Start a Testcase</strong></span></p><p><span style="color: rgb(153,51,0);"><span style="color: rgb(0,0,0);"><strong>startTestcase</strong> event is the one that opens the test for logging inside of it</span><strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong>Add a Scenario metainfo</strong></span></p><p><span style="color: rgb(153,51,0);"><strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong>Insert a Testcase message</strong></span></p><p><span style="color: rgb(153,51,0);"><span style="color: rgb(0,0,0);"><strong>insertMessage</strong> and <strong>insertMessages</strong> calls log testcase messages to the database.</span><strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong>End a Testcase</strong></span></p><p><span style="color: rgb(0,0,0);"><strong>endTestcase</strong> event says if the test passed, failed or was skipped.<strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong>Update a Suite</strong></span></p><p><span style="color: rgb(0,0,0);"><strong>updateSuite</strong> event can update the current suite name and/or suite user note</span></p><p><span style="color: rgb(153,51,0);"><strong><br/></strong></span></p><p><span style="color: rgb(153,51,0);"><strong>End a Suite</strong></span></p><p><span style="color: rgb(0,0,0);"><strong>endSuite</strong> event closes the suite. In java world this events marks the ending of the last test from the current java class.</span></p><p><span style="color: rgb(153,51,0);"><strong><br/>Update a Run</strong></span></p><p><span style="color: rgb(153,51,0);"><span style="color: rgb(0,0,0);"><strong>updateRun</strong> event can update the current run information like product name, version, build number, etc.</span></span></p><p><span style="color: rgb(153,51,0);"><strong><span style="color: rgb(0,0,0);"><br/></span></strong></span></p><p><span style="color: rgb(153,51,0);"><strong>End a Run</strong></span></p><p><span style="color: rgb(153,51,0);"><span style="color: rgb(0,0,0);"><strong>endRun</strong> is the last event. It ends the execution of the run.</span></span></p><p><br/></p><p><span style="color: rgb(153,51,0);"><strong>Attach a File</strong></span></p><p><span style="color: rgb(153,51,0);"><span style="color: rgb(0,0,0);"><strong>attachFile</strong> event allows you to attach a file to the current testcase or other ( pointed with the exact testcaseId ).</span></span></p><h3 id="UsingtheHTTPDBLogger-Loggingeventswithoutusingthedefaulteventprocessor."><span style="color: rgb(153,51,0);"><span style="color: rgb(153,51,0);">Logging events without using the default event processor.</span></span></h3><p><br/></p><p><span style="color: rgb(0,0,0);">Most of the time using the internal event processor of the logging server is enough to log events since it is essentially the same way ATS Framework's log component is processing the events.</span></p><p><span style="color: rgb(0,0,0);">But here is the one big advantage of using the HTTP logger - doing things is parallel.</span></p><p><span style="color: rgb(0,0,0);">Since each request has optional parameters like parent type and parent ID, you can use them to disable the state checking of the logging server and do things like:</span></p><ul><li><span style="color: rgb(0,0,0);"> inserting messages in already closed run, suite or testcase</span></li><li><span style="color: rgb(0,0,0);">updating suite or run at any time (even after they are closed)</span></li><li><span style="color: rgb(0,0,0);">starting test cases to a closed suite or staring suites to a closed run</span></li><li>running two or more test cases or suites in parallel<br/><br/></li></ul><div class="confluence-information-macro confluence-information-macro-note"><span class="aui-icon aui-icon-small aui-iconfont-warning confluence-information-macro-icon"></span><div class="confluence-information-macro-body"><p><span style="color: rgb(0,0,0);">You still need to open a run though and once again one session corresponds to one run, e.g. you can not manipulate runs, suites or test cases, started by other sessions.</span></p></div></div><h2 id="UsingtheHTTPDBLogger-HTTPAPIforreadingdatafromTestExplorerdatabase"><strong><br/>HTTP API for reading data from Test Explorer database</strong></h2><hr/><p>Here you will find simple GET requests which can be used to retrieve data from the database</p><div class="confluence-information-macro confluence-information-macro-note"><span class="aui-icon aui-icon-small aui-iconfont-warning confluence-information-macro-icon"></span><div class="confluence-information-macro-body"><p>No session is needed</p></div></div><h4 id="UsingtheHTTPDBLogger-Getlistofrunsmatchingsomesearchcriteria">Get list of runs matching some search criteria</h4><p>Let's have a look at this example:</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
-<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">http://localhost:8080/ats-httpdblogger/service/reporter/getRuns?dbName=MyTests&amp;build=3.1.3&amp;os=win&amp;top=3&amp;columns=name, version, build, duration
-</pre>
-</div></div><p>Here is the explanation:</p><ul><li>Base URI <a class="external-link" href="http://kermit.auto.lab.sofi.axway.int:8080/ats-rest-logger/rest/reporter/getRuns" rel="nofollow">http://localhost:8080/ats-httpdblogger/service</a>/<a class="external-link" href="http://kermit.auto.lab.sofi.axway.int:8080/ats-rest-logger/rest/reporter/getRuns" rel="nofollow">reporter/getRuns?</a><br/>It points to address of the REST Application and its public operation called getRuns</li><li><em>dbName -</em> a must have parameter saying the database to work with</li><li><em>dbHost</em> - optionally can specify to pull the data from a different host</li><li><em>dbUsername</em> - optionally can specify a non default <em>AtsUser</em> database user</li><li><em>dbPassword</em> - optionally can specify a non default <em>AtsPassword</em> database password</li><li>timeOffset - optionally can specify time zone offset in milliseconds. If this parameter is not provided, start and end run time stamps will be returned in UTC locale</li><li>currentTimestamp - optionally can specify current time of the client in milliseconds, which will be used for calculating the duration of runs, that are still executing/running. If this parameter is not provided, HttpDbLogger's current time will be used</li><li>top - specify the max number of runs to be returned</li><li>columns - specify which columns to show:<br/>name, product, version, build, os, scenariosTotal, scenariosFailed, testcasesTotal, testcasesfailed, testcasesSkipped, dateStart, dateEnd, duration, userNote<br/>If not specified - all columns are returned.</li></ul><p>A possible result could be:</p><div class="code panel pdl" style="border-width: 1px;"><div class="codeContent panelContent pdl">
-<pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">{&quot;runs&quot;:[
-{&quot;Run&quot;:&quot;CFT Integration - DEV&quot;, &quot;Version&quot;:&quot;3.1.3_SP4_R8905227-SNAPSHOT&quot;, &quot;Build&quot;:&quot;3.1.3_SP4_R8905227-SNAPSHOT&quot;, &quot;Duration&quot;:&quot;00:01:36&quot;}
-{&quot;Run&quot;:&quot;CFT Integration - DEV&quot;, &quot;Version&quot;:&quot;3.1.3_SP4_R8905227-SNAPSHOT&quot;, &quot;Build&quot;:&quot;3.1.3_SP4_R8905227-SNAPSHOT&quot;, &quot;Duration&quot;:&quot;00:08:13&quot;}
-{&quot;Run&quot;:&quot;CFT Integration - DEV&quot;, &quot;Version&quot;:&quot;3.1.3_SP4_R8905227-SNAPSHOT&quot;, &quot;Build&quot;:&quot;3.1.3_SP4_R8905227-SNAPSHOT&quot;, &quot;Duration&quot;:&quot;00:02:41&quot;}
-]}
-</pre>
-</div></div><p>We have returned info about <em>3</em> runs with specified <em>build</em> and <em>os</em>.We have also specified which columns to be displayed.</p><h1 id="UsingtheHTTPDBLogger-ExamplesforusingtheHTTPDBLoggingAPI">Examples for using the HTTP DB Logging API</h1><hr/><p><a href="Using-the-HTTP-DB-Logger-via-Python.html">Using the HTTP DB Logger's API via Python</a></p><div class="confluence-information-macro confluence-information-macro-information"><span class="aui-icon aui-icon-small aui-iconfont-info confluence-information-macro-icon"></span><div class="confluence-information-macro-body"><p>Python is used only to show you an example of the logging API. You can use any other language you like.</p></div></div><p><br/></p><h1 id="UsingtheHTTPDBLogger-SwaggerUI">Swagger UI</h1><hr/><p>Swagger UI is a JavaScript application, that you can use to generate <a class="external-link" href="https://curl.haxx.se" rel="nofollow">cURL</a> commands for all of the HTTP Db Logger methods.</p><p><a class="external-link" href="swagger/index.html" rel="nofollow">Try it</a></p><p><br/></p><p><br/></p>
-                    </div>
-
-                    
-                 
-                </div>             </div> 
-            
-
+ <head> 
+  <title>ATS : ATS HTTP DB Logger Guide</title> 
+  <link rel="stylesheet" href="styles/site.css" type="text/css"> 
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> 
+ </head> 
+ <body class="theme-default aui-theme-default"> 
+  <div id="page"> 
+   <div id="main" class="aui-page-panel"> 
+    <div id="main-header"> 
+     <a><img class="axway_logo" src="images/AxwayLogo.png" alt="Axway Inc"></a> 
+     <div id="breadcrumb-section"> 
+      <ol id="breadcrumbs"> 
+       <li class="first"> <span><a href="index.html">ATS</a></span> </li> 
+      </ol> 
+     </div> 
+     <h1 id="title-heading" class="pagetitle"> <span id="title-text"> ATS : ATS HTTP DB Logger Guide </span> </h1> 
+    </div> 
+    <div id="content" class="view"> 
+     <div id="main-content" class="wiki-content group"> 
+      <h1 id="ATSHTTPDBLoggerGuide-Introduction">Introduction</h1>
+      <p>The ATS framework is an automated testing framework which usually sends its test execution results to a database. The test results are naturally and nicely reviewed by the ATS <a class="external-link" href="https://github.com/Axway/ats-testexplorer" rel="nofollow">Test Explorer</a> web application.</p>
+      <p>If we imagine you want to run non-java tests and still review the execution results through Test Explorer, then this page is just for you. The HTTP DB Logger is an application which will connect your non-java tests with the Test Explorer database.</p>
+      <p>The HTTP DB Logger is a simple REST server which can accept your REST calls and translate them properly to the Test Explorer database.</p>
+      <p><br></p>
+      <hr>
+      <h1 id="ATSHTTPDBLoggerGuide-Installation">Installation</h1>
+      <p>The ATS HTTP DB Logging Server is distributed as a regular&nbsp;<strong><em>war</em>&nbsp;</strong>file which needs to be started as any other web application by Tomcat or a similar web server.</p>
+      <p>The server is ready to be used once it gets started.</p>
+      <div class="confluence-information-macro confluence-information-macro-information">
+       <span class="aui-icon aui-icon-small aui-iconfont-info confluence-information-macro-icon"></span>
+       <div class="confluence-information-macro-body">
+        <p>The HTTP Db Server can be used to log into different databases located on different hosts. You just have to specify the right target database host in the REST requests.<br>Anyway, usually it makes sense to have the HTTP DB Logging Server located on the same host where the Test Explorer DB is.</p>
+       </div>
+      </div>
+      <hr>
+      <h1 id="ATSHTTPDBLoggerGuide-Requestformat">Request format</h1>
+      <p>The request type is expected in the form of <em> <strong>application/json</strong> </em>, so you must specify accordingly the "Content-Type" header.</p>
+      <p>The log event itself is expected to be contained in the JSON body, so you must properly set the expected key-value pairs for each event type.</p>
+      <p>Each request must contain a <em> <strong>sessionID</strong> </em> body token which points to the current session. The only exception is the <em> <strong>startRun</strong> </em> request which does not expect such token.</p>
+      <p>Unless specified, requests that send data to the database are using POST, while requests that read data from the database are using GET.</p>
+      <p><br></p>
+      <hr>
+      <h1 id="ATSHTTPDBLoggerGuide-Responseformat">Response format</h1>
+      <p>The response type in the form of <em> <strong>application/json</strong></em>, so you should specify accordingly the "Accept" header.</p>
+      <p><br></p>
+      <hr>
+      <h1 id="ATSHTTPDBLoggerGuide-Someimportanttokensusedinthecommunication">Some important tokens used in the communication</h1>
+      <h3 id="ATSHTTPDBLoggerGuide-SessionID">Session ID</h3>
+      <p>Once the server give you back a Session ID, all following requests pass this token as part of the body, so this request can be assigned to the proper session on the server side.</p>
+      <p>The session stores information like connection to a database, previously started run, suites and test cases.</p>
+      <p>The Session ID is created on executing a <em> <strong>startRun</strong> </em> event.</p>
+      <h3 id="ATSHTTPDBLoggerGuide-Timestamp">Timestamp</h3>
+      <p>Many requests are allowed to optionally provide a timestamp. The timestamp (expected in milliseconds) is the time and date of the event occurrence.</p>
+      <p>If the request is to be persisted in the database(with other words if this is not a GET), then it must reach the database with some timestamp set. In case the request does not specify one, the logging server will apply the time of the server itself.</p>
+      <h3 id="ATSHTTPDBLoggerGuide-ParentID">Parent ID</h3>
+      <p>When used, you specify the parent of the current event. For example when do <em>startTestcase</em> the parent ID tells us the particular SUITE this TESTCASE will belong to.</p>
+      <p>The parent ID is the actual database ID of the parent table.</p>
+      <p>Only a RUN cannot have a parent.</p>
+      <p><br></p>
+      <hr>
+      <h1 id="ATSHTTPDBLoggerGuide-SendingdatatoTestExplorerdatabase">Sending data to Test Explorer database</h1>
+      <p><a href="Sending-data-to-Test-Explorer-database.html">Here</a> you will find how to use the application for sending data to the database</p>
+      <p><br></p>
+      <hr>
+      <h1 id="ATSHTTPDBLoggerGuide-ReadingdatafromTestExplorerdatabase">Reading data from Test Explorer database</h1>
+      <p><a href="Reading-data-from-Test-Explorer-database.html">Here</a> you will find how to use the application for reading data from the database</p>
+      <p><br></p>
+      <hr>
+      <h1 id="ATSHTTPDBLoggerGuide-Retrievingthedistribution">Retrieving the distribution</h1>
+      <p><a class="external-link" href="https://oss.sonatype.org/content/repositories/releases/com/axway/ats/httpdblogger/ats-httpdblogger/" rel="nofollow">Here</a> is the location with all available versions</p>
+      <p><br></p>
+      <hr>
+      <h1 id="ATSHTTPDBLoggerGuide-Releasenotes">Release notes</h1>
+      <p><a href="HTTP-DB-Logger-Release-Notes.html">Here</a> they are</p>
+      <p><br></p>
+      <hr>
+      <h1 id="ATSHTTPDBLoggerGuide-ExampleusingtheHTTPDBLoggingAPI">Example using the HTTP DB Logging API</h1>
+      <p>As all communication is REST based, you can interact with any kind of programming language.</p>
+      <p><a href="125493845.html">Here</a> we have made an example via python.</p>
+      <p><br></p>
+      <hr>
+      <h1 id="ATSHTTPDBLoggerGuide-SwaggerUI">Swagger UI</h1>
+      <p>Swagger UI is a JavaScript application, that you can use to generate&nbsp;<a class="external-link" href="https://curl.haxx.se" rel="nofollow">cURL</a> commands for all of the HTTP Db Logger methods.</p>
+      <p>Give it a try <a class="external-link" href="https://axway.github.io/ats-httpdblogger/swagger/index.html" rel="nofollow">here</a></p>
+      <p><br></p> 
+     </div> 
+    </div> 
+   </div> 
+  </div>
+  <hr>
+  <p>Go to <a href="./index.html">parent page</a></p>
+  <p>Go to <a href="./toc.html">Table of Contents</a></p>
+  <hr>
+ </body>
+</html>
