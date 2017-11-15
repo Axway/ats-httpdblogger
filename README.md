@@ -6,7 +6,7 @@ ATS HTTP Db Logger is a web ( HTTP ) application used for logging test execution
 
 **Documentation** is available at https://axway.github.io/ats-httpdblogger/ATS-HTTP-DB-Logger-Guide.html
 
-ATS HTTPDB Logger **artifacts** are available at https://oss.sonatype.org/content/groups/public/com/axway/ats/httpdblogger/
+**Download**: ATS HTTPDB Logger **artifacts** are available at https://oss.sonatype.org/content/groups/public/com/axway/ats/httpdblogger/
 
 Other **related projects**:
 <ul>
@@ -15,4 +15,4 @@ Other **related projects**:
   <li>ATS Distribution at https://github.com/Axway/ats-distrib</li>
 </ul>
 
-Contact ATS team at group.ats.team@axway.com
+**Contact** ATS team at: _ats.team_  _@axway.com_
