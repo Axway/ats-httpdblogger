@@ -393,7 +393,11 @@
             <artifactId>jersey-media-moxy</artifactId>
             <version>${org.glassfish.jersey.jersey-server.version}</version>
         </dependency>
-
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-multipart</artifactId>
+			<version>${org.glassfish.jersey.jersey-server.version}</version>
+		</dependency>
         <!-- Web server provided dependencies -->
         <dependency>
             <groupId>javax.servlet</groupId>

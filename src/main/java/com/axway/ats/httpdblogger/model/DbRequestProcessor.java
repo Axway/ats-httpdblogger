@@ -15,17 +15,27 @@
  */
 package com.axway.ats.httpdblogger.model;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
 
 import com.axway.ats.core.dbaccess.DbUtils;
 import com.axway.ats.core.dbaccess.mssql.DbConnSQLServer;
 import com.axway.ats.core.dbaccess.postgresql.DbConnPostgreSQL;
+import com.axway.ats.core.utils.IoUtils;
+import com.axway.ats.core.utils.StringUtils;
 import com.axway.ats.httpdblogger.exceptions.UnknownRunException;
 import com.axway.ats.httpdblogger.exceptions.UnknownSuiteException;
 import com.axway.ats.httpdblogger.exceptions.UnknownTestcaseException;
 import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.AddRunMetainfoPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.AddScenarioMetainfoPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.AttachFilePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.EndRunPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.EndSuitePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.EndTestcasePojo;
@@ -49,6 +59,12 @@ import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
  * the DB Writer
  */
 public class DbRequestProcessor {
+
+    private static final String      ATTACHED_FILES_PROPERTY  = "ats.attached.files.dir";
+    
+    private final long               MAX_FILE_SIZE            = 10 * 1024 * 1024; // 10MB
+    
+    private static final Logger      log                      = Logger.getLogger( DbRequestProcessor.class );
 
     // the current state
     private LifeCycleState           state;
@@ -330,6 +346,72 @@ public class DbRequestProcessor {
 
     }
 
+    public void attachFile( SessionData sd, AttachFilePojo attachFilePojo,
+                            boolean attachFileToCurrentTestcase, int testcaseId ) throws Exception {
+
+        if( attachFileToCurrentTestcase ) {
+            evaluateCurrentState( "attach file", LifeCycleState.TEST_CASE_STARTED,
+                                  LifeCycleState.TEST_CASE_STARTED );
+        } else {
+            validateTestcaseId( sd, attachFilePojo.getParentId(), attachFilePojo.getSessionId() );
+        }
+        
+        String attachmentsDir = System.getProperty( ATTACHED_FILES_PROPERTY );
+        if( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
+            attachmentsDir = System.getenv( ATTACHED_FILES_PROPERTY );
+        }
+        if( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
+            attachmentsDir = getProperties().getProperty( ATTACHED_FILES_PROPERTY );
+        }
+        if( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
+            attachmentsDir = System.getenv( "CATALINA_BASE" );
+        }
+        if( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
+            attachmentsDir = System.getenv( "CATALINA_HOME" );
+        }
+        
+        if ( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
+            String errorMessage = "No directory for attached files was configured. "
+                    + "You can set such directory in one of the following ways: " + "key '"
+                    + ATTACHED_FILES_PROPERTY
+                    + "' as a system variable, environment variable or property in the WEB-INF/classes/ats.config.properties configuration file in the HTTP DB Logger war file. "
+                    + "Last option is to set 'CATALINA_BASE' or 'CATALINA_HOME' when running on Tomcat.";
+            throw new RuntimeException( errorMessage );
+        }
+        
+        attachmentsDir = attachmentsDir.replace( "\\", "/" );
+        
+        int runId = sd.getRun().getRunId();
+        int suiteId = sd.getRun().getSuite().getSuiteId();
+        
+        String dbName = sd.getRun().getDbName();
+        
+        String attachedFilesDir = attachmentsDir + "/ats-attached-files" + "/" + dbName;
+        attachedFilesDir = attachedFilesDir + "/" + runId + "/" + suiteId + "/" + testcaseId;
+        attachedFilesDir = IoUtils.normalizeFilePath( attachedFilesDir );
+        
+        File attachedDirFile = new File( attachedFilesDir );
+        if( !attachedDirFile.exists() ) {
+            attachedDirFile.mkdirs();
+        }
+        
+        String filePath = attachedFilesDir + "/" + attachFilePojo.getFileName();
+        File newFile = new File( filePath );
+        try {
+            IoUtils.copyStream( attachFilePojo.getInputStream(), 
+                                               new BufferedOutputStream( new FileOutputStream( newFile ) ), 
+                                               true, true, MAX_FILE_SIZE );
+        } catch (IOException e) {
+            
+            if (e.getMessage().contains( "Max size of " + MAX_FILE_SIZE + " bytes reached." )) {
+                newFile.delete();
+            }
+            
+            throw e;
+        }
+        
+    }
+
     public void updateRun( StartRunPojo oldRun, UpdateRunPojo updatedRun ) throws DatabaseAccessException {
 
         /*
@@ -540,4 +622,20 @@ public class DbRequestProcessor {
         }
 
     }
+    
+    private Properties getProperties() {
+
+        Properties configProperties = new Properties();
+        try {
+            configProperties.load( this.getClass()
+                                       .getClassLoader()
+                                       .getResourceAsStream( "ats.config.properties" ) );
+        } catch( Exception e ) {
+            if( log.isDebugEnabled() ) {
+                log.debug( "Can't load ats.config.properties file" );
+            }
+        }
+        return configProperties;
+    }
+
 }
