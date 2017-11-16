@@ -75,7 +75,7 @@
   "swagger" : "2.0",
   "info" : {
     "description" : "ATS HTTP application for logging test data in ATS DB",
-    "version" : "v4.0.2-SNAPSHOT",
+    "version" : "v4.0.2",
     "title" : "ATS HTTP DB logger",
     "contact" : {
       "name" : "ATS Team",
@@ -86,9 +86,9 @@
   "host" : "localhost:8080",
   "basePath" : "/ats-httpdblogger/service",
   "tags" : [ {
-    "name" : "logger"
-  }, {
     "name" : "reporter"
+  }, {
+    "name" : "logger"
   } ],
   "schemes" : [ "http" ],
   "paths" : {
@@ -157,12 +157,21 @@
         "tags" : [ "logger" ],
         "summary" : "Attach multipart file",
         "description" : "",
-        "operationId" : "attachFileToCurrentTest",
+        "operationId" : "attachFile",
+        "consumes" : [ "multipart/form-data" ],
         "produces" : [ "application/json" ],
         "parameters" : [ {
           "in" : "body",
           "name" : "body",
-          "description" : "file input stream",
+          "description" : "Attach file details",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/Attach file details"
+          }
+        }, {
+          "in" : "body",
+          "name" : "body",
+          "description" : "File Input Stream",
           "required" : false,
           "schema" : {
             "$ref" : "#/definitions/InputStream"
@@ -195,7 +204,7 @@
           "description" : "End run details",
           "required" : false,
           "schema" : {
-            "$ref" : "#/definitions/end suite details"
+            "$ref" : "#/definitions/end run details"
           }
         } ],
         "responses" : {
@@ -510,7 +519,7 @@
           "description" : "DB user. Default is AutoUser",
           "required" : false,
           "type" : "string",
-          "default" : "AutoUser"
+          "default" : "AtsUser"
         }, {
           "name" : "dbPassword",
           "in" : "query",
@@ -525,7 +534,7 @@
           "required" : false,
           "type" : "string"
         }, {
-          "name" : "top",
+          "name" : "numberItems",
           "in" : "query",
           "description" : "Max number of runs to return. Default is 1000",
           "required" : false,
@@ -593,6 +602,42 @@
     }
   },
   "definitions" : {
+    "Attach file details" : {
+      "required" : [ "fileName", "inputStream", "sessionId" ],
+      "properties" : {
+        "sessionId" : {
+          "type" : "string",
+          "example" : "f177f4f5-a649-4faa-920e-978ef8d60cb2",
+          "description" : "Session ID"
+        },
+        "timestamp" : {
+          "type" : "integer",
+          "format" : "int64",
+          "example" : "1493709734",
+          "description" : "timestamp"
+        },
+        "parentId" : {
+          "type" : "integer",
+          "format" : "int32",
+          "example" : "323",
+          "description" : "Parent ID"
+        },
+        "parentType" : {
+          "type" : "string",
+          "example" : "RUN|SUITE|TESTCASE",
+          "description" : "Parent Type"
+        },
+        "inputStream" : {
+          "description" : "File to attach InputStream",
+          "$ref" : "#/definitions/InputStream"
+        },
+        "fileName" : {
+          "type" : "string",
+          "example" : "log.txt",
+          "description" : "File name"
+        }
+      }
+    },
     "InputStream" : {
       "type" : "object"
     },
@@ -695,6 +740,33 @@
         }
       }
     },
+    "end run details" : {
+      "required" : [ "sessionId" ],
+      "properties" : {
+        "sessionId" : {
+          "type" : "string",
+          "example" : "f177f4f5-a649-4faa-920e-978ef8d60cb2",
+          "description" : "Session ID"
+        },
+        "timestamp" : {
+          "type" : "integer",
+          "format" : "int64",
+          "example" : "1493709734",
+          "description" : "timestamp"
+        },
+        "parentId" : {
+          "type" : "integer",
+          "format" : "int32",
+          "example" : "323",
+          "description" : "Parent ID"
+        },
+        "parentType" : {
+          "type" : "string",
+          "example" : "RUN|SUITE|TESTCASE",
+          "description" : "Parent Type"
+        }
+      }
+    },
     "end suite details" : {
       "required" : [ "sessionId" ],
       "properties" : {
@@ -719,6 +791,12 @@
           "type" : "string",
           "example" : "RUN|SUITE|TESTCASE",
           "description" : "Parent Type"
+        },
+        "suiteId" : {
+          "type" : "integer",
+          "format" : "int32",
+          "example" : "3309",
+          "description" : "Suite ID"
         }
       }
     },
@@ -1109,8 +1187,6 @@
     }
   }
 }
-
-
 
 	window.onload = function() {
 
