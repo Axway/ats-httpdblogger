@@ -19,76 +19,76 @@
     </div> 
     <div id="content" class="view"> 
      <div id="main-content" class="wiki-content group"> 
-      <h1 id="ATSHTTPDBLoggerGuide-Introduction">Introduction</h1>
-      <p>The ATS framework is an automated testing framework which usually sends its test execution results to a database. The test results are naturally and nicely reviewed by the ATS <a class="external-link" href="https://github.com/Axway/ats-testexplorer" rel="nofollow">Test Explorer</a> web application.</p>
-      <p>If we imagine you want to run non-java tests and still review the execution results through Test Explorer, then this page is just for you. The HTTP DB Logger is an application which will connect your non-java tests with the Test Explorer database.</p>
-      <p>The HTTP DB Logger is a simple REST server which can accept your REST calls and translate them properly to the Test Explorer database.</p>
-      <p><br></p>
-      <hr>
-      <h1 id="ATSHTTPDBLoggerGuide-Installation">Installation</h1>
-      <p>The ATS HTTP DB Logging Server is distributed as a regular&nbsp;<strong><em>war</em>&nbsp;</strong>file which needs to be started as any other web application by Tomcat or a similar web server.</p>
-      <p>The server is ready to be used once it gets started.</p>
-      <div class="confluence-information-macro confluence-information-macro-information">
-       <span class="aui-icon aui-icon-small aui-iconfont-info confluence-information-macro-icon"></span>
-       <div class="confluence-information-macro-body">
-        <p>The HTTP Db Server can be used to log into different databases located on different hosts. You just have to specify the right target database host in the REST requests.<br>Anyway, usually it makes sense to have the HTTP DB Logging Server located on the same host where the Test Explorer DB is.</p>
-       </div>
-      </div>
-      <hr>
-      <h1 id="ATSHTTPDBLoggerGuide-Requestformat">Request format</h1>
-      <p>The request type is expected in the form of <em> <strong>application/json</strong> </em>, so you must specify accordingly the "Content-Type" header.</p>
-      <p>The log event itself is expected to be contained in the JSON body, so you must properly set the expected key-value pairs for each event type.</p>
-      <p>Each request must contain a <em> <strong>sessionID</strong> </em> body token which points to the current session. The only exception is the <em> <strong>startRun</strong> </em> request which does not expect such token.</p>
-      <p>Unless specified, requests that send data to the database are using POST, while requests that read data from the database are using GET.</p>
-      <p><br></p>
-      <hr>
-      <h1 id="ATSHTTPDBLoggerGuide-Responseformat">Response format</h1>
-      <p>The response type in the form of <em> <strong>application/json</strong></em>, so you should specify accordingly the "Accept" header.</p>
-      <p><br></p>
-      <hr>
-      <h1 id="ATSHTTPDBLoggerGuide-Someimportanttokensusedinthecommunication">Some important tokens used in the communication</h1>
-      <h3 id="ATSHTTPDBLoggerGuide-SessionID">Session ID</h3>
-      <p>Once the server give you back a Session ID, all following requests pass this token as part of the body, so this request can be assigned to the proper session on the server side.</p>
-      <p>The session stores information like connection to a database, previously started run, suites and test cases.</p>
-      <p>The Session ID is created on executing a <em> <strong>startRun</strong> </em> event.</p>
-      <h3 id="ATSHTTPDBLoggerGuide-Timestamp">Timestamp</h3>
-      <p>Many requests are allowed to optionally provide a timestamp. The timestamp (expected in milliseconds) is the time and date of the event occurrence.</p>
-      <p>If the request is to be persisted in the database(with other words if this is not a GET), then it must reach the database with some timestamp set. In case the request does not specify one, the logging server will apply the time of the server itself.</p>
-      <h3 id="ATSHTTPDBLoggerGuide-ParentID">Parent ID</h3>
-      <p>When used, you specify the parent of the current event. For example when do <em>startTestcase</em> the parent ID tells us the particular SUITE this TESTCASE will belong to.</p>
-      <p>The parent ID is the actual database ID of the parent table.</p>
-      <p>Only a RUN cannot have a parent.</p>
-      <p><br></p>
-      <hr>
-      <h1 id="ATSHTTPDBLoggerGuide-SendingdatatoTestExplorerdatabase">Sending data to Test Explorer database</h1>
-      <p><a href="Sending-data-to-Test-Explorer-database.html">Here</a> you will find how to use the application for sending data to the database</p>
-      <p><br></p>
-      <hr>
-      <h1 id="ATSHTTPDBLoggerGuide-ReadingdatafromTestExplorerdatabase">Reading data from Test Explorer database</h1>
-      <p><a href="Reading-data-from-Test-Explorer-database.html">Here</a> you will find how to use the application for reading data from the database</p>
-      <p><br></p>
-      <hr>
-      <h1 id="ATSHTTPDBLoggerGuide-Retrievingthedistribution">Retrieving the distribution</h1>
-      <p><a class="external-link" href="https://oss.sonatype.org/content/repositories/releases/com/axway/ats/httpdblogger/ats-httpdblogger/" rel="nofollow">Here</a> is the location with all available versions</p>
-      <p><br></p>
-      <hr>
-      <h1 id="ATSHTTPDBLoggerGuide-Releasenotes">Release notes</h1>
-      <p><a href="HTTP-DB-Logger-Release-Notes.html">Here</a> they are</p>
-      <p><br></p>
-      <hr>
-      <h1 id="ATSHTTPDBLoggerGuide-ExampleusingtheHTTPDBLoggingAPI">Example using the HTTP DB Logging API</h1>
-      <p>As all communication is REST based, you can interact with any kind of programming language.</p>
-      <p><a href="Using-the-HTTP-DB-Logger's-API-via-Python.html">Here</a> we have made an example via python.</p>
-      <p><br></p>
-      <hr>
-      <h1 id="ATSHTTPDBLoggerGuide-SwaggerUI">Swagger UI</h1>
-      <p>Swagger UI is a JavaScript application, that you can use to generate&nbsp;<a class="external-link" href="https://curl.haxx.se" rel="nofollow">cURL</a> commands for all of the HTTP Db Logger methods.</p>
-      <p>Give it a try <a class="external-link" href="https://axway.github.io/ats-httpdblogger/swagger/index.html" rel="nofollow">here</a></p>
+      <h1 id="ATSHTTPDBLoggerGuide-Introduction">Introduction</h1> 
+      <p>The ATS framework is an automated testing framework which usually sends its test execution results to a database. The test results are naturally and nicely reviewed by the ATS <a class="external-link" href="https://github.com/Axway/ats-testexplorer" rel="nofollow">Test Explorer</a> web application.</p> 
+      <p>If we imagine you want to run non-java tests and still review the execution results through Test Explorer, then this page is just for you. The HTTP DB Logger is an application which will connect your non-java tests with the Test Explorer database.</p> 
+      <p>The HTTP DB Logger is a simple REST server which can accept your REST calls and translate them properly to the Test Explorer database.</p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="ATSHTTPDBLoggerGuide-Installation">Installation</h1> 
+      <p>The ATS HTTP DB Logging Server is distributed as a regular&nbsp;<strong><em>war</em>&nbsp;</strong>file which needs to be started as any other web application by Tomcat or a similar web server.</p> 
+      <p>The server is ready to be used once it gets started.</p> 
+      <div class="confluence-information-macro confluence-information-macro-information"> 
+       <span class="aui-icon aui-icon-small aui-iconfont-info confluence-information-macro-icon"></span> 
+       <div class="confluence-information-macro-body"> 
+        <p>The HTTP Db Server can be used to log into different databases located on different hosts. You just have to specify the right target database host in the REST requests.<br>Anyway, usually it makes sense to have the HTTP DB Logging Server located on the same host where the Test Explorer DB is.</p> 
+       </div> 
+      </div> 
+      <hr> 
+      <h1 id="ATSHTTPDBLoggerGuide-Requestformat">Request format</h1> 
+      <p>The request type is expected in the form of <em> <strong>application/json</strong> </em>, so you must specify accordingly the "Content-Type" header.</p> 
+      <p>The log event itself is expected to be contained in the JSON body, so you must properly set the expected key-value pairs for each event type.</p> 
+      <p>Each request must contain a <em> <strong>sessionID</strong> </em> body token which points to the current session. The only exception is the <em> <strong>startRun</strong> </em> request which does not expect such token.</p> 
+      <p>Unless specified, requests that send data to the database are using POST, while requests that read data from the database are using GET.</p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="ATSHTTPDBLoggerGuide-Responseformat">Response format</h1> 
+      <p>The response type in the form of <em> <strong>application/json</strong></em>, so you should specify accordingly the "Accept" header.</p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="ATSHTTPDBLoggerGuide-Someimportanttokensusedinthecommunication">Some important tokens used in the communication</h1> 
+      <h3 id="ATSHTTPDBLoggerGuide-SessionID">Session ID</h3> 
+      <p>Once the server give you back a Session ID, all following requests pass this token as part of the body, so this request can be assigned to the proper session on the server side.</p> 
+      <p>The session stores information like connection to a database, previously started run, suites and test cases.</p> 
+      <p>The Session ID is created on executing a <em> <strong>startRun</strong> </em> event.</p> 
+      <h3 id="ATSHTTPDBLoggerGuide-Timestamp">Timestamp</h3> 
+      <p>Many requests are allowed to optionally provide a timestamp. The timestamp (expected in milliseconds) is the time and date of the event occurrence.</p> 
+      <p>If the request is to be persisted in the database(with other words if this is not a GET), then it must reach the database with some timestamp set. In case the request does not specify one, the logging server will apply the time of the server itself.</p> 
+      <h3 id="ATSHTTPDBLoggerGuide-ParentID">Parent ID</h3> 
+      <p>When used, you specify the parent of the current event. For example when do <em>startTestcase</em> the parent ID tells us the particular SUITE this TESTCASE will belong to.</p> 
+      <p>The parent ID is the actual database ID of the parent table.</p> 
+      <p>Only a RUN cannot have a parent.</p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="ATSHTTPDBLoggerGuide-SendingdatatoTestExplorerdatabase">Sending data to Test Explorer database</h1> 
+      <p><a href="Sending-data-to-Test-Explorer-database.html">Here</a> you will find how to use the application for sending data to the database</p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="ATSHTTPDBLoggerGuide-ReadingdatafromTestExplorerdatabase">Reading data from Test Explorer database</h1> 
+      <p><a href="Reading-data-from-Test-Explorer-database.html">Here</a> you will find how to use the application for reading data from the database</p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="ATSHTTPDBLoggerGuide-Retrievingthedistribution">Retrieving the distribution</h1> 
+      <p><a class="external-link" href="https://oss.sonatype.org/content/repositories/releases/com/axway/ats/httpdblogger/ats-httpdblogger/" rel="nofollow">Here</a> is the location with all available versions</p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="ATSHTTPDBLoggerGuide-Releasenotes">Release notes</h1> 
+      <p><a href="HTTP-DB-Logger-Release-Notes.html">Here</a> they are</p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="ATSHTTPDBLoggerGuide-ExampleusingtheHTTPDBLoggingAPI">Example using the HTTP DB Logging API</h1> 
+      <p>As all communication is REST based, you can interact with any kind of programming language.</p> 
+      <p><a href="125493845.html">Here</a> we have made an example via python.</p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="ATSHTTPDBLoggerGuide-SwaggerUI">Swagger UI</h1> 
+      <p>Swagger UI is a JavaScript application, that you can use to generate&nbsp;<a class="external-link" href="https://curl.haxx.se" rel="nofollow">cURL</a> commands for all of the HTTP Db Logger methods.</p> 
+      <p>Give it a try <a class="external-link" href="https://axway.github.io/ats-httpdblogger/swagger/index.html" rel="nofollow">here</a></p> 
       <p><br></p> 
      </div> 
     </div> 
    </div> 
-  </div>
+  </div>   
   <hr>
   <p>Go to <a href="./index.html">parent page</a></p>
   <p>Go to <a href="./toc.html">Table of Contents</a></p>

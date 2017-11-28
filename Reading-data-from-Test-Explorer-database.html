@@ -20,144 +20,144 @@
     </div> 
     <div id="content" class="view"> 
      <div id="main-content" class="wiki-content group"> 
-      <h1 id="ReadingdatafromTestExplorerdatabase-Introduction">Introduction</h1>
-      <p>We have listed here different REST calls which can be used to communicate with the HTTP DB Logger application in order to read data from a Test Explorer database.</p>
-      <p><br></p>
-      <hr>
-      <h1 id="ReadingdatafromTestExplorerdatabase-Getlistofruns">Get list of runs</h1>
-      <p><strong>getRuns</strong> returns a list of Runs that matched a certain criteria</p>
-      <div class="table-wrap">
-       <table class="relative-table wrapped confluenceTable">
+      <h1 id="ReadingdatafromTestExplorerdatabase-Introduction">Introduction</h1> 
+      <p>We have listed here different REST calls which can be used to communicate with the HTTP DB Logger application in order to read data from a Test Explorer database.</p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="ReadingdatafromTestExplorerdatabase-Getlistofruns">Get list of runs</h1> 
+      <p><strong>getRuns</strong> returns a list of Runs that matched a certain criteria</p> 
+      <div class="table-wrap"> 
+       <table class="relative-table wrapped confluenceTable"> 
         <colgroup> 
          <col> 
          <col> 
          <col> 
-        </colgroup>
-        <tbody>
-         <tr>
-          <th class="confluenceTh">body parameters</th>
-          <th class="confluenceTh">description</th>
-          <th class="confluenceTh">optional</th>
-         </tr>
-         <tr>
-          <td class="confluenceTd">dbHost</td>
-          <td class="confluenceTd">DB host</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">dbName</td>
-          <td class="confluenceTd">DB name</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">dbUser</td>
-          <td class="confluenceTd">DB user</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">dbPassword</td>
-          <td class="confluenceTd">DB password</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">name</td>
-          <td class="confluenceTd">Name of the Run</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">product</td>
-          <td class="confluenceTd">Name of the tested application</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">version</td>
-          <td class="confluenceTd">Version of the tested application</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">build</td>
-          <td class="confluenceTd">Build of the tested application</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">os</td>
-          <td class="confluenceTd">OS of the tested application</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">timeOffset</td>
-          <td class="confluenceTd">The caller's UTC offset</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">currentTimestamp</td>
-          <td class="confluenceTd">The caller's current timestamp in ms</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">columns</td>
-          <td class="confluenceTd">The columns to return</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-        </tbody>
-       </table>
-      </div>
-      <h3 id="ReadingdatafromTestExplorerdatabase-Defaultconnectionparameters">Default connection parameters</h3>
-      <p>If not specified, the <em> <strong>dbHost</strong> </em> is <em> <strong>localhost</strong> </em>, the <em> <strong>dbUser</strong> </em> is <em> <strong>AtsUser</strong> </em>, the <em> <strong>dbPassword</strong> </em> is <em> <strong>AtsPassword</strong> </em></p>
-      <h3 id="ReadingdatafromTestExplorerdatabase-Timeoffset">Time offset</h3>
-      <p>This offset is applied to the Run's start and end timestamps, so they are fixed to the caller's time zone</p>
-      <h3 id="ReadingdatafromTestExplorerdatabase-Currenttimestamp">Current timestamp</h3>
-      <p>In case the Run is not over, we cannot properly calculate its <em> <strong>duration</strong> </em>. In such case, we use the provided timestamp as an end timestamp.</p>
-      <h3 id="ReadingdatafromTestExplorerdatabase-Columns">Columns</h3>
-      <p>If not provided, all supported table columns describing a Run are returned.</p>
-      <p>You can specify which columns to return by providing comma separated list.</p>
-      <p>The currently supported list is: name, product, version, build, os, scenariosTotal, scenariosFailed, testcasesTotal, testcasesfailed, testcasesSkipped, dateStart, dateEnd, duration and userNote.</p>
-      <p><br></p>
-      <hr>
-      <h3 id="ReadingdatafromTestExplorerdatabase-Exampleusage">Example usage</h3>
-      <p>Let's have a look at this example:</p>
-      <div class="code panel pdl" style="border-width: 1px;">
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">dbHost</td> 
+          <td class="confluenceTd">DB host</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">dbName</td> 
+          <td class="confluenceTd">DB name</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">dbUser</td> 
+          <td class="confluenceTd">DB user</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">dbPassword</td> 
+          <td class="confluenceTd">DB password</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">name</td> 
+          <td class="confluenceTd">Name of the Run</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">product</td> 
+          <td class="confluenceTd">Name of the tested application</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">version</td> 
+          <td class="confluenceTd">Version of the tested application</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">build</td> 
+          <td class="confluenceTd">Build of the tested application</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">os</td> 
+          <td class="confluenceTd">OS of the tested application</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">timeOffset</td> 
+          <td class="confluenceTd">The caller's UTC offset</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">currentTimestamp</td> 
+          <td class="confluenceTd">The caller's current timestamp in ms</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">columns</td> 
+          <td class="confluenceTd">The columns to return</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <h3 id="ReadingdatafromTestExplorerdatabase-Defaultconnectionparameters">Default connection parameters</h3> 
+      <p>If not specified, the <em> <strong>dbHost</strong> </em> is <em> <strong>localhost</strong> </em>, the <em> <strong>dbUser</strong> </em> is <em> <strong>AtsUser</strong> </em>, the <em> <strong>dbPassword</strong> </em> is <em> <strong>AtsPassword</strong> </em></p> 
+      <h3 id="ReadingdatafromTestExplorerdatabase-Timeoffset">Time offset</h3> 
+      <p>This offset is applied to the Run's start and end timestamps, so they are fixed to the caller's time zone</p> 
+      <h3 id="ReadingdatafromTestExplorerdatabase-Currenttimestamp">Current timestamp</h3> 
+      <p>In case the Run is not over, we cannot properly calculate its <em> <strong>duration</strong> </em>. In such case, we use the provided timestamp as an end timestamp.</p> 
+      <h3 id="ReadingdatafromTestExplorerdatabase-Columns">Columns</h3> 
+      <p>If not provided, all supported table columns describing a Run are returned.</p> 
+      <p>You can specify which columns to return by providing comma separated list.</p> 
+      <p>The currently supported list is: name, product, version, build, os, scenariosTotal, scenariosFailed, testcasesTotal, testcasesfailed, testcasesSkipped, dateStart, dateEnd, duration and userNote.</p> 
+      <p><br></p> 
+      <hr> 
+      <h3 id="ReadingdatafromTestExplorerdatabase-Exampleusage">Example usage</h3> 
+      <p>Let's have a look at this example:</p> 
+      <div class="code panel pdl" style="border-width: 1px;"> 
        <div class="codeContent panelContent pdl"> 
-        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">http://localhost:8080/ats-httpdblogger/service/reporter/getRuns?dbName=MyTests&amp;os=windows&amp;numberItems=3&amp;columns=name, version, build, duration
+        <pre class="syntaxhighlighter-pre" data-theme="Confluence">http://localhost:8080/ats-httpdblogger/service/reporter/getRuns?dbName=MyTests&amp;os=windows&amp;numberItems=3&amp;columns=name, version, build, duration
 </pre> 
-       </div>
-      </div>
-      <p>Here is the explanation:</p>
-      <ul>
-       <li>Base URI <a class="external-link" href="http://localhost:8080/ats-rest-logger/rest/reporter/getRuns" rel="nofollow">http://localhost:8080/ats-httpdblogger/service</a>/<a class="external-link" href="http://localhost:8080/ats-rest-logger/rest/reporter/getRuns" rel="nofollow">reporter/getRuns?</a> <br>It points to address of the the HTTP DB Logger Application and its public operation called <em> <strong>getRuns</strong> </em></li>
-       <li><strong>dbName</strong> <em> -</em> a must have parameter saying the database to work with</li>
-       <li><em> <strong>os</strong> </em> - the operating system property of the runs</li>
-       <li><em> <strong>numberItems</strong> </em> - max number of runs to be returned</li>
-       <li><em> <strong>columns</strong> </em> - which columns to show</li>
-      </ul>
-      <p>A possible result could be:</p>
-      <div class="code panel pdl" style="border-width: 1px;">
+       </div> 
+      </div> 
+      <p>Here is the explanation:</p> 
+      <ul> 
+       <li>Base URI <a class="external-link" href="http://localhost:8080/ats-rest-logger/rest/reporter/getRuns" rel="nofollow">http://localhost:8080/ats-httpdblogger/service</a>/<a class="external-link" href="http://localhost:8080/ats-rest-logger/rest/reporter/getRuns" rel="nofollow">reporter/getRuns?</a> <br>It points to address of the the HTTP DB Logger Application and its public operation called <em> <strong>getRuns</strong> </em></li> 
+       <li><strong>dbName</strong> <em> -</em> a must have parameter saying the database to work with</li> 
+       <li><em> <strong>os</strong> </em> - the operating system property of the runs</li> 
+       <li><em> <strong>numberItems</strong> </em> - max number of runs to be returned</li> 
+       <li><em> <strong>columns</strong> </em> - which columns to show</li> 
+      </ul> 
+      <p>A possible result could be:</p> 
+      <div class="code panel pdl" style="border-width: 1px;"> 
        <div class="codeContent panelContent pdl"> 
-        <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">{"runs":[
+        <pre class="syntaxhighlighter-pre" data-theme="Confluence">{"runs":[
 {"Run":"Supreme Product Integration Tests", "Version":"3.12", "Build":"823", "Duration":"00:01:36"}
 {"Run":"Supreme Product Integration Tests", "Version":"3.12", "Build":"821", "Duration":"00:08:13"}
 {"Run":"Supreme Product Integration Tests", "Version":"3.12", "Build":"799", "Duration":"00:02:41"}
 ]}
 </pre> 
-       </div>
-      </div>
-      <p>We have returned info about <em>3</em> runs with specified OS. We got back only the specified columns.</p>
-      <p><br></p>
-      <hr>
-      <p><br></p>
-      <div class="confluence-information-macro has-no-icon confluence-information-macro-information">
-       <div class="confluence-information-macro-body">
-        <p>The list of supported GET methods is supposed to grow</p>
-       </div>
-      </div>
-      <p><br></p>
-      <hr>
-      <p>Back to <a href="ATS-HTTP-DB-Logger-Guide.html">parent page</a><p>Go to <a href="./toc.html">Table of Contents</a></p></p>
-      <hr>
+       </div> 
+      </div> 
+      <p>We have returned info about <em>3</em> runs with specified OS. We got back only the specified columns.</p> 
+      <p><br></p> 
+      <hr> 
+      <p><br></p> 
+      <div class="confluence-information-macro has-no-icon confluence-information-macro-information"> 
+       <div class="confluence-information-macro-body"> 
+        <p>The list of supported GET methods is supposed to grow</p> 
+       </div> 
+      </div> 
+      <p><br></p> 
+      <hr> 
+      <p>Back to <a href="ATS-HTTP-DB-Logger-Guide.html">parent page</a><p>Go to <a href="./toc.html">Table of Contents</a></p></p> 
+      <hr> 
       <p><br></p> 
      </div> 
     </div> 
    </div> 
-  </div>
+  </div>   
  </body>
 </html>

@@ -20,618 +20,618 @@
     </div> 
     <div id="content" class="view"> 
      <div id="main-content" class="wiki-content group"> 
-      <h1 id="SendingdatatoTestExplorerdatabase-Introduction">Introduction</h1>
-      <p>We have listed here different REST calls which can be used to communicate with the HTTP DB Logger application which in turn will persist your events in a Test Explorer database.</p>
-      <p><br></p>
-      <hr>
-      <h1 id="SendingdatatoTestExplorerdatabase-Naturalorderoftheevents">Natural order of the events</h1>
-      <p>It is important to state that by default the events have some ordering.</p>
-      <p>First you must have a Run, then you can have a Suite, then you can have a Testcase, then you can your messages logged in your Testcase.</p>
-      <p>An additional limitation is that you cannot have more than one opened Suites or Testcases.</p>
-      <p><br></p>
-      <hr>
-      <h1 id="SendingdatatoTestExplorerdatabase-Bypassingthenaturalorderoftheevents">Bypassing the natural order of the events</h1>
-      <p>There is a way to bypass the natural order of the events. This is needed, for example, when your testing framework is capable of running many simultaneous tests.</p>
-      <p>All events support a <em> <strong>parentId</strong> </em>. The <em> <strong>parentId</strong> </em> tells the server the parent of this event. For example if you specify a <em> <strong>parentId</strong> </em> of a <em> <strong>startTestcase</strong> </em> event, then the server knows where to attach this new testcase. This way you can start many tests. Then your <em> <strong>insertMessage</strong> </em> events will provide a <em> <strong>parentId</strong> </em> which will point to the testcase(one of mant) they belong to. Finally the <em> <strong>endTestcase</strong> </em> event will provide a <em> <strong>testcaseId</strong> </em>, so the right testcase is closed.</p>
-      <p class="title"><br></p>
-      <hr>
-      <h1 id="SendingdatatoTestExplorerdatabase-StartaRun">Start a Run</h1>
-      <p><strong>startRun</strong> event is executed as the very first event. It initializes the database connection and start a new run and creates a new session at the server side.</p>
-      <div class="table-wrap">
-       <table class="relative-table wrapped confluenceTable">
+      <h1 id="SendingdatatoTestExplorerdatabase-Introduction">Introduction</h1> 
+      <p>We have listed here different REST calls which can be used to communicate with the HTTP DB Logger application which in turn will persist your events in a Test Explorer database.</p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="SendingdatatoTestExplorerdatabase-Naturalorderoftheevents">Natural order of the events</h1> 
+      <p>It is important to state that by default the events have some ordering.</p> 
+      <p>First you must have a Run, then you can have a Suite, then you can have a Testcase, then you can your messages logged in your Testcase.</p> 
+      <p>An additional limitation is that you cannot have more than one opened Suites or Testcases.</p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="SendingdatatoTestExplorerdatabase-Bypassingthenaturalorderoftheevents">Bypassing the natural order of the events</h1> 
+      <p>There is a way to bypass the natural order of the events. This is needed, for example, when your testing framework is capable of running many simultaneous tests.</p> 
+      <p>All events support a <em> <strong>parentId</strong> </em>. The <em> <strong>parentId</strong> </em> tells the server the parent of this event. For example if you specify a <em> <strong>parentId</strong> </em> of a <em> <strong>startTestcase</strong> </em> event, then the server knows where to attach this new testcase. This way you can start many tests. Then your <em> <strong>insertMessage</strong> </em> events will provide a <em> <strong>parentId</strong> </em> which will point to the testcase(one of mant) they belong to. Finally the <em> <strong>endTestcase</strong> </em> event will provide a <em> <strong>testcaseId</strong> </em>, so the right testcase is closed.</p> 
+      <p class="title"><br></p> 
+      <hr> 
+      <h1 id="SendingdatatoTestExplorerdatabase-StartaRun">Start a Run</h1> 
+      <p><strong>startRun</strong> event is executed as the very first event. It initializes the database connection and start a new run and creates a new session at the server side.</p> 
+      <div class="table-wrap"> 
+       <table class="relative-table wrapped confluenceTable"> 
         <colgroup> 
          <col> 
          <col> 
          <col> 
-        </colgroup>
-        <tbody>
-         <tr>
-          <th class="confluenceTh">body parameters</th>
-          <th class="confluenceTh">description</th>
-          <th class="confluenceTh">optional</th>
-         </tr>
-         <tr>
-          <td class="confluenceTd">dbHost</td>
-          <td class="confluenceTd">DB host</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">dbName</td>
-          <td class="confluenceTd">DB name</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">dbUser</td>
-          <td class="confluenceTd">DB user</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">dbPassword</td>
-          <td class="confluenceTd">DB password</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">runName</td>
-          <td class="confluenceTd">Run name</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">productName</td>
-          <td class="confluenceTd">Product name</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">versionName</td>
-          <td class="confluenceTd">Product version</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">buildName</td>
-          <td class="confluenceTd">Product build</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">osName</td>
-          <td class="confluenceTd">OS</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">userNote</td>
-          <td class="confluenceTd">Some note</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">timestamp</td>
-          <td class="confluenceTd">Timestamp in ms</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-        </tbody>
-       </table>
-      </div>
-      <p><strong>It returns the new session ID</strong> token in the response body. The session ID must be send back on every following request, so each new event is properly connected to same session.</p>
-      <p>It also returns the new <em> <strong>runID</strong> </em></p>
-      <p><br></p>
-      <hr>
-      <h1 id="SendingdatatoTestExplorerdatabase-StartaSuite">Start a Suite</h1>
-      <p><strong>startSuite</strong> event is executed when a number of similar tests are to started. In java world the SUITE corresponds to the java class which contains some tests</p>
-      <p><br></p>
-      <div class="table-wrap">
-       <table class="wrapped confluenceTable">
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">dbHost</td> 
+          <td class="confluenceTd">DB host</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">dbName</td> 
+          <td class="confluenceTd">DB name</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">dbUser</td> 
+          <td class="confluenceTd">DB user</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">dbPassword</td> 
+          <td class="confluenceTd">DB password</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">runName</td> 
+          <td class="confluenceTd">Run name</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">productName</td> 
+          <td class="confluenceTd">Product name</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">versionName</td> 
+          <td class="confluenceTd">Product version</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">buildName</td> 
+          <td class="confluenceTd">Product build</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">osName</td> 
+          <td class="confluenceTd">OS</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">userNote</td> 
+          <td class="confluenceTd">Some note</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">timestamp</td> 
+          <td class="confluenceTd">Timestamp in ms</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <p><strong>It returns the new session ID</strong> token in the response body. The session ID must be send back on every following request, so each new event is properly connected to same session.</p> 
+      <p>It also returns the new <em> <strong>runID</strong> </em></p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="SendingdatatoTestExplorerdatabase-StartaSuite">Start a Suite</h1> 
+      <p><strong>startSuite</strong> event is executed when a number of similar tests are to started. In java world the SUITE corresponds to the java class which contains some tests</p> 
+      <p><br></p> 
+      <div class="table-wrap"> 
+       <table class="wrapped confluenceTable"> 
         <colgroup> 
          <col> 
          <col> 
          <col> 
-        </colgroup>
-        <tbody>
-         <tr>
-          <th class="confluenceTh">body parameters</th>
-          <th class="confluenceTh">description</th>
-          <th class="confluenceTh">optional</th>
-         </tr>
-         <tr>
-          <td class="confluenceTd">sessionId</td>
-          <td class="confluenceTd">session id</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">timestamp</td>
-          <td class="confluenceTd">time</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">suiteName</td>
-          <td class="confluenceTd">Name of suite.<br>This could be a name of a java class</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">packageName</td>
-          <td class="confluenceTd"><p>Domain of the suite.</p><p>This could be a java package</p></td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">parentId</td>
-          <td class="confluenceTd">DB ID of the parent RUN</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-        </tbody>
-       </table>
-      </div>
-      <p>It returns the new <em> <strong>suiteID</strong> </em></p>
-      <p><br></p>
-      <hr>
-      <h1 id="SendingdatatoTestExplorerdatabase-StartaTestcase">Start a Testcase</h1>
-      <p><strong>startTestcase</strong> event says a test is to be started. In java world this is fired when the java test method is starting</p>
-      <div class="table-wrap">
-       <table class="wrapped confluenceTable">
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">sessionId</td> 
+          <td class="confluenceTd">session id</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">timestamp</td> 
+          <td class="confluenceTd">time</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">suiteName</td> 
+          <td class="confluenceTd">Name of suite.<br>This could be a name of a java class</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">packageName</td> 
+          <td class="confluenceTd"><p>Domain of the suite.</p><p>This could be a java package</p></td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">parentId</td> 
+          <td class="confluenceTd">DB ID of the parent RUN</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <p>It returns the new <em> <strong>suiteID</strong> </em></p> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="SendingdatatoTestExplorerdatabase-StartaTestcase">Start a Testcase</h1> 
+      <p><strong>startTestcase</strong> event says a test is to be started. In java world this is fired when the java test method is starting</p> 
+      <div class="table-wrap"> 
+       <table class="wrapped confluenceTable"> 
         <colgroup> 
          <col> 
          <col> 
          <col> 
-        </colgroup>
-        <tbody>
-         <tr>
-          <th class="confluenceTh">body parameters</th>
-          <th class="confluenceTh">description</th>
-          <th class="confluenceTh">optional</th>
-         </tr>
-         <tr>
-          <td class="confluenceTd">sessionId</td>
-          <td class="confluenceTd">session id</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">timestamp</td>
-          <td class="confluenceTd">time</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">testcaseName</td>
-          <td class="confluenceTd">Name of the testcase</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">scenarioName</td>
-          <td class="confluenceTd">Name of the scenario</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">scenarioDescription</td>
-          <td class="confluenceTd">Description</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">parentId</td>
-          <td class="confluenceTd">DB ID of the parent SUITE</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-        </tbody>
-       </table>
-      </div>
-      <p>It returns the new <strong> <em>testcaseID</em> </strong></p>
-      <div class="confluence-information-macro has-no-icon confluence-information-macro-tip">
-       <div class="confluence-information-macro-body">
-        <p>Test Explorer make difference between test scenario and testcase</p>
-        <p>Scenario is the definition of the test. For example <strong>test1()</strong></p>
-        <p>Testcase is one execution of the test. It could be the same as the scenario, but in some case you might executed same scenario many times. For example <strong>test1(FTP, 21, file1.txt)</strong>, <strong>test1(HTTP, 80, file1.txt)</strong>, <strong> test1(SFTP, 22, file1.txt) ...<br> </strong></p>
-       </div>
-      </div>
-      <p><br></p>
-      <hr>
-      <h1 id="SendingdatatoTestExplorerdatabase-Insertamessage">Insert a message</h1>
-      <p><em> <strong>insertMessage</strong> </em>attaches a message usually to a Testcase, but potentially to a Run or Suite as well</p>
-      <div class="table-wrap">
-       <table class="wrapped confluenceTable">
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">sessionId</td> 
+          <td class="confluenceTd">session id</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">timestamp</td> 
+          <td class="confluenceTd">time</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">testcaseName</td> 
+          <td class="confluenceTd">Name of the testcase</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">scenarioName</td> 
+          <td class="confluenceTd">Name of the scenario</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">scenarioDescription</td> 
+          <td class="confluenceTd">Description</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">parentId</td> 
+          <td class="confluenceTd">DB ID of the parent SUITE</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <p>It returns the new <strong> <em>testcaseID</em> </strong></p> 
+      <div class="confluence-information-macro has-no-icon confluence-information-macro-tip"> 
+       <div class="confluence-information-macro-body"> 
+        <p>Test Explorer make difference between test scenario and testcase</p> 
+        <p>Scenario is the definition of the test. For example <strong>test1()</strong></p> 
+        <p>Testcase is one execution of the test. It could be the same as the scenario, but in some case you might executed same scenario many times. For example <strong>test1(FTP, 21, file1.txt)</strong>, <strong>test1(HTTP, 80, file1.txt)</strong>, <strong> test1(SFTP, 22, file1.txt) ...<br> </strong></p> 
+       </div> 
+      </div> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="SendingdatatoTestExplorerdatabase-Insertamessage">Insert a message</h1> 
+      <p><em> <strong>insertMessage</strong> </em>attaches a message usually to a Testcase, but potentially to a Run or Suite as well</p> 
+      <div class="table-wrap"> 
+       <table class="wrapped confluenceTable"> 
         <colgroup> 
          <col> 
          <col> 
          <col> 
-        </colgroup>
-        <tbody>
-         <tr>
-          <th class="confluenceTh">body parameters</th>
-          <th class="confluenceTh">description</th>
-          <th class="confluenceTh">optional</th>
-         </tr>
-         <tr>
-          <td class="confluenceTd">sessionId</td>
-          <td class="confluenceTd">session id</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">timestamp</td>
-          <td class="confluenceTd">time</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">message</td>
-          <td class="confluenceTd">the message content</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">level</td>
-          <td class="confluenceTd"><p>a log4j level:</p><p>TRACE|DEBUG|INFO|WARN|ERROR|FATAL</p></td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">machineName</td>
-          <td class="confluenceTd">The host this message is coming from</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">threadName</td>
-          <td class="confluenceTd">The thread this message is coming from</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">parentID</td>
-          <td class="confluenceTd">DB ID of the parent</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">parentType</td>
-          <td class="confluenceTd"><p>If this message belongs to a RUN or SUITE or TESTCASE:</p><p>RUN|SUITE|TESTCASE</p></td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-        </tbody>
-       </table>
-      </div>
-      <div class="confluence-information-macro has-no-icon confluence-information-macro-note">
-       <div class="confluence-information-macro-body">
-        <p>The message may be attached to a RUN or SUITE or TESTCASE.</p>
-        <p>If you do not provide a <em>parentId</em> and <em>parentType</em>, the message will go to the currently opened RUN or SUITE or TESTCASE.</p>
-        <p>If you provide a <em>parentId</em> and <em>parentType</em>, the message will be attached to that parent.</p>
-       </div>
-      </div>
-      <p><br></p>
-      <hr>
-      <h1 id="SendingdatatoTestExplorerdatabase-Insertmanymessagesatonce">Insert many messages at once</h1>
-      <p><em> <strong>insertMessages</strong> </em> attaches many message at once</p>
-      <p><br></p>
-      <div class="table-wrap">
-       <table class="wrapped confluenceTable">
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">sessionId</td> 
+          <td class="confluenceTd">session id</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">timestamp</td> 
+          <td class="confluenceTd">time</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">message</td> 
+          <td class="confluenceTd">the message content</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">level</td> 
+          <td class="confluenceTd"><p>a log4j level:</p><p>TRACE|DEBUG|INFO|WARN|ERROR|FATAL</p></td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">machineName</td> 
+          <td class="confluenceTd">The host this message is coming from</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">threadName</td> 
+          <td class="confluenceTd">The thread this message is coming from</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">parentID</td> 
+          <td class="confluenceTd">DB ID of the parent</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">parentType</td> 
+          <td class="confluenceTd"><p>If this message belongs to a RUN or SUITE or TESTCASE:</p><p>RUN|SUITE|TESTCASE</p></td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <div class="confluence-information-macro has-no-icon confluence-information-macro-note"> 
+       <div class="confluence-information-macro-body"> 
+        <p>The message may be attached to a RUN or SUITE or TESTCASE.</p> 
+        <p>If you do not provide a <em>parentId</em> and <em>parentType</em>, the message will go to the currently opened RUN or SUITE or TESTCASE.</p> 
+        <p>If you provide a <em>parentId</em> and <em>parentType</em>, the message will be attached to that parent.</p> 
+       </div> 
+      </div> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="SendingdatatoTestExplorerdatabase-Insertmanymessagesatonce">Insert many messages at once</h1> 
+      <p><em> <strong>insertMessages</strong> </em> attaches many message at once</p> 
+      <p><br></p> 
+      <div class="table-wrap"> 
+       <table class="wrapped confluenceTable"> 
         <colgroup> 
          <col> 
          <col> 
          <col> 
-        </colgroup>
-        <tbody>
-         <tr>
-          <th class="confluenceTh">body parameters</th>
-          <th class="confluenceTh">description</th>
-          <th class="confluenceTh">optional</th>
-         </tr>
-         <tr>
-          <td class="confluenceTd">sessionId</td>
-          <td class="confluenceTd">session Id</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">timestamp</td>
-          <td class="confluenceTd">time</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">parentID</td>
-          <td class="confluenceTd">DB ID of the parent</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">parentType</td>
-          <td class="confluenceTd"><p>If this message belongs to a RUN or SUITE or TESTCASE:</p><p>RUN|SUITE|TESTCASE</p></td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">messages</td>
-          <td class="confluenceTd">array of messages - same format as when sending one message at a time</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-        </tbody>
-       </table>
-      </div>
-      <p><br></p>
-      <hr>
-      <h1 id="SendingdatatoTestExplorerdatabase-AttachaFile">Attach a File</h1>
-      <p><em> <strong>attachFile</strong> </em> event allows you to attach a file to the current testcase or other ( pointed with the exact testcaseId ).</p>
-      <p>It is expected to use a multipart PUT.</p>
-      <hr>
-      <h1 id="SendingdatatoTestExplorerdatabase-EndaTestcase">End a Testcase</h1>
-      <p><em> <strong>endTestcase</strong> </em>event says if the test passed, failed or was skipped.<strong> </strong></p>
-      <div class="table-wrap">
-       <table class="wrapped confluenceTable">
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">sessionId</td> 
+          <td class="confluenceTd">session Id</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">timestamp</td> 
+          <td class="confluenceTd">time</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">parentID</td> 
+          <td class="confluenceTd">DB ID of the parent</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">parentType</td> 
+          <td class="confluenceTd"><p>If this message belongs to a RUN or SUITE or TESTCASE:</p><p>RUN|SUITE|TESTCASE</p></td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">messages</td> 
+          <td class="confluenceTd">array of messages - same format as when sending one message at a time</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="SendingdatatoTestExplorerdatabase-AttachaFile">Attach a File</h1> 
+      <p><em> <strong>attachFile</strong> </em> event allows you to attach a file to the current testcase or other ( pointed with the exact testcaseId ).</p> 
+      <p>It is expected to use a multipart PUT.</p> 
+      <hr> 
+      <h1 id="SendingdatatoTestExplorerdatabase-EndaTestcase">End a Testcase</h1> 
+      <p><em> <strong>endTestcase</strong> </em>event says if the test passed, failed or was skipped.<strong> </strong></p> 
+      <div class="table-wrap"> 
+       <table class="wrapped confluenceTable"> 
         <colgroup> 
          <col> 
          <col> 
          <col> 
-        </colgroup>
-        <tbody>
-         <tr>
-          <th class="confluenceTh">body parameters</th>
-          <th class="confluenceTh">description</th>
-          <th class="confluenceTh">optional</th>
-         </tr>
-         <tr>
-          <td class="confluenceTd">sessionId</td>
-          <td class="confluenceTd">session Id</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">timestamp</td>
-          <td class="confluenceTd">time</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">result</td>
-          <td class="confluenceTd"><p>The result of the test execution</p><p>FAILED|PASSED|SKIPPED</p></td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">testcaseId</td>
-          <td class="confluenceTd">The id of the testcase to end</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-        </tbody>
-       </table>
-      </div>
-      <p>This closes the <strong> <em>current testcase</em> </strong>. If <em>testcaseId</em> is provided, then this is the testcase to close.</p>
-      <hr>
-      <h1 id="SendingdatatoTestExplorerdatabase-EndaSuite">End a Suite</h1>
-      <p><em> <strong>endSuite</strong> </em>event closes the suite. In java world this event comes after the last test from a java class is completed</p>
-      <div class="table-wrap">
-       <table class="wrapped confluenceTable">
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">sessionId</td> 
+          <td class="confluenceTd">session Id</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">timestamp</td> 
+          <td class="confluenceTd">time</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">result</td> 
+          <td class="confluenceTd"><p>The result of the test execution</p><p>FAILED|PASSED|SKIPPED</p></td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">testcaseId</td> 
+          <td class="confluenceTd">The id of the testcase to end</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <p>This closes the <strong> <em>current testcase</em> </strong>. If <em>testcaseId</em> is provided, then this is the testcase to close.</p> 
+      <hr> 
+      <h1 id="SendingdatatoTestExplorerdatabase-EndaSuite">End a Suite</h1> 
+      <p><em> <strong>endSuite</strong> </em>event closes the suite. In java world this event comes after the last test from a java class is completed</p> 
+      <div class="table-wrap"> 
+       <table class="wrapped confluenceTable"> 
         <colgroup> 
          <col> 
          <col> 
          <col> 
-        </colgroup>
-        <tbody>
-         <tr>
-          <th class="confluenceTh">body parameters</th>
-          <th class="confluenceTh">description</th>
-          <th class="confluenceTh">optional</th>
-         </tr>
-         <tr>
-          <td class="confluenceTd">sessionId</td>
-          <td class="confluenceTd">session Id</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">timestamp</td>
-          <td class="confluenceTd">time</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">suiteId</td>
-          <td class="confluenceTd">The id of the suite to end</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-        </tbody>
-       </table>
-      </div>
-      <p>This closes the <strong> <em> current suite</em> </strong> If <em>suiteId</em> is provided, then this is the suite to close.</p>
-      <hr>
-      <h1 id="SendingdatatoTestExplorerdatabase-EndaRun">End a Run</h1>
-      <p><em> <strong>endRun</strong> </em>is the last event. It ends the execution of the run.</p>
-      <div class="table-wrap">
-       <table class="wrapped confluenceTable">
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">sessionId</td> 
+          <td class="confluenceTd">session Id</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">timestamp</td> 
+          <td class="confluenceTd">time</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">suiteId</td> 
+          <td class="confluenceTd">The id of the suite to end</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <p>This closes the <strong> <em> current suite</em> </strong> If <em>suiteId</em> is provided, then this is the suite to close.</p> 
+      <hr> 
+      <h1 id="SendingdatatoTestExplorerdatabase-EndaRun">End a Run</h1> 
+      <p><em> <strong>endRun</strong> </em>is the last event. It ends the execution of the run.</p> 
+      <div class="table-wrap"> 
+       <table class="wrapped confluenceTable"> 
         <colgroup> 
          <col> 
          <col> 
          <col> 
-        </colgroup>
-        <tbody>
-         <tr>
-          <th class="confluenceTh">body parameters</th>
-          <th class="confluenceTh">description</th>
-          <th class="confluenceTh">optional</th>
-         </tr>
-         <tr>
-          <td class="confluenceTd">sessionId</td>
-          <td class="confluenceTd">session Id</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">timestamp</td>
-          <td class="confluenceTd">time</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-        </tbody>
-       </table>
-      </div>
-      <p><br></p>
-      <hr>
-      <h1 id="SendingdatatoTestExplorerdatabase-Othernotsooftenusedevents">Other not so often used events</h1>
-      <p>Following is a list of events that are not used that much, but are considered as very useful at times</p>
-      <p><br></p>
-      <hr>
-      <h3 id="SendingdatatoTestExplorerdatabase-UpdateaRun">Update a Run</h3>
-      <p><em> <strong>updateRun</strong> </em> updates the current run with all data provided</p>
-      <div class="table-wrap">
-       <table class="relative-table wrapped confluenceTable">
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">sessionId</td> 
+          <td class="confluenceTd">session Id</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">timestamp</td> 
+          <td class="confluenceTd">time</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <p><br></p> 
+      <hr> 
+      <h1 id="SendingdatatoTestExplorerdatabase-Othernotsooftenusedevents">Other not so often used events</h1> 
+      <p>Following is a list of events that are not used that much, but are considered as very useful at times</p> 
+      <p><br></p> 
+      <hr> 
+      <h3 id="SendingdatatoTestExplorerdatabase-UpdateaRun">Update a Run</h3> 
+      <p><em> <strong>updateRun</strong> </em> updates the current run with all data provided</p> 
+      <div class="table-wrap"> 
+       <table class="relative-table wrapped confluenceTable"> 
         <colgroup> 
          <col> 
          <col> 
          <col> 
-        </colgroup>
-        <tbody>
-         <tr>
-          <th class="confluenceTh">body parameters</th>
-          <th class="confluenceTh">description</th>
-          <th class="confluenceTh">optional</th>
-         </tr>
-         <tr>
-          <td class="confluenceTd">sessionID</td>
-          <td class="confluenceTd">session id</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">runName</td>
-          <td class="confluenceTd">Run name</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">productName</td>
-          <td class="confluenceTd">Product name</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">versionName</td>
-          <td class="confluenceTd">Product version</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">buildName</td>
-          <td class="confluenceTd">Product build</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">osName</td>
-          <td class="confluenceTd">OS</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">userNote</td>
-          <td class="confluenceTd">Some note</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-        </tbody>
-       </table>
-      </div>
-      <h3 id="SendingdatatoTestExplorerdatabase-"><span> <br> </span></h3>
-      <hr>
-      <h3 id="SendingdatatoTestExplorerdatabase-AddaRunmetainformation"><span>Add a Run meta information</span></h3>
-      <p><span>It applies some key-value information to a Run.</span></p>
-      <p>The metainfo is intended to change the behavior of Test Explorer, but currently the only key that will affect the Test Explorer's work is the "type".</p>
-      <p>The significance of this event will probably grow in future.</p>
-      <div class="table-wrap">
-       <table class="wrapped confluenceTable">
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">sessionID</td> 
+          <td class="confluenceTd">session id</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">runName</td> 
+          <td class="confluenceTd">Run name</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">productName</td> 
+          <td class="confluenceTd">Product name</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">versionName</td> 
+          <td class="confluenceTd">Product version</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">buildName</td> 
+          <td class="confluenceTd">Product build</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">osName</td> 
+          <td class="confluenceTd">OS</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">userNote</td> 
+          <td class="confluenceTd">Some note</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <h3 id="SendingdatatoTestExplorerdatabase-"><span> <br> </span></h3> 
+      <hr> 
+      <h3 id="SendingdatatoTestExplorerdatabase-AddaRunmetainformation"><span>Add a Run meta information</span></h3> 
+      <p><span>It applies some key-value information to a Run.</span></p> 
+      <p>The metainfo is intended to change the behavior of Test Explorer, but currently the only key that will affect the Test Explorer's work is the "type".</p> 
+      <p>The significance of this event will probably grow in future.</p> 
+      <div class="table-wrap"> 
+       <table class="wrapped confluenceTable"> 
         <colgroup> 
          <col> 
          <col> 
          <col> 
-        </colgroup>
-        <tbody>
-         <tr>
-          <th class="confluenceTh">body parameters</th>
-          <th class="confluenceTh">description</th>
-          <th class="confluenceTh">optional</th>
-         </tr>
-         <tr>
-          <td class="confluenceTd">sessionID</td>
-          <td class="confluenceTd">session id</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">metaKey</td>
-          <td class="confluenceTd">Name of meta key</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">metaValue</td>
-          <td class="confluenceTd">Value of meta key</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-        </tbody>
-       </table>
-      </div>
-      <hr>
-      <h3 id="SendingdatatoTestExplorerdatabase-InsertaRunmessage">Insert a Run message</h3>
-      <p>There are two ways to attach a message(s) to the level of a run by simply calling <em> <strong>insertMessage</strong> </em>or <em> <strong>insertMessages</strong> </em>events:</p>
-      <ul style="list-style-type: square;">
-       <li>A message is attached to a RUN if currently a Run is started(and not a Suite or Testcase)</li>
-       <li>A message is attached to a RUN if <em> <strong>parentType</strong> </em> is set to "<em> <strong>RUN</strong> </em>" and <em> <strong>parentId</strong> </em> is set to point to the <em> <strong>run's db id</strong> </em></li>
-      </ul>
-      <p><br></p>
-      <hr>
-      <h3 id="SendingdatatoTestExplorerdatabase-UpdateaSuite">Update a Suite</h3>
-      <p><em> <strong>updateSuite</strong> </em> updates the current run with all data provided</p>
-      <p>If <em> <strong>suiteId</strong> </em> is provided, we point directly to the suite to update. Otherwise the current suite is updated.</p>
-      <div class="table-wrap">
-       <table class="wrapped confluenceTable">
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">sessionID</td> 
+          <td class="confluenceTd">session id</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">metaKey</td> 
+          <td class="confluenceTd">Name of meta key</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">metaValue</td> 
+          <td class="confluenceTd">Value of meta key</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <hr> 
+      <h3 id="SendingdatatoTestExplorerdatabase-InsertaRunmessage">Insert a Run message</h3> 
+      <p>There are two ways to attach a message(s) to the level of a run by simply calling <em> <strong>insertMessage</strong> </em>or <em> <strong>insertMessages</strong> </em>events:</p> 
+      <ul style="list-style-type: square;"> 
+       <li>A message is attached to a RUN if currently a Run is started(and not a Suite or Testcase)</li> 
+       <li>A message is attached to a RUN if <em> <strong>parentType</strong> </em> is set to "<em> <strong>RUN</strong> </em>" and <em> <strong>parentId</strong> </em> is set to point to the <em> <strong>run's db id</strong> </em></li> 
+      </ul> 
+      <p><br></p> 
+      <hr> 
+      <h3 id="SendingdatatoTestExplorerdatabase-UpdateaSuite">Update a Suite</h3> 
+      <p><em> <strong>updateSuite</strong> </em> updates the current run with all data provided</p> 
+      <p>If <em> <strong>suiteId</strong> </em> is provided, we point directly to the suite to update. Otherwise the current suite is updated.</p> 
+      <div class="table-wrap"> 
+       <table class="wrapped confluenceTable"> 
         <colgroup> 
          <col> 
          <col> 
          <col> 
-        </colgroup>
-        <tbody>
-         <tr>
-          <th class="confluenceTh">body parameters</th>
-          <th class="confluenceTh">description</th>
-          <th class="confluenceTh">optional</th>
-         </tr>
-         <tr>
-          <td class="confluenceTd">sessionID</td>
-          <td class="confluenceTd">session id</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">suiteId</td>
-          <td class="confluenceTd">Suite id</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">suiteName</td>
-          <td class="confluenceTd">Suite name</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">userNote</td>
-          <td class="confluenceTd">Some note</td>
-          <td class="confluenceTd">Y</td>
-         </tr>
-        </tbody>
-       </table>
-      </div>
-      <hr>
-      <h3 id="SendingdatatoTestExplorerdatabase-InsertaSuitemessage">Insert a Suite message</h3>
-      <p>There are two ways to attach a message(s) to the level of a suite by simply calling <em> <strong>insertMessage</strong> </em>or <em> <strong>insertMessages</strong> </em>events:</p>
-      <ul>
-       <li>A message is attached to a SUITE if currently a Suite is started(and not a Run or Testcase)</li>
-       <li>A message is attached to a SUITE if <em> <strong>parentType</strong> </em> is set to "<em> <strong>SUITE</strong> </em>" and <em> <strong>parentId</strong> </em> is set to point to the <em> <strong>suites's db id</strong> </em></li>
-      </ul>
-      <p><span> <br> </span></p>
-      <hr>
-      <h3 id="SendingdatatoTestExplorerdatabase-AddaScenariometainformation"><span> Add a Scenario meta information</span></h3>
-      <p><span>It applies some key-value information to a Scenario.</span></p>
-      <p>The metainfo is intended to change the behavior of Test Explorer mainly in allowing to filter scenarios for some reporting purposes. <span>The significance of this event will probably grow in future.</span></p>
-      <div class="table-wrap">
-       <table class="wrapped confluenceTable">
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">sessionID</td> 
+          <td class="confluenceTd">session id</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">suiteId</td> 
+          <td class="confluenceTd">Suite id</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">suiteName</td> 
+          <td class="confluenceTd">Suite name</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">userNote</td> 
+          <td class="confluenceTd">Some note</td> 
+          <td class="confluenceTd">Y</td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <hr> 
+      <h3 id="SendingdatatoTestExplorerdatabase-InsertaSuitemessage">Insert a Suite message</h3> 
+      <p>There are two ways to attach a message(s) to the level of a suite by simply calling <em> <strong>insertMessage</strong> </em>or <em> <strong>insertMessages</strong> </em>events:</p> 
+      <ul> 
+       <li>A message is attached to a SUITE if currently a Suite is started(and not a Run or Testcase)</li> 
+       <li>A message is attached to a SUITE if <em> <strong>parentType</strong> </em> is set to "<em> <strong>SUITE</strong> </em>" and <em> <strong>parentId</strong> </em> is set to point to the <em> <strong>suites's db id</strong> </em></li> 
+      </ul> 
+      <p><span> <br> </span></p> 
+      <hr> 
+      <h3 id="SendingdatatoTestExplorerdatabase-AddaScenariometainformation"><span> Add a Scenario meta information</span></h3> 
+      <p><span>It applies some key-value information to a Scenario.</span></p> 
+      <p>The metainfo is intended to change the behavior of Test Explorer mainly in allowing to filter scenarios for some reporting purposes. <span>The significance of this event will probably grow in future.</span></p> 
+      <div class="table-wrap"> 
+       <table class="wrapped confluenceTable"> 
         <colgroup> 
          <col> 
          <col> 
          <col> 
-        </colgroup>
-        <tbody>
-         <tr>
-          <th class="confluenceTh">body parameters</th>
-          <th class="confluenceTh">description</th>
-          <th class="confluenceTh">optional</th>
-         </tr>
-         <tr>
-          <td class="confluenceTd">sessionID</td>
-          <td class="confluenceTd">session id</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">metaKey</td>
-          <td class="confluenceTd">Name of meta key</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-         <tr>
-          <td class="confluenceTd">metaValue</td>
-          <td class="confluenceTd">Value of meta key</td>
-          <td class="confluenceTd"><br></td>
-         </tr>
-        </tbody>
-       </table>
-      </div>
-      <p><br></p>
-      <hr>
-      <p>Back to <a href="ATS-HTTP-DB-Logger-Guide.html">parent page</a><p>Go to <a href="./toc.html">Table of Contents</a></p></p>
-      <hr>
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">sessionID</td> 
+          <td class="confluenceTd">session id</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">metaKey</td> 
+          <td class="confluenceTd">Name of meta key</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">metaValue</td> 
+          <td class="confluenceTd">Value of meta key</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <p><br></p> 
+      <hr> 
+      <p>Back to <a href="ATS-HTTP-DB-Logger-Guide.html">parent page</a><p>Go to <a href="./toc.html">Table of Contents</a></p></p> 
+      <hr> 
       <p><br></p> 
      </div> 
     </div> 
    </div> 
-  </div>
+  </div>   
  </body>
 </html>
