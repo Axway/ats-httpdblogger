@@ -19,28 +19,28 @@ import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value = "update run details")
+@ApiModel( value = "update run details")
 public class UpdateRunPojo extends BasePojo {
 
-    @ApiModelProperty(required = false, value = "Run name", example = "Acceptance Tests")
+    @ApiModelProperty( required = false, value = "Run name", example = "Acceptance Tests")
     protected String runName;
 
-    @ApiModelProperty(required = false, value = "OS name", example = "linux")
+    @ApiModelProperty( required = false, value = "OS name", example = "linux")
     protected String osName;
 
-    @ApiModelProperty(required = false, value = "Product name", example = "HTTP Client")
+    @ApiModelProperty( required = false, value = "Product name", example = "HTTP Client")
     protected String productName;
 
-    @ApiModelProperty(required = false, value = "Version name", example = "1.0.0")
+    @ApiModelProperty( required = false, value = "Version name", example = "1.0.0")
     protected String versionName;
 
-    @ApiModelProperty(required = false, value = "Build name", example = "1234")
+    @ApiModelProperty( required = false, value = "Build name", example = "1234")
     protected String buildName;
 
-    @ApiModelProperty(required = false, value = "Host name", example = "localhost")
+    @ApiModelProperty( required = false, value = "Host name", example = "localhost")
     protected String hostName;
 
-    @ApiModelProperty(required = false, value = "User note", example = "Acceptance run for HTTP")
+    @ApiModelProperty( required = false, value = "User note", example = "Acceptance run for HTTP")
     private String   userNote;
 
     public String getRunName() {

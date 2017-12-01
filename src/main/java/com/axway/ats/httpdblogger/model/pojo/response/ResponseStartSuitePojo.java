@@ -18,9 +18,9 @@ package com.axway.ats.httpdblogger.model.pojo.response;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel("response startSuite data")
+@ApiModel( "response startSuite data")
 public class ResponseStartSuitePojo {
-    @ApiModelProperty(required = true, value = "Suite ID", example = "3340")
+    @ApiModelProperty( required = true, value = "Suite ID", example = "3340")
     private int suiteId;
 
     public ResponseStartSuitePojo() {}

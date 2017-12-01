@@ -27,7 +27,7 @@ public class HttpSessionListener implements javax.servlet.http.HttpSessionListen
 
         HttpSession session = se.getSession();
         ServletContext context = session.getServletContext();
-        context.setAttribute( session.getId(), session );
+        context.setAttribute(session.getId(), session);
     }
 
     @Override
@@ -36,7 +36,7 @@ public class HttpSessionListener implements javax.servlet.http.HttpSessionListen
 
         HttpSession session = se.getSession();
         ServletContext context = session.getServletContext();
-        context.removeAttribute( session.getId() );
+        context.removeAttribute(session.getId());
     }
 
 }

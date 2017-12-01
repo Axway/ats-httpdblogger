@@ -30,11 +30,11 @@ public class UnknownRunException extends RuntimeException {
     }
 
     public UnknownRunException( String message ) {
-        super( message );
+        super(message);
     }
 
     public UnknownRunException( String message,
-                                 Throwable throwable ) {
-        super( message, throwable );
+                                Throwable throwable ) {
+        super(message, throwable);
     }
 }

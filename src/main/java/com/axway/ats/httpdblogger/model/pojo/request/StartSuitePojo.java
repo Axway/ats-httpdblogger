@@ -19,19 +19,19 @@ import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value = "suite details")
+@ApiModel( value = "suite details")
 public class StartSuitePojo extends BasePojo {
 
-    @ApiModelProperty(hidden = true)
+    @ApiModelProperty( hidden = true)
     private int               suiteId;
 
-    @ApiModelProperty(required = true, value = "Suite name", example = "Test_Http")
+    @ApiModelProperty( required = true, value = "Suite name", example = "Test_Http")
     private String            suiteName;
 
-    @ApiModelProperty(required = true, value = "Suite package name", example = "com.foo.bar.http")
+    @ApiModelProperty( required = true, value = "Suite package name", example = "com.foo.bar.http")
     private String            packageName;
 
-    @ApiModelProperty(hidden = true)
+    @ApiModelProperty( hidden = true)
     private StartTestcasePojo testcase;
 
     public int getSuiteId() {

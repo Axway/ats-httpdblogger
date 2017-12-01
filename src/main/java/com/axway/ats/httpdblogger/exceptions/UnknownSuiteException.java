@@ -30,11 +30,11 @@ public class UnknownSuiteException extends RuntimeException {
     }
 
     public UnknownSuiteException( String message ) {
-        super( message );
+        super(message);
     }
 
     public UnknownSuiteException( String message,
                                   Throwable throwable ) {
-        super( message, throwable );
+        super(message, throwable);
     }
 }

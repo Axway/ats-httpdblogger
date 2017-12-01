@@ -19,19 +19,19 @@ import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value = "start testcase details")
+@ApiModel( value = "start testcase details")
 public class StartTestcasePojo extends BasePojo {
 
-    @ApiModelProperty(hidden = true)
+    @ApiModelProperty( hidden = true)
     private int    testcaseId;
 
-    @ApiModelProperty(required = true, value = "Testcase name", example = "testGetHomePathUnix")
+    @ApiModelProperty( required = true, value = "Testcase name", example = "testGetHomePathUnix")
     private String testcaseName;
 
-    @ApiModelProperty(required = true, value = "Scenario name", example = "testGetHomePath")
+    @ApiModelProperty( required = true, value = "Scenario name", example = "testGetHomePath")
     private String scenarioName;
 
-    @ApiModelProperty(required = true, value = "Scenario description", example = "testGetHomePath")
+    @ApiModelProperty( required = true, value = "Scenario description", example = "testGetHomePath")
     private String scenarioDescription;
 
     public int getTestcaseId() {

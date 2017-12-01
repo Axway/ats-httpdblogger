@@ -21,12 +21,12 @@ import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel("Attach file details")
+@ApiModel( "Attach file details")
 public class AttachFilePojo extends BasePojo {
 
-    @ApiModelProperty(required = true, value = "File to attach InputStream")
+    @ApiModelProperty( required = true, value = "File to attach InputStream")
     private InputStream inputStream;
-    @ApiModelProperty(required = true, value = "File name", example = "log.txt")
+    @ApiModelProperty( required = true, value = "File name", example = "log.txt")
     private String      fileName;
 
     public InputStream getInputStream() {

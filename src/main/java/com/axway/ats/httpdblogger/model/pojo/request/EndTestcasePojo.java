@@ -20,16 +20,16 @@ import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value = "end testcase details")
+@ApiModel( value = "end testcase details")
 public class EndTestcasePojo extends BasePojo {
 
-    @ApiModelProperty(required = true, value = "Testcase result", example = "FAILED|PASSED|SKIPPED|RUNNING")
+    @ApiModelProperty( required = true, value = "Testcase result", example = "FAILED|PASSED|SKIPPED|RUNNING")
     private String     result;
 
-    @ApiModelProperty(hidden = true)
+    @ApiModelProperty( hidden = true)
     private TestResult testResult = TestResult.RUNNING;
 
-    @ApiModelProperty(required = false, value = "Testcase ID", example="8841")
+    @ApiModelProperty( required = false, value = "Testcase ID", example = "8841")
     private int        testcaseId = -1;
 
     public String getResult() {

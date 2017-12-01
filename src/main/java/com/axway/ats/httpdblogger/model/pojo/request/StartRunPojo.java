@@ -19,53 +19,53 @@ import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value = "run and DB details")
+@ApiModel( value = "run and DB details")
 public class StartRunPojo extends BasePojo {
 
-    @ApiModelProperty(hidden = true)
-    private int      runId;
+    @ApiModelProperty( hidden = true)
+    private int            runId;
 
-    @ApiModelProperty(required = true, value = "Run name", example = "Acceptance Tests")
-    protected String runName;
+    @ApiModelProperty( required = true, value = "Run name", example = "Acceptance Tests")
+    protected String       runName;
 
-    @ApiModelProperty(required = true, value = "OS name", example = "linux")
-    protected String osName;
+    @ApiModelProperty( required = true, value = "OS name", example = "linux")
+    protected String       osName;
 
-    @ApiModelProperty(required = true, value = "Product name", example = "HTTP Client")
-    protected String productName;
+    @ApiModelProperty( required = true, value = "Product name", example = "HTTP Client")
+    protected String       productName;
 
-    @ApiModelProperty(required = true, value = "Version name", example = "1.0.0")
-    protected String versionName;
+    @ApiModelProperty( required = true, value = "Version name", example = "1.0.0")
+    protected String       versionName;
 
-    @ApiModelProperty(required = true, value = "Build name", example = "1234")
-    protected String buildName;
-    
-    @ApiModelProperty(required = true, value = "Host name", example = "localhost")
-    protected String hostName;
+    @ApiModelProperty( required = true, value = "Build name", example = "1234")
+    protected String       buildName;
 
-    @ApiModelProperty(required = true, value = "DB host", example = "localhost")
-    private String   dbHost;
+    @ApiModelProperty( required = true, value = "Host name", example = "localhost")
+    protected String       hostName;
 
-    @ApiModelProperty(required = true, value = "DB name", example = "HTTP_TESTS")
-    private String   dbName;
+    @ApiModelProperty( required = true, value = "DB host", example = "localhost")
+    private String         dbHost;
 
-    @ApiModelProperty(required = true, value = "DB user", example = "admin")
-    private String   dbUser;
+    @ApiModelProperty( required = true, value = "DB name", example = "HTTP_TESTS")
+    private String         dbName;
 
-    @ApiModelProperty(required = true, value = "DB password", example = "password")
-    private String   dbPassword;
-    
-    @ApiModelProperty(required = false, value = "User note", example = "Acceptance run for HTTP")
-    private String    userNote;
+    @ApiModelProperty( required = true, value = "DB user", example = "admin")
+    private String         dbUser;
 
-    @ApiModelProperty(hidden = true)
-    private StartSuitePojo    suite;
+    @ApiModelProperty( required = true, value = "DB password", example = "password")
+    private String         dbPassword;
+
+    @ApiModelProperty( required = false, value = "User note", example = "Acceptance run for HTTP")
+    private String         userNote;
+
+    @ApiModelProperty( hidden = true)
+    private StartSuitePojo suite;
 
     /*
      * Overriding the session id getter, in order to hide that field from the documentation generation,
      * because it is not needed for Run starting
      */
-    @ApiModelProperty(hidden = true)
+    @ApiModelProperty( hidden = true)
     public String getSessionId() {
 
         return sessionId;
@@ -136,12 +136,14 @@ public class StartRunPojo extends BasePojo {
 
         this.buildName = buildName;
     }
-    
+
     public String getHostName() {
+
         return hostName;
     }
-    
-    public void setHostName(String hostName){
+
+    public void setHostName( String hostName ) {
+
         this.hostName = hostName;
     }
 
@@ -201,14 +203,13 @@ public class StartRunPojo extends BasePojo {
     }
 
     public String getUserNote() {
-    
+
         return userNote;
     }
 
     public void setUserNote( String userNote ) {
-    
+
         this.userNote = userNote;
     }
-    
-    
+
 }

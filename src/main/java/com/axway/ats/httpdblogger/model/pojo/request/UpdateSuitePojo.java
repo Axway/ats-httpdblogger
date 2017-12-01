@@ -19,16 +19,16 @@ import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value = "update suite details")
+@ApiModel( value = "update suite details")
 public class UpdateSuitePojo extends BasePojo {
 
-    @ApiModelProperty(required = false, value = "Suite ID", example = "1321")
-    protected int suiteId;
+    @ApiModelProperty( required = false, value = "Suite ID", example = "1321")
+    protected int    suiteId;
 
-    @ApiModelProperty(required = false, value = "Suite name", example = "Tests_OracleConnection")
+    @ApiModelProperty( required = false, value = "Suite name", example = "Tests_OracleConnection")
     protected String suiteName;
 
-    @ApiModelProperty(required = false, value = "User note", example = "Acceptanse test for Oracle DB connection")
+    @ApiModelProperty( required = false, value = "User note", example = "Acceptanse test for Oracle DB connection")
     private String   userNote;
 
     public int getSuiteId() {

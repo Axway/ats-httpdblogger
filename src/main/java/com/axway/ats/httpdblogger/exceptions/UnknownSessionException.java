@@ -19,7 +19,7 @@ package com.axway.ats.httpdblogger.exceptions;
  * Used when the provided session id does not references known session
  * */
 public class UnknownSessionException extends RuntimeException {
-    
+
     /**
      * 
      */
@@ -30,12 +30,12 @@ public class UnknownSessionException extends RuntimeException {
     }
 
     public UnknownSessionException( String message ) {
-        super( message );
+        super(message);
     }
 
     public UnknownSessionException( String message,
-                                 Throwable throwable ) {
-        super( message, throwable );
+                                    Throwable throwable ) {
+        super(message, throwable);
     }
 
 }

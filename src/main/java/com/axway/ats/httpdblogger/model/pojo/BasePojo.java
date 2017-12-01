@@ -18,16 +18,16 @@ package com.axway.ats.httpdblogger.model.pojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value = "session data")
+@ApiModel( value = "session data")
 public class BasePojo {
 
-    @ApiModelProperty(required = true, value = "Session ID", example = "f177f4f5-a649-4faa-920e-978ef8d60cb2")
+    @ApiModelProperty( required = true, value = "Session ID", example = "f177f4f5-a649-4faa-920e-978ef8d60cb2")
     protected String sessionId;
-    @ApiModelProperty(required = false, value = "timestamp", example = "1493709734")
+    @ApiModelProperty( required = false, value = "timestamp", example = "1493709734")
     protected long   timestamp = -1;
-    @ApiModelProperty(required = false, value = "Parent ID", example = "323")
+    @ApiModelProperty( required = false, value = "Parent ID", example = "323")
     private int      parentId  = -1;
-    @ApiModelProperty(required = false, value = "Parent Type", example = "RUN|SUITE|TESTCASE")
+    @ApiModelProperty( required = false, value = "Parent Type", example = "RUN|SUITE|TESTCASE")
     private String   parentType;
 
     public String getSessionId() {
@@ -51,25 +51,23 @@ public class BasePojo {
     }
 
     public int getParentId() {
-    
+
         return parentId;
     }
 
     public void setParentId( int parentId ) {
-    
+
         this.parentId = parentId;
     }
 
     public String getParentType() {
-    
+
         return parentType;
     }
 
     public void setParentType( String parentType ) {
-    
+
         this.parentType = parentType;
     }
-    
-    
 
 }

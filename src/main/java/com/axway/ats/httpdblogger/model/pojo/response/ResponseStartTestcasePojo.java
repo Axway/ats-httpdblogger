@@ -18,9 +18,9 @@ package com.axway.ats.httpdblogger.model.pojo.response;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel("response startTestcase data")
+@ApiModel( "response startTestcase data")
 public class ResponseStartTestcasePojo {
-    @ApiModelProperty(required = true, value = "Testcase ID", example = "3340")
+    @ApiModelProperty( required = true, value = "Testcase ID", example = "3340")
     private int testcaseId;
 
     public ResponseStartTestcasePojo() {}

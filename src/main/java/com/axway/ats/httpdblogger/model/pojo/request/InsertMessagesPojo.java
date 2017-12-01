@@ -21,10 +21,10 @@ import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value = "messages details")
+@ApiModel( value = "messages details")
 public class InsertMessagesPojo extends BasePojo {
 
-    @ApiModelProperty(required = true, value = "List of message details", example = "see InsertMessagePojo information for more details")
+    @ApiModelProperty( required = true, value = "List of message details", example = "see InsertMessagePojo information for more details")
     List<InsertMessagePojo> messages;
 
     public List<InsertMessagePojo> getMessages() {

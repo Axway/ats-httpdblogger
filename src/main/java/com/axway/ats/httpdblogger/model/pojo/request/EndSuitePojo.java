@@ -19,10 +19,10 @@ import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value = "end suite details")
+@ApiModel( value = "end suite details")
 public class EndSuitePojo extends BasePojo {
 
-    @ApiModelProperty(required = false, value = "Suite ID", example="3309")
+    @ApiModelProperty( required = false, value = "Suite ID", example = "3309")
     private int suiteId = -1;
 
     public int getSuiteId() {

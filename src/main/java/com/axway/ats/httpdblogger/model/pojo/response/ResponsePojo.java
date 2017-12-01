@@ -19,13 +19,13 @@ import com.axway.ats.core.utils.ExceptionUtils;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value = "response data")
+@ApiModel( value = "response data")
 public class ResponsePojo {
 
-    @ApiModelProperty(required = true, value = "Session ID", example = "f177f4f5-a649-4faa-920e-978ef8d60cb2")
+    @ApiModelProperty( required = true, value = "Session ID", example = "f177f4f5-a649-4faa-920e-978ef8d60cb2")
     private String sessionId;
 
-    @ApiModelProperty(required = false, value = "Error message", example = "Invalid session id 'sdfsf4f5-n569-2faa-t20e-978ef8d20cb4'")
+    @ApiModelProperty( required = false, value = "Error message", example = "Invalid session id 'sdfsf4f5-n569-2faa-t20e-978ef8d20cb4'")
     private String error;
 
     public ResponsePojo() {
@@ -41,8 +41,8 @@ public class ResponsePojo {
     public ResponsePojo( String message,
                          Exception exception ) {
 
-        if( exception != null ) {
-            this.error = ExceptionUtils.getExceptionMsg( exception, message );
+        if (exception != null) {
+            this.error = ExceptionUtils.getExceptionMsg(exception, message);
         } else {
             this.error = message;
         }
@@ -50,7 +50,7 @@ public class ResponsePojo {
 
     public ResponsePojo( Exception exception ) {
 
-        this.error = ExceptionUtils.getExceptionMsg( exception );
+        this.error = ExceptionUtils.getExceptionMsg(exception);
     }
 
     public String getSessionId() {

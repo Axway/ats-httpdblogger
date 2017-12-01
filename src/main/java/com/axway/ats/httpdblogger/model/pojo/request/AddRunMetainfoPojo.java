@@ -19,11 +19,11 @@ import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel("Run metainfo details")
+@ApiModel( "Run metainfo details")
 public class AddRunMetainfoPojo extends BasePojo {
-    @ApiModelProperty(required = true, value = "meta key", example="type")
+    @ApiModelProperty( required = true, value = "meta key", example = "type")
     private String metaKey;
-    @ApiModelProperty(required = true, value = "meta value", example="Regression")
+    @ApiModelProperty( required = true, value = "meta value", example = "Regression")
     private String metaValue;
 
     public AddRunMetainfoPojo() {}

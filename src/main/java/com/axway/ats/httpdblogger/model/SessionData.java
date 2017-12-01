@@ -44,7 +44,7 @@ public class SessionData {
 
     public DbRequestProcessor getDbRequestProcessor() {
 
-        if( dbRequestProcessor == null ) {
+        if (dbRequestProcessor == null) {
             dbRequestProcessor = new DbRequestProcessor();
         }
         return dbRequestProcessor;
@@ -72,22 +72,22 @@ public class SessionData {
 
     public void addTestcaseId( int id, String name ) {
 
-        testcasesMap.put( id, name );
+        testcasesMap.put(id, name);
     }
 
     public void addSuiteId( int id, String name ) {
 
-        suitesMap.put( id, name );
+        suitesMap.put(id, name);
     }
 
     public boolean hasSuiteId( int suiteId ) {
 
-        return suitesMap.containsKey( suiteId );
+        return suitesMap.containsKey(suiteId);
     }
 
     public boolean hasTestcaseId( int testcaseId ) {
 
-        return testcasesMap.containsKey( testcaseId );
+        return testcasesMap.containsKey(testcaseId);
     }
 
 }

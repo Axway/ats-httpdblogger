@@ -19,11 +19,11 @@ import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel("Scenario metainfo details")
+@ApiModel( "Scenario metainfo details")
 public class AddScenarioMetainfoPojo extends BasePojo {
-    @ApiModelProperty(required = true, value = "meta key", example="group")
+    @ApiModelProperty( required = true, value = "meta key", example = "group")
     private String metaKey;
-    @ApiModelProperty(required = true, value = "meta value", example="File transfer")
+    @ApiModelProperty( required = true, value = "meta value", example = "File transfer")
     private String metaValue;
 
     public AddScenarioMetainfoPojo() {}

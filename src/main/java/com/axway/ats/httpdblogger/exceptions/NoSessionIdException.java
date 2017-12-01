@@ -30,12 +30,12 @@ public class NoSessionIdException extends Exception {
     }
 
     public NoSessionIdException( String message ) {
-        super( message );
+        super(message);
     }
 
     public NoSessionIdException( String message,
                                  Throwable throwable ) {
-        super( message, throwable );
+        super(message, throwable);
     }
 
 }

@@ -20,16 +20,16 @@ import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel(value = "message details")
+@ApiModel( value = "message details")
 public class InsertMessagePojo extends BasePojo {
 
-    @ApiModelProperty(required = true, value = "Log level", example="TRACE|DEBUG|INFO|WARN|ERROR|FATAL")
+    @ApiModelProperty( required = true, value = "Log level", example = "TRACE|DEBUG|INFO|WARN|ERROR|FATAL")
     private String level;
-    @ApiModelProperty(required = true, value = "Host message is logged from", example="127.0.0.1")
+    @ApiModelProperty( required = true, value = "Host message is logged from", example = "127.0.0.1")
     private String machineName;
-    @ApiModelProperty(required = true, value = "Thread name", example="main")
+    @ApiModelProperty( required = true, value = "Thread name", example = "main")
     private String threadName;
-    @ApiModelProperty(required = true, value = "Message", example="Beginning http tests")
+    @ApiModelProperty( required = true, value = "Message", example = "Beginning http tests")
     private String message;
 
     public String getLevel() {
@@ -78,7 +78,7 @@ public class InsertMessagePojo extends BasePojo {
 
     public MessageLevel getLogLevel() {
 
-        return MessageLevel.valueOf( level );
+        return MessageLevel.valueOf(level);
     }
 
 }

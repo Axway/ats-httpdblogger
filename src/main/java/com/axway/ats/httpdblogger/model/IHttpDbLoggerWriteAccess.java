@@ -26,6 +26,6 @@ public interface IHttpDbLoggerWriteAccess extends IDbWriteAccess {
     public void insertSuiteMessages( InsertMessagesPojo messages ) throws DatabaseAccessException;
 
     public void insertRunMessages( InsertMessagesPojo messages ) throws DatabaseAccessException;
-    
+
     public int getDatabaseInternalVersion() throws DatabaseAccessException;
 }

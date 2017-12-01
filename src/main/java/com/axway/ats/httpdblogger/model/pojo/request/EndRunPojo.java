@@ -18,7 +18,7 @@ package com.axway.ats.httpdblogger.model.pojo.request;
 import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.wordnik.swagger.annotations.ApiModel;
 
-@ApiModel(value = "end run details")
+@ApiModel( value = "end run details")
 public class EndRunPojo extends BasePojo {
 
 }

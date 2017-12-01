@@ -18,11 +18,11 @@ package com.axway.ats.httpdblogger.model.pojo.response;
 import com.wordnik.swagger.annotations.ApiModel;
 import com.wordnik.swagger.annotations.ApiModelProperty;
 
-@ApiModel("response startRun data")
+@ApiModel( "response startRun data")
 public class ResponseStartRunPojo {
-    @ApiModelProperty(required = true, value = "Session ID", example = "f177f4f5-a649-4faa-920e-978ef8d60cb2")
+    @ApiModelProperty( required = true, value = "Session ID", example = "f177f4f5-a649-4faa-920e-978ef8d60cb2")
     private String sessionId;
-    @ApiModelProperty(required = true, value = "Run ID", example = "3340")
+    @ApiModelProperty( required = true, value = "Run ID", example = "3340")
     private int    runId;
 
     public ResponseStartRunPojo() {}

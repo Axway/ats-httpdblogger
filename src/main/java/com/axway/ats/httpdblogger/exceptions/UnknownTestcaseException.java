@@ -30,11 +30,11 @@ public class UnknownTestcaseException extends RuntimeException {
     }
 
     public UnknownTestcaseException( String message ) {
-        super( message );
+        super(message);
     }
 
     public UnknownTestcaseException( String message,
-                                  Throwable throwable ) {
-        super( message, throwable );
+                                     Throwable throwable ) {
+        super(message, throwable);
     }
 }

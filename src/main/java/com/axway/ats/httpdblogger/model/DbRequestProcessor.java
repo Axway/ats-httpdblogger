@@ -60,11 +60,11 @@ import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
  */
 public class DbRequestProcessor {
 
-    private static final String      ATTACHED_FILES_PROPERTY  = "ats.attached.files.dir";
-    
-    private final long               MAX_FILE_SIZE            = 10 * 1024 * 1024; // 10MB
-    
-    private static final Logger      log                      = Logger.getLogger( DbRequestProcessor.class );
+    private static final String      ATTACHED_FILES_PROPERTY = "ats.attached.files.dir";
+
+    private final long               MAX_FILE_SIZE           = 10 * 1024 * 1024;                          // 10MB
+
+    private static final Logger      log                     = Logger.getLogger(DbRequestProcessor.class);
 
     // the current state
     private LifeCycleState           state;
@@ -81,87 +81,87 @@ public class DbRequestProcessor {
 
     public void startRun( StartRunPojo run ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "start RUN", LifeCycleState.INITIALIZED, LifeCycleState.RUN_STARTED );
+        evaluateCurrentState("start RUN", LifeCycleState.INITIALIZED, LifeCycleState.RUN_STARTED);
 
         /*run.getDbHost(), run.getDbName(), run.getDbUser(), run.getDbPassword()*/
 
-        if( DbUtils.isMSSQLDatabaseAvailable( run.getDbHost(), run.getDbName(), run.getDbUser(),
-                                              run.getDbPassword() ) ) {
-            dbWriteAccess = new HttpDbLoggerSQLServerWriteAccess( new DbConnSQLServer( run.getDbHost(),
-                                                                                       run.getDbName(),
-                                                                                       run.getDbUser(),
-                                                                                       run.getDbPassword() ) );
-        } else if( DbUtils.isPostgreSQLDatabaseAvailable( run.getDbHost(), run.getDbName(), run.getDbUser(),
-                                                     run.getDbPassword() ) ) {
-            dbWriteAccess = new HttpDbLoggerPGWriteAccess( new DbConnPostgreSQL( run.getDbHost(),
-                                                                                 run.getDbName(),
-                                                                                 run.getDbUser(),
-                                                                                 run.getDbPassword() ) );
+        if (DbUtils.isMSSQLDatabaseAvailable(run.getDbHost(), run.getDbName(), run.getDbUser(),
+                                             run.getDbPassword())) {
+            dbWriteAccess = new HttpDbLoggerSQLServerWriteAccess(new DbConnSQLServer(run.getDbHost(),
+                                                                                     run.getDbName(),
+                                                                                     run.getDbUser(),
+                                                                                     run.getDbPassword()));
+        } else if (DbUtils.isPostgreSQLDatabaseAvailable(run.getDbHost(), run.getDbName(), run.getDbUser(),
+                                                         run.getDbPassword())) {
+            dbWriteAccess = new HttpDbLoggerPGWriteAccess(new DbConnPostgreSQL(run.getDbHost(),
+                                                                               run.getDbName(),
+                                                                               run.getDbUser(),
+                                                                               run.getDbPassword()));
         } else {
 
             String errMsg = "Neither MSSQL, nor PostgreSQL server at '" + run.getDbHost()
                             + "' contains ATS log database with name '" + run.getDbName() + "'.";
-            throw new DatabaseAccessException( errMsg );
+            throw new DatabaseAccessException(errMsg);
         }
 
         // start the RUN
-        int runId = dbWriteAccess.startRun( run.getRunName(), run.getOsName(), run.getProductName(),
-                                            run.getVersionName(), run.getBuildName(),
-                                            getTimestampForTheCurrentEvent( run ), run.getHostName(), true );
+        int runId = dbWriteAccess.startRun(run.getRunName(), run.getOsName(), run.getProductName(),
+                                           run.getVersionName(), run.getBuildName(),
+                                           getTimestampForTheCurrentEvent(run), run.getHostName(), true);
 
         try {
-            setDbInternalVersion( dbWriteAccess.getDatabaseInternalVersion() );
-        } catch( NumberFormatException nfe ) {
-            setDbInternalVersion( 0 );
+            setDbInternalVersion(dbWriteAccess.getDatabaseInternalVersion());
+        } catch (NumberFormatException nfe) {
+            setDbInternalVersion(0);
             nfe.printStackTrace();
         }
 
-        run.setRunId( runId );
+        run.setRunId(runId);
     }
 
     public int startSuite( SessionData sd, StartSuitePojo suite,
                            boolean setAsCurrentSuite ) throws DatabaseAccessException {
 
         // no parent id was provided by the request, so set the suite as a current one
-        if( setAsCurrentSuite ) {
+        if (setAsCurrentSuite) {
 
-            evaluateCurrentState( "start SUITE", LifeCycleState.RUN_STARTED, LifeCycleState.SUITE_STARTED );
+            evaluateCurrentState("start SUITE", LifeCycleState.RUN_STARTED, LifeCycleState.SUITE_STARTED);
 
-            return dbWriteAccess.startSuite( suite.getPackageName(), suite.getSuiteName(),
-                                             getTimestampForTheCurrentEvent( suite ), sd.getRun().getRunId(), // use current runId
-                                             true );
+            return dbWriteAccess.startSuite(suite.getPackageName(), suite.getSuiteName(),
+                                            getTimestampForTheCurrentEvent(suite), sd.getRun().getRunId(), // use current runId
+                                            true);
         } else {// parent id was provided by the request, so try to add it to the specified run
-            validateRunId( sd.getRun().getRunId(), suite.getParentId(), suite.getSessionId() );
+            validateRunId(sd.getRun().getRunId(), suite.getParentId(), suite.getSessionId());
 
-            return dbWriteAccess.startSuite( suite.getPackageName(), suite.getSuiteName(),
-                                             getTimestampForTheCurrentEvent( suite ), suite.getParentId(), // use suite's runId (as provided by the REST request)
-                                             true );
+            return dbWriteAccess.startSuite(suite.getPackageName(), suite.getSuiteName(),
+                                            getTimestampForTheCurrentEvent(suite), suite.getParentId(), // use suite's runId (as provided by the REST request)
+                                            true);
         }
     }
 
     public int startTestcase( SessionData sd, StartTestcasePojo testcase,
                               boolean setAsCurrentTestcase ) throws DatabaseAccessException {
 
-        if( setAsCurrentTestcase ) {
+        if (setAsCurrentTestcase) {
 
-            evaluateCurrentState( "start TESTCASE", LifeCycleState.SUITE_STARTED,
-                                  LifeCycleState.TEST_CASE_STARTED );
+            evaluateCurrentState("start TESTCASE", LifeCycleState.SUITE_STARTED,
+                                 LifeCycleState.TEST_CASE_STARTED);
 
-            return dbWriteAccess.startTestCase( sd.getRun().getSuite().getSuiteName(),
-                                                testcase.getScenarioName(), testcase.getScenarioDescription(),
-                                                testcase.getTestcaseName(),
-                                                getTimestampForTheCurrentEvent( testcase ),
-                                                sd.getRun().getSuite().getSuiteId(), true );
+            return dbWriteAccess.startTestCase(sd.getRun().getSuite().getSuiteName(),
+                                               testcase.getScenarioName(), testcase.getScenarioDescription(),
+                                               testcase.getTestcaseName(),
+                                               getTimestampForTheCurrentEvent(testcase),
+                                               sd.getRun().getSuite().getSuiteId(), true);
 
         } else {// parent id was provided by the request, so try to add it to the specified suite 
 
-            validateSuiteId( sd, testcase.getParentId(), testcase.getSessionId() );
+            validateSuiteId(sd, testcase.getParentId(), testcase.getSessionId());
 
-            return dbWriteAccess.startTestCase( sd.getSuitesMap().get( testcase.getParentId() ),
-                                                testcase.getScenarioName(), testcase.getScenarioDescription(),
-                                                testcase.getTestcaseName(),
-                                                getTimestampForTheCurrentEvent( testcase ),
-                                                testcase.getParentId(), true );
+            return dbWriteAccess.startTestCase(sd.getSuitesMap().get(testcase.getParentId()),
+                                               testcase.getScenarioName(), testcase.getScenarioDescription(),
+                                               testcase.getTestcaseName(),
+                                               getTimestampForTheCurrentEvent(testcase),
+                                               testcase.getParentId(), true);
         }
 
     }
@@ -169,21 +169,21 @@ public class DbRequestProcessor {
     public void insertRunMessage( SessionData sd, InsertMessagePojo message,
                                   boolean skipLifeCycleStateCheck ) throws DatabaseAccessException {
 
-        if( skipLifeCycleStateCheck ) {
+        if (skipLifeCycleStateCheck) {
             // we will skip the lifecycle check and add the run message, to the run, referred by the message's parentId
-            dbWriteAccess.insertRunMessage( message.getMessage(), message.getLogLevel().toInt(), true,
-                                            message.getMachineName(), message.getThreadName(),
-                                            getTimestampForTheCurrentEvent( message ), message.getParentId(),
-                                            true );
+            dbWriteAccess.insertRunMessage(message.getMessage(), message.getLogLevel().toInt(), true,
+                                           message.getMachineName(), message.getThreadName(),
+                                           getTimestampForTheCurrentEvent(message), message.getParentId(),
+                                           true);
 
         } else {
-            evaluateCurrentState( "insert RUN MESSAGE", LifeCycleState.RUN_STARTED,
-                                  LifeCycleState.RUN_STARTED );
+            evaluateCurrentState("insert RUN MESSAGE", LifeCycleState.RUN_STARTED,
+                                 LifeCycleState.RUN_STARTED);
 
-            dbWriteAccess.insertRunMessage( message.getMessage(), message.getLogLevel().toInt(), true,
-                                            message.getMachineName(), message.getThreadName(),
-                                            getTimestampForTheCurrentEvent( message ), sd.getRun().getRunId(),
-                                            true );
+            dbWriteAccess.insertRunMessage(message.getMessage(), message.getLogLevel().toInt(), true,
+                                           message.getMachineName(), message.getThreadName(),
+                                           getTimestampForTheCurrentEvent(message), sd.getRun().getRunId(),
+                                           true);
 
         }
 
@@ -193,21 +193,21 @@ public class DbRequestProcessor {
                                    boolean skipLifeCycleStateCheck ) throws DatabaseAccessException {
 
         // if the timestamp is -1, use the local one (System.currentTimeMillis())
-        messages.setTimestamp( getTimestampForTheCurrentEvent( messages ) );
+        messages.setTimestamp(getTimestampForTheCurrentEvent(messages));
 
-        if( skipLifeCycleStateCheck ) {
+        if (skipLifeCycleStateCheck) {
             // we will skip the lifecycle check and add the run message, to the run, referred by the message's parentId
 
-            dbWriteAccess.insertRunMessages( messages );
+            dbWriteAccess.insertRunMessages(messages);
 
         } else {
-            evaluateCurrentState( "insert RUN MESSAGES", LifeCycleState.RUN_STARTED,
-                                  LifeCycleState.RUN_STARTED );
+            evaluateCurrentState("insert RUN MESSAGES", LifeCycleState.RUN_STARTED,
+                                 LifeCycleState.RUN_STARTED);
 
             // the request does not provide a runId, so use the one of the current Run
-            messages.setParentId( sd.getRun().getRunId() );
+            messages.setParentId(sd.getRun().getRunId());
 
-            dbWriteAccess.insertRunMessages( messages );
+            dbWriteAccess.insertRunMessages(messages);
 
         }
 
@@ -216,23 +216,23 @@ public class DbRequestProcessor {
     public void insertSuiteMessage( SessionData sd, InsertMessagePojo message,
                                     boolean skipLifeCycleStateCheck ) throws DatabaseAccessException {
 
-        if( skipLifeCycleStateCheck ) {
+        if (skipLifeCycleStateCheck) {
             // we will skip the lifecycle check and add the suite message, to the suite, referred by the message's parentId
 
-            validateSuiteId( sd, message.getParentId(), message.getSessionId() );
+            validateSuiteId(sd, message.getParentId(), message.getSessionId());
 
-            dbWriteAccess.insertSuiteMessage( message.getMessage(), message.getLogLevel().toInt(), true,
-                                              message.getMachineName(), message.getThreadName(),
-                                              getTimestampForTheCurrentEvent( message ),
-                                              message.getParentId(), true );
+            dbWriteAccess.insertSuiteMessage(message.getMessage(), message.getLogLevel().toInt(), true,
+                                             message.getMachineName(), message.getThreadName(),
+                                             getTimestampForTheCurrentEvent(message),
+                                             message.getParentId(), true);
         } else {
-            evaluateCurrentState( "insert SUITE MESSAGE", LifeCycleState.SUITE_STARTED,
-                                  LifeCycleState.SUITE_STARTED );
+            evaluateCurrentState("insert SUITE MESSAGE", LifeCycleState.SUITE_STARTED,
+                                 LifeCycleState.SUITE_STARTED);
 
-            dbWriteAccess.insertSuiteMessage( message.getMessage(), message.getLogLevel().toInt(), true,
-                                              message.getMachineName(), message.getThreadName(),
-                                              getTimestampForTheCurrentEvent( message ),
-                                              sd.getRun().getSuite().getSuiteId(), true );
+            dbWriteAccess.insertSuiteMessage(message.getMessage(), message.getLogLevel().toInt(), true,
+                                             message.getMachineName(), message.getThreadName(),
+                                             getTimestampForTheCurrentEvent(message),
+                                             sd.getRun().getSuite().getSuiteId(), true);
 
         }
 
@@ -242,22 +242,22 @@ public class DbRequestProcessor {
                                      boolean skipLifeCycleStateCheck ) throws DatabaseAccessException {
 
         // if the timestamp is -1, use the local one (System.currentTimeMillis())
-        messages.setTimestamp( getTimestampForTheCurrentEvent( messages ) );
+        messages.setTimestamp(getTimestampForTheCurrentEvent(messages));
 
-        if( skipLifeCycleStateCheck ) {
+        if (skipLifeCycleStateCheck) {
             // we will skip the lifecycle check and add the suite message, to the suite, referred by the message's parentId
 
-            validateSuiteId( sd, messages.getParentId(), messages.getSessionId() );
+            validateSuiteId(sd, messages.getParentId(), messages.getSessionId());
 
-            dbWriteAccess.insertSuiteMessages( messages );
+            dbWriteAccess.insertSuiteMessages(messages);
         } else {
-            evaluateCurrentState( "insert SUITE MESSAGES", LifeCycleState.SUITE_STARTED,
-                                  LifeCycleState.SUITE_STARTED );
+            evaluateCurrentState("insert SUITE MESSAGES", LifeCycleState.SUITE_STARTED,
+                                 LifeCycleState.SUITE_STARTED);
 
             // the request does not provide a suiteId, so use the one of the current Suite
-            messages.setParentId( sd.getRun().getSuite().getSuiteId() );
+            messages.setParentId(sd.getRun().getSuite().getSuiteId());
 
-            dbWriteAccess.insertSuiteMessages( messages );
+            dbWriteAccess.insertSuiteMessages(messages);
 
         }
 
@@ -266,24 +266,24 @@ public class DbRequestProcessor {
     public void insertMessage( SessionData sd, InsertMessagePojo message,
                                boolean skipLifeCycleStateCheck ) throws DatabaseAccessException {
 
-        if( skipLifeCycleStateCheck ) {
+        if (skipLifeCycleStateCheck) {
             // we will skip the lifecycle check and add the testcase message, to the testcase, referred by the message's parentId
 
-            validateTestcaseId( sd, message.getParentId(), message.getSessionId() );
+            validateTestcaseId(sd, message.getParentId(), message.getSessionId());
 
-            dbWriteAccess.insertMessage( message.getMessage(), message.getLogLevel().toInt(), true,
-                                         message.getMachineName(), message.getThreadName(),
-                                         getTimestampForTheCurrentEvent( message ), message.getParentId(),
-                                         true );
+            dbWriteAccess.insertMessage(message.getMessage(), message.getLogLevel().toInt(), true,
+                                        message.getMachineName(), message.getThreadName(),
+                                        getTimestampForTheCurrentEvent(message), message.getParentId(),
+                                        true);
 
         } else {
-            evaluateCurrentState( "insert MESSAGE", LifeCycleState.TEST_CASE_STARTED,
-                                  LifeCycleState.TEST_CASE_STARTED );
+            evaluateCurrentState("insert MESSAGE", LifeCycleState.TEST_CASE_STARTED,
+                                 LifeCycleState.TEST_CASE_STARTED);
 
-            dbWriteAccess.insertMessage( message.getMessage(), message.getLogLevel().toInt(), true,
-                                         message.getMachineName(), message.getThreadName(),
-                                         getTimestampForTheCurrentEvent( message ),
-                                         sd.getRun().getSuite().getTestcase().getTestcaseId(), true );
+            dbWriteAccess.insertMessage(message.getMessage(), message.getLogLevel().toInt(), true,
+                                        message.getMachineName(), message.getThreadName(),
+                                        getTimestampForTheCurrentEvent(message),
+                                        sd.getRun().getSuite().getTestcase().getTestcaseId(), true);
         }
 
     }
@@ -292,23 +292,23 @@ public class DbRequestProcessor {
                                 boolean skipLifeCycleStateCheck ) throws DatabaseAccessException {
 
         // if the timestamp is -1, use the local one (System.currentTimeMillis())
-        messages.setTimestamp( getTimestampForTheCurrentEvent( messages ) );
+        messages.setTimestamp(getTimestampForTheCurrentEvent(messages));
 
-        if( skipLifeCycleStateCheck ) {
+        if (skipLifeCycleStateCheck) {
 
-            validateTestcaseId( sd, messages.getParentId(), messages.getSessionId() );
+            validateTestcaseId(sd, messages.getParentId(), messages.getSessionId());
 
-            dbWriteAccess.insertMessages( messages );
+            dbWriteAccess.insertMessages(messages);
 
         } else {
 
-            evaluateCurrentState( "insert MESSAGES", LifeCycleState.TEST_CASE_STARTED,
-                                  LifeCycleState.TEST_CASE_STARTED );
+            evaluateCurrentState("insert MESSAGES", LifeCycleState.TEST_CASE_STARTED,
+                                 LifeCycleState.TEST_CASE_STARTED);
 
             // the request does not provide a testcaseId, so use the one of the current Testcase
-            messages.setParentId( sd.getRun().getSuite().getTestcase().getTestcaseId() );
+            messages.setParentId(sd.getRun().getSuite().getTestcase().getTestcaseId());
 
-            dbWriteAccess.insertMessages( messages );
+            dbWriteAccess.insertMessages(messages);
         }
 
     }
@@ -320,8 +320,8 @@ public class DbRequestProcessor {
          * because we want to always be able to add run metainfo, as long as a run was started
          */
 
-        dbWriteAccess.addRunMetainfo( run.getRunId(), runMetainfo.getMetaKey(), runMetainfo.getMetaValue(),
-                                      true );
+        dbWriteAccess.addRunMetainfo(run.getRunId(), runMetainfo.getMetaKey(), runMetainfo.getMetaValue(),
+                                     true);
 
     }
 
@@ -329,19 +329,19 @@ public class DbRequestProcessor {
             addScenarioMetainfo( SessionData sd, AddScenarioMetainfoPojo scenarioMetainfo,
                                  boolean addScenarioMetaInfoToCurrentTestcase ) throws DatabaseAccessException {
 
-        if( addScenarioMetaInfoToCurrentTestcase ) {
-            evaluateCurrentState( "add ScenarioMetainfo", LifeCycleState.TEST_CASE_STARTED,
-                                  LifeCycleState.TEST_CASE_STARTED );
+        if (addScenarioMetaInfoToCurrentTestcase) {
+            evaluateCurrentState("add ScenarioMetainfo", LifeCycleState.TEST_CASE_STARTED,
+                                 LifeCycleState.TEST_CASE_STARTED);
 
-            dbWriteAccess.addScenarioMetainfo( sd.getRun().getSuite().getTestcase().getTestcaseId(),
-                                               scenarioMetainfo.getMetaKey(), scenarioMetainfo.getMetaValue(),
-                                               true );
+            dbWriteAccess.addScenarioMetainfo(sd.getRun().getSuite().getTestcase().getTestcaseId(),
+                                              scenarioMetainfo.getMetaKey(), scenarioMetainfo.getMetaValue(),
+                                              true);
         } else {
 
-            validateTestcaseId( sd, scenarioMetainfo.getParentId(), scenarioMetainfo.getSessionId() );
+            validateTestcaseId(sd, scenarioMetainfo.getParentId(), scenarioMetainfo.getSessionId());
 
-            dbWriteAccess.addScenarioMetainfo( scenarioMetainfo.getParentId(), scenarioMetainfo.getMetaKey(),
-                                               scenarioMetainfo.getMetaValue(), true );
+            dbWriteAccess.addScenarioMetainfo(scenarioMetainfo.getParentId(), scenarioMetainfo.getMetaKey(),
+                                              scenarioMetainfo.getMetaValue(), true);
         }
 
     }
@@ -349,67 +349,67 @@ public class DbRequestProcessor {
     public void attachFile( SessionData sd, AttachFilePojo attachFilePojo,
                             boolean attachFileToCurrentTestcase, int testcaseId ) throws Exception {
 
-        if( attachFileToCurrentTestcase ) {
-            evaluateCurrentState( "attach file", LifeCycleState.TEST_CASE_STARTED,
-                                  LifeCycleState.TEST_CASE_STARTED );
+        if (attachFileToCurrentTestcase) {
+            evaluateCurrentState("attach file", LifeCycleState.TEST_CASE_STARTED,
+                                 LifeCycleState.TEST_CASE_STARTED);
         } else {
-            validateTestcaseId( sd, attachFilePojo.getParentId(), attachFilePojo.getSessionId() );
+            validateTestcaseId(sd, attachFilePojo.getParentId(), attachFilePojo.getSessionId());
         }
-        
-        String attachmentsDir = System.getProperty( ATTACHED_FILES_PROPERTY );
-        if( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
-            attachmentsDir = System.getenv( ATTACHED_FILES_PROPERTY );
+
+        String attachmentsDir = System.getProperty(ATTACHED_FILES_PROPERTY);
+        if (StringUtils.isNullOrEmpty(attachmentsDir)) {
+            attachmentsDir = System.getenv(ATTACHED_FILES_PROPERTY);
         }
-        if( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
-            attachmentsDir = getProperties().getProperty( ATTACHED_FILES_PROPERTY );
+        if (StringUtils.isNullOrEmpty(attachmentsDir)) {
+            attachmentsDir = getProperties().getProperty(ATTACHED_FILES_PROPERTY);
         }
-        if( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
-            attachmentsDir = System.getenv( "CATALINA_BASE" );
+        if (StringUtils.isNullOrEmpty(attachmentsDir)) {
+            attachmentsDir = System.getenv("CATALINA_BASE");
         }
-        if( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
-            attachmentsDir = System.getenv( "CATALINA_HOME" );
+        if (StringUtils.isNullOrEmpty(attachmentsDir)) {
+            attachmentsDir = System.getenv("CATALINA_HOME");
         }
-        
-        if ( StringUtils.isNullOrEmpty( attachmentsDir ) ) {
+
+        if (StringUtils.isNullOrEmpty(attachmentsDir)) {
             String errorMessage = "No directory for attached files was configured. "
-                    + "You can set such directory in one of the following ways: " + "key '"
-                    + ATTACHED_FILES_PROPERTY
-                    + "' as a system variable, environment variable or property in the WEB-INF/classes/ats.config.properties configuration file in the HTTP DB Logger war file. "
-                    + "Last option is to set 'CATALINA_BASE' or 'CATALINA_HOME' when running on Tomcat.";
-            throw new RuntimeException( errorMessage );
+                                  + "You can set such directory in one of the following ways: " + "key '"
+                                  + ATTACHED_FILES_PROPERTY
+                                  + "' as a system variable, environment variable or property in the WEB-INF/classes/ats.config.properties configuration file in the HTTP DB Logger war file. "
+                                  + "Last option is to set 'CATALINA_BASE' or 'CATALINA_HOME' when running on Tomcat.";
+            throw new RuntimeException(errorMessage);
         }
-        
-        attachmentsDir = attachmentsDir.replace( "\\", "/" );
-        
+
+        attachmentsDir = attachmentsDir.replace("\\", "/");
+
         int runId = sd.getRun().getRunId();
         int suiteId = sd.getRun().getSuite().getSuiteId();
-        
+
         String dbName = sd.getRun().getDbName();
-        
+
         String attachedFilesDir = attachmentsDir + "/ats-attached-files" + "/" + dbName;
         attachedFilesDir = attachedFilesDir + "/" + runId + "/" + suiteId + "/" + testcaseId;
-        attachedFilesDir = IoUtils.normalizeFilePath( attachedFilesDir );
-        
-        File attachedDirFile = new File( attachedFilesDir );
-        if( !attachedDirFile.exists() ) {
+        attachedFilesDir = IoUtils.normalizeFilePath(attachedFilesDir);
+
+        File attachedDirFile = new File(attachedFilesDir);
+        if (!attachedDirFile.exists()) {
             attachedDirFile.mkdirs();
         }
-        
+
         String filePath = attachedFilesDir + "/" + attachFilePojo.getFileName();
-        File newFile = new File( filePath );
+        File newFile = new File(filePath);
         try {
-            IoUtils.copyStream( attachFilePojo.getInputStream(), 
-                                               new BufferedOutputStream( new FileOutputStream( newFile ) ), 
-                                               true, true, MAX_FILE_SIZE );
+            IoUtils.copyStream(attachFilePojo.getInputStream(),
+                               new BufferedOutputStream(new FileOutputStream(newFile)),
+                               true, true, MAX_FILE_SIZE);
         } catch (IOException e) {
-            
-            if (e.getMessage().contains( "Max size of " + MAX_FILE_SIZE + " bytes reached." )) {
+
+            if (e.getMessage().contains("Max size of " + MAX_FILE_SIZE + " bytes reached.")) {
                 newFile.delete();
             }
-            
+
             throw e;
         }
-        
+
     }
 
     public void updateRun( StartRunPojo oldRun, UpdateRunPojo updatedRun ) throws DatabaseAccessException {
@@ -418,49 +418,49 @@ public class DbRequestProcessor {
          * Updating a run is always permitted, as long as the run being updated exists and is started by the current session
          * */
 
-        dbWriteAccess.updateRun( oldRun.getRunId(), updatedRun.getRunName(), updatedRun.getOsName(),
-                                 updatedRun.getProductName(), updatedRun.getVersionName(),
-                                 updatedRun.getBuildName(), updatedRun.getUserNote(),
-                                 updatedRun.getHostName(), true );
+        dbWriteAccess.updateRun(oldRun.getRunId(), updatedRun.getRunName(), updatedRun.getOsName(),
+                                updatedRun.getProductName(), updatedRun.getVersionName(),
+                                updatedRun.getBuildName(), updatedRun.getUserNote(),
+                                updatedRun.getHostName(), true);
     }
 
     public void updateSuite( SessionData sd, int suiteId, UpdateSuitePojo suite,
                              boolean skipLifeCycleStateCheck ) throws DatabaseAccessException {
 
-        if( skipLifeCycleStateCheck ) {
+        if (skipLifeCycleStateCheck) {
             // check if the suite, referred by the provided suiteId is started by the current session
-            validateSuiteId( sd, suite.getSuiteId(), suite.getSessionId() );
+            validateSuiteId(sd, suite.getSuiteId(), suite.getSessionId());
 
         } else {
-            evaluateCurrentState( "update SUITE", LifeCycleState.ATLEAST_SUITE_STARTED,
-                                  sd.getDbRequestProcessor().getState() );
+            evaluateCurrentState("update SUITE", LifeCycleState.ATLEAST_SUITE_STARTED,
+                                 sd.getDbRequestProcessor().getState());
         }
 
-        dbWriteAccess.updateSuite( suiteId, suite.getSuiteName(), suite.getUserNote(), true );
+        dbWriteAccess.updateSuite(suiteId, suite.getSuiteName(), suite.getUserNote(), true);
 
     }
 
     public void endTestcase( SessionData sd, int testcaseId, EndTestcasePojo endTestcasePojo,
                              boolean endCurrentTestcase ) throws DatabaseAccessException {
 
-        if( endCurrentTestcase ) {
-            evaluateCurrentState( "end TESTCASE", LifeCycleState.TEST_CASE_STARTED,
-                                  LifeCycleState.SUITE_STARTED );
+        if (endCurrentTestcase) {
+            evaluateCurrentState("end TESTCASE", LifeCycleState.TEST_CASE_STARTED,
+                                 LifeCycleState.SUITE_STARTED);
 
             try {
-                dbWriteAccess.endTestCase( endTestcasePojo.getTestResult().toInt(),
-                                           getTimestampForTheCurrentEvent( endTestcasePojo ), testcaseId,
-                                           true );
+                dbWriteAccess.endTestCase(endTestcasePojo.getTestResult().toInt(),
+                                          getTimestampForTheCurrentEvent(endTestcasePojo), testcaseId,
+                                          true);
             } finally {
-                sd.getRun().getSuite().setTestcase( null );
+                sd.getRun().getSuite().setTestcase(null);
             }
 
         } else {
 
-            validateTestcaseId( sd, testcaseId, endTestcasePojo.getSessionId() );
+            validateTestcaseId(sd, testcaseId, endTestcasePojo.getSessionId());
 
-            dbWriteAccess.endTestCase( endTestcasePojo.getTestResult().toInt(),
-                                       getTimestampForTheCurrentEvent( endTestcasePojo ), testcaseId, true );
+            dbWriteAccess.endTestCase(endTestcasePojo.getTestResult().toInt(),
+                                      getTimestampForTheCurrentEvent(endTestcasePojo), testcaseId, true);
         }
 
     }
@@ -468,28 +468,28 @@ public class DbRequestProcessor {
     public void endSuite( SessionData sd, EndSuitePojo endSuitePojo,
                           boolean endCurrentSuite ) throws DatabaseAccessException {
 
-        if( endCurrentSuite ) {
-            evaluateCurrentState( "end SUITE", LifeCycleState.SUITE_STARTED, LifeCycleState.RUN_STARTED );
+        if (endCurrentSuite) {
+            evaluateCurrentState("end SUITE", LifeCycleState.SUITE_STARTED, LifeCycleState.RUN_STARTED);
 
             try {
-                dbWriteAccess.endSuite( getTimestampForTheCurrentEvent( endSuitePojo ),
-                                        sd.getRun().getSuite().getSuiteId(), true );
+                dbWriteAccess.endSuite(getTimestampForTheCurrentEvent(endSuitePojo),
+                                       sd.getRun().getSuite().getSuiteId(), true);
             } finally {
-                sd.getRun().setSuite( null );
+                sd.getRun().setSuite(null);
             }
         } else {
 
-            validateSuiteId( sd, endSuitePojo.getSuiteId(), endSuitePojo.getSessionId() );
+            validateSuiteId(sd, endSuitePojo.getSuiteId(), endSuitePojo.getSessionId());
 
-            dbWriteAccess.endSuite( getTimestampForTheCurrentEvent( endSuitePojo ), endSuitePojo.getSuiteId(),
-                                    true );
+            dbWriteAccess.endSuite(getTimestampForTheCurrentEvent(endSuitePojo), endSuitePojo.getSuiteId(),
+                                   true);
 
             // check if the provided suiteId is the same as the current suite' id
-            if( sd.getRun().getSuite() != null
-                && endSuitePojo.getSuiteId() == sd.getRun().getSuite().getSuiteId() ) {
+            if (sd.getRun().getSuite() != null
+                && endSuitePojo.getSuiteId() == sd.getRun().getSuite().getSuiteId()) {
                 // close the current suite
                 this.state = LifeCycleState.RUN_STARTED;
-                sd.getRun().setSuite( null );
+                sd.getRun().setSuite(null);
             }
         }
 
@@ -497,29 +497,29 @@ public class DbRequestProcessor {
 
     public void endRun( StartRunPojo run, EndRunPojo endRunPojo ) throws DatabaseAccessException {
 
-        evaluateCurrentState( "end RUN", LifeCycleState.RUN_STARTED, LifeCycleState.INITIALIZED );
+        evaluateCurrentState("end RUN", LifeCycleState.RUN_STARTED, LifeCycleState.INITIALIZED);
 
-        setDbInternalVersion( -1 );
+        setDbInternalVersion(-1);
 
-        dbWriteAccess.endRun( getTimestampForTheCurrentEvent( endRunPojo ), run.getRunId(), true );
+        dbWriteAccess.endRun(getTimestampForTheCurrentEvent(endRunPojo), run.getRunId(), true);
     }
 
     private void evaluateCurrentState( String message, LifeCycleState expectedState,
                                        LifeCycleState newState ) {
 
-        if( expectedState == LifeCycleState.ATLEAST_SUITE_STARTED ) {
+        if (expectedState == LifeCycleState.ATLEAST_SUITE_STARTED) {
 
-            if( state == LifeCycleState.INITIALIZED ) {
-                throw new IllegalStateException( "Cannot " + message + " as the current state is " + state
-                                                 + ", but it is expected to be " + expectedState );
+            if (state == LifeCycleState.INITIALIZED) {
+                throw new IllegalStateException("Cannot " + message + " as the current state is " + state
+                                                + ", but it is expected to be " + expectedState);
             }
 
         } else {
-            if( expectedState == state ) {
+            if (expectedState == state) {
                 state = newState;
             } else {
-                throw new IllegalStateException( "Cannot " + message + " as the current state is " + state
-                                                 + ", but it is expected to be " + expectedState );
+                throw new IllegalStateException("Cannot " + message + " as the current state is " + state
+                                                + ", but it is expected to be " + expectedState);
             }
         }
 
@@ -543,26 +543,26 @@ public class DbRequestProcessor {
 
         SQLServerDbReadAccess dbReadAccess = null;
         // establish DB connection
-        if( DbUtils.isMSSQLDatabaseAvailable( host, db, user, password ) ) {
-            dbReadAccess = new SQLServerDbReadAccess( new DbConnSQLServer( host, db, user, password ) );
-        } else if( DbUtils.isPostgreSQLDatabaseAvailable( host, db, user, password ) ) {
-            dbReadAccess = new PGDbReadAccess( new DbConnPostgreSQL( host, db, user, password ) );
+        if (DbUtils.isMSSQLDatabaseAvailable(host, db, user, password)) {
+            dbReadAccess = new SQLServerDbReadAccess(new DbConnSQLServer(host, db, user, password));
+        } else if (DbUtils.isPostgreSQLDatabaseAvailable(host, db, user, password)) {
+            dbReadAccess = new PGDbReadAccess(new DbConnPostgreSQL(host, db, user, password));
         } else {
             String errMsg = "Neither MSSQL, nor PostgreSQL server at '" + host
                             + "' contains ATS log database with name '" + db + "'.";
-            throw new DatabaseAccessException( errMsg );
+            throw new DatabaseAccessException(errMsg);
         }
 
         try {
-            setDbInternalVersion( dbReadAccess.getDatabaseInternalVersion() );
-        } catch( NumberFormatException nfe ) {
-            setDbInternalVersion( 0 );
+            setDbInternalVersion(dbReadAccess.getDatabaseInternalVersion());
+        } catch (NumberFormatException nfe) {
+            setDbInternalVersion(0);
             nfe.printStackTrace();
         }
 
         // return the matching runs
-        return dbReadAccess.getRuns( 0, recordsCount, whereClause, "runId", true,
-                                     Integer.parseInt( timeOffset ) );
+        return dbReadAccess.getRuns(0, recordsCount, whereClause, "runId", true,
+                                    Integer.parseInt(timeOffset));
 
     }
 
@@ -583,7 +583,7 @@ public class DbRequestProcessor {
 
     private long getTimestampForTheCurrentEvent( BasePojo basePojo ) {
 
-        if( basePojo.getTimestamp() != -1 ) {
+        if (basePojo.getTimestamp() != -1) {
             return basePojo.getTimestamp();
         } else {
             return System.currentTimeMillis();
@@ -593,46 +593,46 @@ public class DbRequestProcessor {
 
     private void validateRunId( int expectedRunId, int providedRunId, String sessionId ) {
 
-        if( expectedRunId != providedRunId ) {
-            throw new UnknownRunException( "The provided run id does not match the run id from this session. Session id was '"
-                                           + sessionId + "', provided run id was '" + providedRunId
-                                           + "' and expected run id was '" + expectedRunId + "'." );
+        if (expectedRunId != providedRunId) {
+            throw new UnknownRunException("The provided run id does not match the run id from this session. Session id was '"
+                                          + sessionId + "', provided run id was '" + providedRunId
+                                          + "' and expected run id was '" + expectedRunId + "'.");
         }
     }
 
     private void validateSuiteId( SessionData sd, int providedSuiteId, String sessionId ) {
 
-        boolean isKnownSuiteId = sd.hasSuiteId( providedSuiteId );
+        boolean isKnownSuiteId = sd.hasSuiteId(providedSuiteId);
 
-        if( !isKnownSuiteId ) {
-            throw new UnknownSuiteException( "The provided suite id does not match any suite id from this session. Session id was '"
-                                             + sessionId + "'and provided suite id was '" + providedSuiteId
-                                             + "'." );
+        if (!isKnownSuiteId) {
+            throw new UnknownSuiteException("The provided suite id does not match any suite id from this session. Session id was '"
+                                            + sessionId + "'and provided suite id was '" + providedSuiteId
+                                            + "'.");
         }
     }
 
     private void validateTestcaseId( SessionData sd, int providedTestcaseId, String sessionId ) {
 
-        boolean isKnownTestcaseId = sd.hasTestcaseId( providedTestcaseId );
+        boolean isKnownTestcaseId = sd.hasTestcaseId(providedTestcaseId);
 
-        if( !isKnownTestcaseId ) {
-            throw new UnknownTestcaseException( "The provided testcase id does not match any testcase id from this session. Session id was '"
-                                                + sessionId + "'and provided testcase id was '"
-                                                + providedTestcaseId + "'." );
+        if (!isKnownTestcaseId) {
+            throw new UnknownTestcaseException("The provided testcase id does not match any testcase id from this session. Session id was '"
+                                               + sessionId + "'and provided testcase id was '"
+                                               + providedTestcaseId + "'.");
         }
 
     }
-    
+
     private Properties getProperties() {
 
         Properties configProperties = new Properties();
         try {
-            configProperties.load( this.getClass()
-                                       .getClassLoader()
-                                       .getResourceAsStream( "ats.config.properties" ) );
-        } catch( Exception e ) {
-            if( log.isDebugEnabled() ) {
-                log.debug( "Can't load ats.config.properties file" );
+            configProperties.load(this.getClass()
+                                      .getClassLoader()
+                                      .getResourceAsStream("ats.config.properties"));
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Can't load ats.config.properties file");
             }
         }
         return configProperties;

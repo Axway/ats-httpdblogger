@@ -25,14 +25,14 @@ public class BaseEntry {
     protected org.apache.log4j.Logger log;
 
     public BaseEntry() {
-        log = org.apache.log4j.Logger.getLogger( this.getClass() );
+        log = org.apache.log4j.Logger.getLogger(this.getClass());
     }
 
     protected void logInfo(
                             String message ) {
 
-        if( log.isDebugEnabled() ) {
-            log.debug( message );
+        if (log.isDebugEnabled()) {
+            log.debug(message);
         }
     }
 
@@ -40,16 +40,16 @@ public class BaseEntry {
                             HttpServletRequest request,
                             String message ) {
 
-        if( log.isDebugEnabled() ) {
-            log.debug( "[" + request.getRemoteAddr() /* + ":" + request.getRemotePort() */ + "] " + message );
+        if (log.isDebugEnabled()) {
+            log.debug("[" + request.getRemoteAddr() /* + ":" + request.getRemotePort() */ + "] " + message);
         }
     }
 
     protected Response returnError(
                                     String message ) {
 
-        log.error( message );
-        return Response.serverError().entity( new ResponsePojo( message, null ) ).build();
+        log.error(message);
+        return Response.serverError().entity(new ResponsePojo(message, null)).build();
     }
 
     protected Response returnError(
@@ -58,16 +58,16 @@ public class BaseEntry {
 
         message = "[" + request.getRemoteAddr() + "] " + message;
 
-        log.error( message );
-        return Response.serverError().entity( new ResponsePojo( message, null ) ).build();
+        log.error(message);
+        return Response.serverError().entity(new ResponsePojo(message, null)).build();
     }
 
     protected Response returnError(
                                     Exception e,
                                     String message ) {
 
-        log.error( message, e );
-        return Response.serverError().entity( new ResponsePojo( message, e ) ).build();
+        log.error(message, e);
+        return Response.serverError().entity(new ResponsePojo(message, e)).build();
     }
 
     protected Response returnError(
@@ -77,7 +77,7 @@ public class BaseEntry {
 
         message = "[" + request.getRemoteAddr() + "] " + message;
 
-        log.error( message, e );
-        return Response.serverError().entity( new ResponsePojo( message, e ) ).build();
+        log.error(message, e);
+        return Response.serverError().entity(new ResponsePojo(message, e)).build();
     }
 }

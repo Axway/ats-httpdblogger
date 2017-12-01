@@ -26,7 +26,7 @@ import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
 public class HttpDbLoggerSQLServerWriteAccess extends SQLServerDbWriteAccess implements IHttpDbLoggerWriteAccess {
 
     public HttpDbLoggerSQLServerWriteAccess( DbConnSQLServer dbConnection ) throws DatabaseAccessException {
-        super( dbConnection, false );
+        super(dbConnection, false);
     }
 
     public void insertMessages( InsertMessagesPojo messages ) throws DatabaseAccessException {
@@ -35,37 +35,37 @@ public class HttpDbLoggerSQLServerWriteAccess extends SQLServerDbWriteAccess imp
 
         try {
 
-            dbEventsCache = new DbEventsCache( this );
+            dbEventsCache = new DbEventsCache(this);
 
             int testcaseId = messages.getParentId();
 
-            InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory( true );
+            InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory(true);
 
-            for( InsertMessagePojo message : messages.getMessages() ) {
+            for (InsertMessagePojo message : messages.getMessages()) {
 
                 // if no time stamp is provided with this message, use the one from the InsertMessagesPojo
-                if( message.getTimestamp() == -1 ) {
-                    message.setTimestamp( messages.getTimestamp() );
+                if (message.getTimestamp() == -1) {
+                    message.setTimestamp(messages.getTimestamp());
                 }
 
-                message.setTimestamp( inUTC( message.getTimestamp() ) );
+                message.setTimestamp(inUTC(message.getTimestamp()));
 
-                CallableStatement insertMessageStatement = eventStatementsFactory.getInsertTestcaseMessageStatement( dbEventsCache.getConnection(),
-                                                                                                                     message.getMessage(),
-                                                                                                                     message.getLogLevel()
-                                                                                                                            .toInt(),
-                                                                                                                     false,
-                                                                                                                     message.getMachineName(),
-                                                                                                                     message.getThreadName(),
-                                                                                                                     message.getTimestamp(),
-                                                                                                                     testcaseId );
-                dbEventsCache.addInsertTestcaseMessageEventToBatch( insertMessageStatement );
+                CallableStatement insertMessageStatement = eventStatementsFactory.getInsertTestcaseMessageStatement(dbEventsCache.getConnection(),
+                                                                                                                    message.getMessage(),
+                                                                                                                    message.getLogLevel()
+                                                                                                                           .toInt(),
+                                                                                                                    false,
+                                                                                                                    message.getMachineName(),
+                                                                                                                    message.getThreadName(),
+                                                                                                                    message.getTimestamp(),
+                                                                                                                    testcaseId);
+                dbEventsCache.addInsertTestcaseMessageEventToBatch(insertMessageStatement);
 
             }
 
             dbEventsCache.flushCache();
         } finally {
-            DbUtils.closeConnection( dbEventsCache.getConnection() );
+            DbUtils.closeConnection(dbEventsCache.getConnection());
         }
 
     }
@@ -78,35 +78,35 @@ public class HttpDbLoggerSQLServerWriteAccess extends SQLServerDbWriteAccess imp
 
             int suiteId = messages.getParentId();
 
-            dbEventsCache = new DbEventsCache( this );
-            InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory( true );
+            dbEventsCache = new DbEventsCache(this);
+            InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory(true);
 
-            for( InsertMessagePojo message : messages.getMessages() ) {
+            for (InsertMessagePojo message : messages.getMessages()) {
 
                 // if no time stamp is provided with this message, use the one from the InsertMessagesPojo
-                if( message.getTimestamp() == -1 ) {
-                    message.setTimestamp( messages.getTimestamp() );
+                if (message.getTimestamp() == -1) {
+                    message.setTimestamp(messages.getTimestamp());
                 }
 
-                message.setTimestamp( inUTC( message.getTimestamp() ) );
+                message.setTimestamp(inUTC(message.getTimestamp()));
 
-                CallableStatement insertMessageStatement = eventStatementsFactory.getInsertSuiteMessageStatement( dbEventsCache.getConnection(),
-                                                                                                                  message.getMessage(),
-                                                                                                                  message.getLogLevel()
-                                                                                                                         .toInt(),
-                                                                                                                  false,
-                                                                                                                  message.getMachineName(),
-                                                                                                                  message.getThreadName(),
-                                                                                                                  message.getTimestamp(),
-                                                                                                                  suiteId );
-                dbEventsCache.addInsertSuiteMessageEventToBatch( insertMessageStatement );
+                CallableStatement insertMessageStatement = eventStatementsFactory.getInsertSuiteMessageStatement(dbEventsCache.getConnection(),
+                                                                                                                 message.getMessage(),
+                                                                                                                 message.getLogLevel()
+                                                                                                                        .toInt(),
+                                                                                                                 false,
+                                                                                                                 message.getMachineName(),
+                                                                                                                 message.getThreadName(),
+                                                                                                                 message.getTimestamp(),
+                                                                                                                 suiteId);
+                dbEventsCache.addInsertSuiteMessageEventToBatch(insertMessageStatement);
 
             }
 
             dbEventsCache.flushCache();
 
         } finally {
-            DbUtils.closeConnection( dbEventsCache.getConnection() );
+            DbUtils.closeConnection(dbEventsCache.getConnection());
         }
 
     }
@@ -119,28 +119,28 @@ public class HttpDbLoggerSQLServerWriteAccess extends SQLServerDbWriteAccess imp
 
             int runId = messages.getParentId();
 
-            dbEventsCache = new DbEventsCache( this );
-            InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory( true );
+            dbEventsCache = new DbEventsCache(this);
+            InsertEventStatementsFactory eventStatementsFactory = new InsertEventStatementsFactory(true);
 
-            for( InsertMessagePojo message : messages.getMessages() ) {
+            for (InsertMessagePojo message : messages.getMessages()) {
 
-                CallableStatement insertMessageStatement = eventStatementsFactory.getInsertRunMessageStatement( dbEventsCache.getConnection(),
-                                                                                                                message.getMessage(),
-                                                                                                                message.getLogLevel()
-                                                                                                                       .toInt(),
-                                                                                                                false,
-                                                                                                                message.getMachineName(),
-                                                                                                                message.getThreadName(),
-                                                                                                                message.getTimestamp(),
-                                                                                                                runId );
-                dbEventsCache.addInsertRunMessageEventToBatch( insertMessageStatement );
+                CallableStatement insertMessageStatement = eventStatementsFactory.getInsertRunMessageStatement(dbEventsCache.getConnection(),
+                                                                                                               message.getMessage(),
+                                                                                                               message.getLogLevel()
+                                                                                                                      .toInt(),
+                                                                                                               false,
+                                                                                                               message.getMachineName(),
+                                                                                                               message.getThreadName(),
+                                                                                                               message.getTimestamp(),
+                                                                                                               runId);
+                dbEventsCache.addInsertRunMessageEventToBatch(insertMessageStatement);
 
             }
 
             dbEventsCache.flushCache();
 
         } finally {
-            DbUtils.closeConnection( dbEventsCache.getConnection() );
+            DbUtils.closeConnection(dbEventsCache.getConnection());
         }
 
     }
