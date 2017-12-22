@@ -2,7 +2,7 @@
   "swagger" : "2.0",
   "info" : {
     "description" : "ATS HTTP application for logging test data in ATS DB",
-    "version" : "v4.0.2",
+    "version" : "v4.0.3",
     "title" : "ATS HTTP DB logger",
     "contact" : {
       "name" : "ATS Team",
