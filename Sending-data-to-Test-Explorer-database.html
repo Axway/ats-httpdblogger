@@ -218,7 +218,7 @@
       <p><br></p> 
       <hr> 
       <h1 id="SendingdatatoTestExplorerdatabase-Insertamessage">Insert a message</h1> 
-      <p><em> <strong>insertMessage</strong> </em>attaches a message usually to a Testcase, but potentially to a Run or Suite as well</p> 
+      <p><em> <strong>insertMessage</strong> </em>attaches a message usually to a Testcase, but potentially to a Run or a Suite as well</p> 
       <div class="table-wrap"> 
        <table class="wrapped confluenceTable"> 
         <colgroup> 
@@ -277,8 +277,8 @@
       </div> 
       <div class="confluence-information-macro has-no-icon confluence-information-macro-note"> 
        <div class="confluence-information-macro-body"> 
-        <p>The message may be attached to a RUN or SUITE or TESTCASE.</p> 
-        <p>If you do not provide a <em>parentId</em> and <em>parentType</em>, the message will go to the currently opened RUN or SUITE or TESTCASE.</p> 
+        <p>The message may be attached to a RUN, a SUITE or a TESTCASE.</p> 
+        <p>If you do not provide a <em>parentId</em> and <em>parentType</em>, the message will go to the currently opened RUN, SUITE or TESTCASE.</p> 
         <p>If you provide a <em>parentId</em> and <em>parentType</em>, the message will be attached to that parent.</p> 
        </div> 
       </div> 
@@ -543,7 +543,7 @@
       <p><br></p> 
       <hr> 
       <h3 id="SendingdatatoTestExplorerdatabase-UpdateaSuite">Update a Suite</h3> 
-      <p><em> <strong>updateSuite</strong> </em> updates the current run with all data provided</p> 
+      <p><em> <strong>updateSuite</strong> </em> updates the current suite with all data provided</p> 
       <p>If <em> <strong>suiteId</strong> </em> is provided, we point directly to the suite to update. Otherwise the current suite is updated.</p> 
       <div class="table-wrap"> 
        <table class="wrapped confluenceTable"> 
