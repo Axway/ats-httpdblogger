@@ -5,7 +5,7 @@
     <groupId>com.axway.ats.httpdblogger</groupId>
     <artifactId>ats-httpdblogger</artifactId>
     <packaging>war</packaging>
-    <version>4.0.4</version>
+    <version>4.1.0-SNAPSHOT</version>
     <name>ATS-HttpDbLogger</name>
     <description>
         ATS HTTP application for logging test data in ATS DB
@@ -285,7 +285,7 @@
         <dependency>
             <groupId>com.axway.ats.framework</groupId>
             <artifactId>ats-core</artifactId>
-            <version>4.0.4</version>
+            <version>4.1.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.axway.ats.expectj</groupId>
@@ -352,7 +352,7 @@
         <dependency>
             <groupId>com.axway.ats.framework</groupId>
             <artifactId>ats-log</artifactId>
-            <version>4.0.4</version>
+            <version>4.1.0-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.mail</groupId>
@@ -437,7 +437,7 @@
         <connection>scm:git:https://github.com/Axway/ats-httpdblogger.git</connection>
         <developerConnection>scm:git:git@github.com:Axway/ats-httpdblogger.git</developerConnection>
         <url>https://github.com/Axway/ats-httpdblogger</url>
-      <tag>4.0.4</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <developers>
