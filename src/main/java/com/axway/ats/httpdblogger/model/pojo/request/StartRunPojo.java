@@ -46,6 +46,9 @@ public class StartRunPojo extends BasePojo {
     @ApiModelProperty( required = true, value = "DB host", example = "localhost")
     private String         dbHost;
 
+    @ApiModelProperty( required = false, value = "DB port", example = "1433")
+    private String         dbPort;
+
     @ApiModelProperty( required = true, value = "DB name", example = "HTTP_TESTS")
     private String         dbName;
 
@@ -167,6 +170,17 @@ public class StartRunPojo extends BasePojo {
                            String dbHost ) {
 
         this.dbHost = dbHost;
+    }
+
+    public String getDbPort() {
+
+        return dbPort;
+    }
+
+    public void setDbPort(
+                           String dbPort ) {
+
+        this.dbPort = dbPort;
     }
 
     public String getDbName() {

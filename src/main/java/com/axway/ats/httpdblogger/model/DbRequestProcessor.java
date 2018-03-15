@@ -83,15 +83,20 @@ public class DbRequestProcessor {
 
         evaluateCurrentState("start RUN", LifeCycleState.INITIALIZED, LifeCycleState.RUN_STARTED);
 
-        /*run.getDbHost(), run.getDbName(), run.getDbUser(), run.getDbPassword()*/
+        int dbPort = -1;
+        try {
+            dbPort = Integer.parseInt(run.getDbPort());
+        } catch (Exception e) {
+            throw new DatabaseAccessException("Provided db port is not a valid INTEGER number", e);
+        }
 
-        if (DbUtils.isMSSQLDatabaseAvailable(run.getDbHost(), run.getDbName(), run.getDbUser(),
+        if (DbUtils.isMSSQLDatabaseAvailable(run.getDbHost(), dbPort, run.getDbName(), run.getDbUser(),
                                              run.getDbPassword())) {
             dbWriteAccess = new HttpDbLoggerSQLServerWriteAccess(new DbConnSQLServer(run.getDbHost(),
                                                                                      run.getDbName(),
                                                                                      run.getDbUser(),
                                                                                      run.getDbPassword()));
-        } else if (DbUtils.isPostgreSQLDatabaseAvailable(run.getDbHost(), run.getDbName(), run.getDbUser(),
+        } else if (DbUtils.isPostgreSQLDatabaseAvailable(run.getDbHost(), dbPort, run.getDbName(), run.getDbUser(),
                                                          run.getDbPassword())) {
             dbWriteAccess = new HttpDbLoggerPGWriteAccess(new DbConnPostgreSQL(run.getDbHost(),
                                                                                run.getDbName(),
@@ -99,7 +104,7 @@ public class DbRequestProcessor {
                                                                                run.getDbPassword()));
         } else {
 
-            String errMsg = "Neither MSSQL, nor PostgreSQL server at '" + run.getDbHost()
+            String errMsg = "Neither MSSQL, nor PostgreSQL server at '" + run.getDbHost() + ":" + dbPort
                             + "' contains ATS log database with name '" + run.getDbName() + "'.";
             throw new DatabaseAccessException(errMsg);
         }
@@ -538,17 +543,19 @@ public class DbRequestProcessor {
      * @return
      * @throws DatabaseAccessException
      */
-    public List<Run> getRuns( String host, String db, String user, String password, String whereClause,
+    public List<Run> getRuns( String host, int port, String db, String user, String password, String whereClause,
                               int recordsCount, String timeOffset ) throws DatabaseAccessException {
 
         SQLServerDbReadAccess dbReadAccess = null;
         // establish DB connection
-        if (DbUtils.isMSSQLDatabaseAvailable(host, db, user, password)) {
-            dbReadAccess = new SQLServerDbReadAccess(new DbConnSQLServer(host, db, user, password));
-        } else if (DbUtils.isPostgreSQLDatabaseAvailable(host, db, user, password)) {
-            dbReadAccess = new PGDbReadAccess(new DbConnPostgreSQL(host, db, user, password));
+        if (DbUtils.isMSSQLDatabaseAvailable(host, port, db, user, password)) {
+            dbReadAccess = new SQLServerDbReadAccess(new DbConnSQLServer(host, port, db, user, password, null));
+        } else if (DbUtils.isPostgreSQLDatabaseAvailable(host, port, db, user, password)) {
+            dbReadAccess = new PGDbReadAccess(new DbConnPostgreSQL(host, port, db, user, password, null));
         } else {
-            String errMsg = "Neither MSSQL, nor PostgreSQL server at '" + host
+            String errMsg = "Neither MSSQL, nor PostgreSQL server at '" + host + ( (port > 0)
+                                                                                              ? ":" + port
+                                                                                              : "")
                             + "' contains ATS log database with name '" + db + "'.";
             throw new DatabaseAccessException(errMsg);
         }

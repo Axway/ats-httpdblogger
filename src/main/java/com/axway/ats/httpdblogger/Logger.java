@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
+import com.axway.ats.core.dbaccess.mssql.DbConnSQLServer;
 import com.axway.ats.core.utils.StringUtils;
 import com.axway.ats.httpdblogger.exceptions.NoSessionIdException;
 import com.axway.ats.httpdblogger.exceptions.UnknownSessionException;
@@ -89,6 +90,13 @@ public class Logger extends BaseEntry {
         if (!StringUtils.isNullOrEmpty(run.getSessionId())) {
             logInfo("SessionId, provided by the request, will be ignored.");
             run.setSessionId(null);
+        }
+
+        // for backward compatibility, if the db port is not provided, fall-back to the default one for MSSQL
+        if (StringUtils.isNullOrEmpty(run.getDbPort())) {
+            logInfo("Database port is not provided. We will use the default one for MSSQL ("
+                    + DbConnSQLServer.DEFAULT_PORT + ")");
+            run.setDbPort(String.valueOf(DbConnSQLServer.DEFAULT_PORT));
         }
 
         if (!StringUtils.isNullOrEmpty(run.getParentType())) {
