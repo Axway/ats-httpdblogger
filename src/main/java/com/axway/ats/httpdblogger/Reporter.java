@@ -320,6 +320,7 @@ public class Reporter extends BaseEntry {
             sb.delete(sb.length() - 3, sb.length());
             sb.append("\"},");
         }
+        sb.delete(sb.length() - 1, sb.length());
         sb.append("\n]}");
 
         return sb.toString();
