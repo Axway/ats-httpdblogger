@@ -19,6 +19,7 @@ import java.sql.CallableStatement;
 
 import com.axway.ats.core.dbaccess.DbUtils;
 import com.axway.ats.core.dbaccess.postgresql.DbConnPostgreSQL;
+import com.axway.ats.core.utils.StringUtils;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagesPojo;
 import com.axway.ats.log.autodb.PGDbWriteAccess;
@@ -50,6 +51,9 @@ public class HttpDbLoggerPGWriteAccess extends PGDbWriteAccess implements IHttpD
                 }
 
                 message.setTimestamp(inUTC(message.getTimestamp()));
+                
+                // escape characters with ASCII code < 32
+        		message.setMessage(StringUtils.escapeNonPrintableAsciiCharacters(message.getMessage()));
 
                 CallableStatement insertMessageStatement = eventStatementsFactory.getInsertTestcaseMessageStatement(dbEventsCache.getConnection(),
                                                                                                                     message.getMessage(),
@@ -90,6 +94,9 @@ public class HttpDbLoggerPGWriteAccess extends PGDbWriteAccess implements IHttpD
                 }
 
                 message.setTimestamp(inUTC(message.getTimestamp()));
+                
+                // escape characters with ASCII code < 32
+        		message.setMessage(StringUtils.escapeNonPrintableAsciiCharacters(message.getMessage()));
 
                 CallableStatement insertMessageStatement = eventStatementsFactory.getInsertSuiteMessageStatement(dbEventsCache.getConnection(),
                                                                                                                  message.getMessage(),
@@ -124,6 +131,9 @@ public class HttpDbLoggerPGWriteAccess extends PGDbWriteAccess implements IHttpD
             PGInsertEventStatementsFactory eventStatementsFactory = new PGInsertEventStatementsFactory(true);
 
             for (InsertMessagePojo message : messages.getMessages()) {
+            	
+            	// escape characters with ASCII code < 32
+        		message.setMessage(StringUtils.escapeNonPrintableAsciiCharacters(message.getMessage()));
 
                 CallableStatement insertMessageStatement = eventStatementsFactory.getInsertRunMessageStatement(dbEventsCache.getConnection(),
                                                                                                                message.getMessage(),
