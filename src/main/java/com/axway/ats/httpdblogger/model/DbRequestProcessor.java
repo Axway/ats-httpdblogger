@@ -90,23 +90,33 @@ public class DbRequestProcessor {
             throw new DatabaseAccessException("Provided db port is not a valid INTEGER number", e);
         }
 
-        if (DbUtils.isMSSQLDatabaseAvailable(run.getDbHost(), dbPort, run.getDbName(), run.getDbUser(),
-                                             run.getDbPassword())) {
+        Exception mssqlException = DbUtils.isMSSQLDatabaseAvailable(run.getDbHost(), dbPort, run.getDbName(),
+                                                                    run.getDbUser(),
+                                                                    run.getDbPassword());
+        if (mssqlException == null) {
             dbWriteAccess = new HttpDbLoggerSQLServerWriteAccess(new DbConnSQLServer(run.getDbHost(),
                                                                                      run.getDbName(),
                                                                                      run.getDbUser(),
                                                                                      run.getDbPassword()));
-        } else if (DbUtils.isPostgreSQLDatabaseAvailable(run.getDbHost(), dbPort, run.getDbName(), run.getDbUser(),
-                                                         run.getDbPassword())) {
-            dbWriteAccess = new HttpDbLoggerPGWriteAccess(new DbConnPostgreSQL(run.getDbHost(),
-                                                                               run.getDbName(),
-                                                                               run.getDbUser(),
-                                                                               run.getDbPassword()));
         } else {
+            Exception pgsqlException = DbUtils.isPostgreSQLDatabaseAvailable(run.getDbHost(), dbPort, run.getDbName(),
+                                                                             run.getDbUser(),
+                                                                             run.getDbPassword());
+            if (pgsqlException == null) {
+                dbWriteAccess = new HttpDbLoggerPGWriteAccess(new DbConnPostgreSQL(run.getDbHost(),
+                                                                                   run.getDbName(),
+                                                                                   run.getDbUser(),
+                                                                                   run.getDbPassword()));
+            } else {
 
-            String errMsg = "Neither MSSQL, nor PostgreSQL server at '" + run.getDbHost() + ":" + dbPort
-                            + "' contains ATS log database with name '" + run.getDbName() + "'.";
-            throw new DatabaseAccessException(errMsg);
+                String errMsg = "Neither MSSQL, nor PostgreSQL server at '" + run.getDbHost() + ":"
+                                + dbPort +
+                                "' has database with name '" + run.getDbName()
+                                + "'. Exception for MSSQL is : \n\t" + mssqlException
+                                + "\n\nException for PostgreSQL is: \n\t"
+                                + pgsqlException;
+                throw new DatabaseAccessException(errMsg);
+            }
         }
 
         // start the RUN
@@ -548,16 +558,23 @@ public class DbRequestProcessor {
 
         SQLServerDbReadAccess dbReadAccess = null;
         // establish DB connection
-        if (DbUtils.isMSSQLDatabaseAvailable(host, port, db, user, password)) {
+        Exception mssqlException = DbUtils.isMSSQLDatabaseAvailable(host, port, db, user, password);
+        if (mssqlException == null) {
             dbReadAccess = new SQLServerDbReadAccess(new DbConnSQLServer(host, port, db, user, password, null));
-        } else if (DbUtils.isPostgreSQLDatabaseAvailable(host, port, db, user, password)) {
-            dbReadAccess = new PGDbReadAccess(new DbConnPostgreSQL(host, port, db, user, password, null));
         } else {
-            String errMsg = "Neither MSSQL, nor PostgreSQL server at '" + host + ( (port > 0)
-                                                                                              ? ":" + port
-                                                                                              : "")
-                            + "' contains ATS log database with name '" + db + "'.";
-            throw new DatabaseAccessException(errMsg);
+            Exception pgsqlException = DbUtils.isPostgreSQLDatabaseAvailable(host, port, db, user, password);
+
+            if (pgsqlException == null) {
+                dbReadAccess = new PGDbReadAccess(new DbConnPostgreSQL(host, port, db, user, password, null));
+            } else {
+                String errMsg = "Neither MSSQL, nor PostgreSQL server at '" + host + ":"
+                                + port +
+                                "' has database with name '" + db
+                                + "'. Exception for MSSQL is : \n\t" + mssqlException
+                                + "\n\nException for PostgreSQL is: \n\t"
+                                + pgsqlException;
+                throw new DatabaseAccessException(errMsg);
+            }
         }
 
         try {
