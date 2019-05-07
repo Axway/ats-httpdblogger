@@ -41,6 +41,7 @@ import com.axway.ats.httpdblogger.model.SessionData;
 import com.axway.ats.httpdblogger.model.TestResult;
 import com.axway.ats.httpdblogger.model.pojo.request.AddRunMetainfoPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.AddScenarioMetainfoPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.AddTestcaseMetainfoPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.AttachFilePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.EndRunPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.EndSuitePojo;
@@ -391,6 +392,49 @@ public class Logger extends BaseEntry {
 			return returnError(e, "Unable to add scenario metainfo");
 		}
 	}
+	
+	@POST
+    @Path("addTestcaseMetainfo")
+    @ApiOperation(value = "Add Testcase Metainfo", notes = "")
+    @ApiResponses( { @com.wordnik.swagger.annotations.ApiResponse( code = 200, message = "Successful added testcase metainfo"),
+            @com.wordnik.swagger.annotations.ApiResponse(code = 500, message = "Internal server error", response = Response.class) })
+    @Consumes({ "application/json" })
+    @Produces({ "application/json" })
+    public Response
+            addTestcaseMetainfo( @Context HttpServletRequest request,
+            @ApiParam(value = "Testcase metainfo details", required = true) AddTestcaseMetainfoPojo testcaseMetainfo) {
+
+        if (StringUtils.isNullOrEmpty(testcaseMetainfo.getSessionId())) {
+            return returnError(new NoSessionIdException("Session ID not found in the request."),
+                    "Unable to add testcase metainfo.");
+        }
+
+        if (!StringUtils.isNullOrEmpty(testcaseMetainfo.getParentType())) {
+            logInfo("Parent type specified in request to add a testcase metainfo. This field will be ignored.");
+        }
+
+        try {
+
+            HttpSession httpSession = getHttpSession(request, testcaseMetainfo.getSessionId(), false);
+            SessionData sd = (SessionData) getSessionData(httpSession, false);
+
+            boolean addTestcaseMetaInfoToCurrentTestcase = testcaseMetainfo.getParentId() == -1;
+
+            if (addTestcaseMetaInfoToCurrentTestcase) {
+                logInfo(request, "Adding testcase metainfo for testcase "
+                        + sd.getRun().getSuite().getTestcase().getTestcaseName());
+            } else {
+                logInfo(request, "Adding testcase metainfo for testcase with id '"
+                                 + testcaseMetainfo.getParentId() + "'");
+            }
+
+            sd.getDbRequestProcessor().addTestcaseMetainfo(sd, testcaseMetainfo,
+                                                           addTestcaseMetaInfoToCurrentTestcase);
+            return Response.ok().build();
+        } catch (Exception e) {
+            return returnError(e, "Unable to add testcase metainfo");
+        }
+    }
 
 	@POST
 	@Path("updateRun")

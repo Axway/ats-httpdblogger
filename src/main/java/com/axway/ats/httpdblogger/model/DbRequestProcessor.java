@@ -35,6 +35,7 @@ import com.axway.ats.httpdblogger.exceptions.UnknownTestcaseException;
 import com.axway.ats.httpdblogger.model.pojo.BasePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.AddRunMetainfoPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.AddScenarioMetainfoPojo;
+import com.axway.ats.httpdblogger.model.pojo.request.AddTestcaseMetainfoPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.AttachFilePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.EndRunPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.EndSuitePojo;
@@ -357,6 +358,27 @@ public class DbRequestProcessor {
 
             dbWriteAccess.addScenarioMetainfo(scenarioMetainfo.getParentId(), scenarioMetainfo.getMetaKey(),
                                               scenarioMetainfo.getMetaValue(), true);
+        }
+
+    }
+
+    public void
+            addTestcaseMetainfo( SessionData sd, AddTestcaseMetainfoPojo testcaseMetainfo,
+                                 boolean addTestcaseMetaInfoToCurrentTestcase ) throws DatabaseAccessException {
+
+        if (addTestcaseMetaInfoToCurrentTestcase) {
+            evaluateCurrentState("add TestcaseMetainfo", LifeCycleState.TEST_CASE_STARTED,
+                                 LifeCycleState.TEST_CASE_STARTED);
+
+            dbWriteAccess.addTestcaseMetainfo(sd.getRun().getSuite().getTestcase().getTestcaseId(),
+                                              testcaseMetainfo.getMetaKey(), testcaseMetainfo.getMetaValue(),
+                                              true);
+        } else {
+
+            validateTestcaseId(sd, testcaseMetainfo.getParentId(), testcaseMetainfo.getSessionId());
+
+            dbWriteAccess.addTestcaseMetainfo(testcaseMetainfo.getParentId(), testcaseMetainfo.getMetaKey(),
+                                              testcaseMetainfo.getMetaValue(), true);
         }
 
     }
