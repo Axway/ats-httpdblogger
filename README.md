@@ -14,6 +14,7 @@ Other **related projects**:
   <li>ATS Framework at https://github.com/Axway/ats-framework</li>
   <li>ATS Test Explorer at https://github.com/Axway/ats-testexplorer</li>
   <li>ATS Distribution at https://github.com/Axway/ats-distrib</li>
+  <li>Nightwatch ATS reporter - report JS test execution into ATS DB at https://github.com/Axway/nightwatch-ats-reporter</li>
 </ul>
 
 **Contact** ATS team at: _ats.team_  _@ axway.com_
