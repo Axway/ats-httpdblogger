@@ -10,11 +10,9 @@ ATS HTTP DB Logger is a Web ( HTTP ) application used for logging test execution
 **Download**: ATS HTTPDB Logger **artifacts** are available at https://oss.sonatype.org/content/groups/public/com/axway/ats/httpdblogger/
 
 Other **related projects**:
-<ul>
-  <li> ATS Framework at https://github.com/Axway/ats-framework</li>
-  <li> ATS Test Explorer at https://github.com/Axway/ats-testexplorer</li>
-  <li> ATS Distribution at https://github.com/Axway/ats-distrib</li>
-  <li> Sample integration. Now you can use ATS Test Explorer with Nightwatch.  Project is available at https://github.com/Axway/nightwatch-ats-reporter</li>
-</ul>
+* ATS Framework at https://github.com/Axway/ats-framework</li>
+* ATS Test Explorer at https://github.com/Axway/ats-testexplorer</li>
+* ATS Distribution at https://github.com/Axway/ats-distrib</li>
+* Sample **integration**. Now you can use ATS Test Explorer with **Nightwatch**. Project is available at https://github.com/Axway/nightwatch-ats-reporter
 
 **Contact** ATS team at: _ats.team_  _@ axway.com_
