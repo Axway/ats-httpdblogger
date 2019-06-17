@@ -11,10 +11,10 @@ ATS HTTP DB Logger is a Web ( HTTP ) application used for logging test execution
 
 Other **related projects**:
 <ul>
-  <li>**ATS Framework** at https://github.com/Axway/ats-framework</li>
-  <li>**ATS Test Explorer** at https://github.com/Axway/ats-testexplorer</li>
-  <li>**ATS Distribution** at https://github.com/Axway/ats-distrib</li>
-  <li>Sample **integration**. Now you can use ATS Test Explorer with **Nightwatch**. Project is available at https://github.com/Axway/nightwatch-ats-reporter</li>
+  <li> ATS Framework at https://github.com/Axway/ats-framework</li>
+  <li> ATS Test Explorer at https://github.com/Axway/ats-testexplorer</li>
+  <li> ATS Distribution at https://github.com/Axway/ats-distrib</li>
+  <li> Sample integration. Now you can use ATS Test Explorer with Nightwatch.  Project is available at https://github.com/Axway/nightwatch-ats-reporter</li>
 </ul>
 
 **Contact** ATS team at: _ats.team_  _@ axway.com_
