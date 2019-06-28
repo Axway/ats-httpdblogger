@@ -82,7 +82,7 @@ public class Reporter extends BaseEntry {
                      @ApiParam( value = "DB name", required = true) @QueryParam( "dbName") String dbName,
                      @ApiParam( value = "DB host. Default is 127.0.0.1", required = false) @DefaultValue( "127.0.0.1") @QueryParam( "dbHost") String dbHost,
                      @ApiParam( value = "DB host. Default is 1433", required = false) @DefaultValue( "1433") @QueryParam( "dbPort") int dbPort,
-                     @ApiParam( value = "DB user. Default is AutoUser", required = false) @DefaultValue( "AtsUser") @QueryParam( "dbUser") String dbUser,
+                     @ApiParam( value = "DB user. Default is AtsUser", required = false) @DefaultValue( "AtsUser") @QueryParam( "dbUser") String dbUser,
                      @ApiParam( value = "DB password. Default is AtsPassword", required = false) @DefaultValue( "AtsPassword") @QueryParam( "dbPassword") String dbPassword,
                      @ApiParam( value = "Columns to show from the result set as they show up in Test Explorer UI. "
                                         + "Possible values: name, product, version, build, os, "
