@@ -21,12 +21,12 @@
      <div id="main-content" class="wiki-content group"> 
       <h1 id="ATSHTTPDBLoggerGuide-Introduction">Introduction</h1> 
       <p>The ATS framework is an automated testing framework which usually sends its test execution results to a database. The test results are naturally and nicely reviewed by the ATS <a class="external-link" href="https://github.com/Axway/ats-testexplorer" rel="nofollow">Test Explorer</a> web application.</p> 
-      <p>If we imagine you want to run non-java tests and still review the execution results through Test Explorer, then this page is just for you. The HTTP DB Logger is an application which will connect your non-java tests with the Test Explorer database.</p> 
-      <p>The HTTP DB Logger is a simple REST server which can accept your REST calls and translate them properly to the Test Explorer database.</p> 
+      <p>If we imagine you want to run non-Java tests and still review the execution results through Test Explorer, then this page is just for you. The HTTP DB Logger is an application which will connect your non-Java tests with the Test Explorer database.</p> 
+      <p>The HTTP DB Logger is a simple REST-like application which can accept your REST calls and translate them properly to the Test Explorer database.</p> 
       <p><br></p> 
       <hr> 
       <h1 id="ATSHTTPDBLoggerGuide-Installation">Installation</h1> 
-      <p>The ATS HTTP DB Logging Server is distributed as a regular&nbsp;<strong><em>war</em>&nbsp;</strong>file which needs to be started as any other web application by Tomcat or a similar web server.</p> 
+      <p>The ATS HTTP DB Logging Server is distributed as a regular <strong>WAR (Web ARchive)&nbsp;</strong>file which needs to be started as any other web application by Tomcat or a similar Java Web Container Server.</p> 
       <p>The server is ready to be used once it gets started.</p> 
       <div class="confluence-information-macro confluence-information-macro-information"> 
        <span class="aui-icon aui-icon-small aui-iconfont-info confluence-information-macro-icon"></span> 
@@ -48,12 +48,12 @@
       <hr> 
       <h1 id="ATSHTTPDBLoggerGuide-Someimportanttokensusedinthecommunication">Some important tokens used in the communication</h1> 
       <h3 id="ATSHTTPDBLoggerGuide-SessionID">Session ID</h3> 
-      <p>Once the server give you back a Session ID, all following requests pass this token as part of the body, so this request can be assigned to the proper session on the server side.</p> 
+      <p>Once the server give you back a Session ID, all following requests should pass this token as part of the body, so this request can be assigned to the proper session on the server side.</p> 
       <p>The session stores information like connection to a database, previously started run, suites and test cases.</p> 
       <p>The Session ID is created on executing a <em> <strong>startRun</strong> </em> event.</p> 
       <h3 id="ATSHTTPDBLoggerGuide-Timestamp">Timestamp</h3> 
-      <p>Many requests are allowed to optionally provide a timestamp. The timestamp (expected in milliseconds) is the time and date of the event occurrence.</p> 
-      <p>If the request is to be persisted in the database(with other words if this is not a GET), then it must reach the database with some timestamp set. In case the request does not specify one, the logging server will apply the time of the server itself.</p> 
+      <p>Many requests are allowed to optionally provide a timestamp. The timestamp (expected in milliseconds) is the time and date of the event occurrence (Java System.currentTimeMillis() and UNIX-like, time since Jan, 1st, 1970).</p> 
+      <p>If the request is to be persisted in the database (with other words if this is not a GET), then it must reach the database with some timestamp set. In case the request does not specify one, the logging server will apply the time of the server itself.</p> 
       <h3 id="ATSHTTPDBLoggerGuide-ParentID">Parent ID</h3> 
       <p>When used, you specify the parent of the current event. For example when do <em>startTestcase</em> the parent ID tells us the particular SUITE this TESTCASE will belong to.</p> 
       <p>The parent ID is the actual database ID of the parent table.</p> 
@@ -88,7 +88,7 @@
      </div> 
     </div> 
    </div> 
-  </div>   
+  </div>  
   <hr>
   <p>Go to <a href="./index.html">parent page</a></p>
   <p>Go to <a href="./toc.html">Table of Contents</a></p>

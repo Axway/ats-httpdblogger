@@ -212,7 +212,7 @@
        <div class="confluence-information-macro-body"> 
         <p>Test Explorer make difference between test scenario and testcase</p> 
         <p>Scenario is the definition of the test. For example <strong>test1()</strong></p> 
-        <p>Testcase is one execution of the test. It could be the same as the scenario, but in some case you might executed same scenario many times. For example <strong>test1(FTP, 21, file1.txt)</strong>, <strong>test1(HTTP, 80, file1.txt)</strong>, <strong> test1(SFTP, 22, file1.txt) ...<br> </strong></p> 
+        <p>Testcase is one execution of the test. It could be the same as the scenario, but in some case you might executed same scenario many times. For example <strong>test1(FTP, 21, file1.txt)</strong>, <strong>test1(HTTP, 80, file1.txt)</strong>, <strong> test1(SFTP, 22, file1.txt) ...<br></strong></p> 
        </div> 
       </div> 
       <p><br></p> 
@@ -496,7 +496,7 @@
         </tbody> 
        </table> 
       </div> 
-      <h3 id="SendingdatatoTestExplorerdatabase-"><span> <br> </span></h3> 
+      <h3 id="SendingdatatoTestExplorerdatabase-"><span> <br></span></h3> 
       <hr> 
       <h3 id="SendingdatatoTestExplorerdatabase-AddaRunmetainformation"><span>Add a Run meta information</span></h3> 
       <p><span>It applies some key-value information to a Run.</span></p> 
@@ -588,11 +588,46 @@
        <li>A message is attached to a SUITE if currently a Suite is started(and not a Run or Testcase)</li> 
        <li>A message is attached to a SUITE if <em> <strong>parentType</strong> </em> is set to "<em> <strong>SUITE</strong> </em>" and <em> <strong>parentId</strong> </em> is set to point to the <em> <strong>suites's db id</strong> </em></li> 
       </ul> 
-      <p><span> <br> </span></p> 
+      <p><span> <br></span></p> 
       <hr> 
       <h3 id="SendingdatatoTestExplorerdatabase-AddaScenariometainformation"><span> Add a Scenario meta information</span></h3> 
       <p><span>It applies some key-value information to a Scenario.</span></p> 
       <p>The metainfo is intended to change the behavior of Test Explorer mainly in allowing to filter scenarios for some reporting purposes. <span>The significance of this event will probably grow in future.</span></p> 
+      <div class="table-wrap"> 
+       <table class="wrapped confluenceTable"> 
+        <colgroup> 
+         <col> 
+         <col> 
+         <col> 
+        </colgroup> 
+        <tbody> 
+         <tr> 
+          <th class="confluenceTh">body parameters</th> 
+          <th class="confluenceTh">description</th> 
+          <th class="confluenceTh">optional</th> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">sessionID</td> 
+          <td class="confluenceTd">session id</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">metaKey</td> 
+          <td class="confluenceTd">Name of meta key</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+         <tr> 
+          <td class="confluenceTd">metaValue</td> 
+          <td class="confluenceTd">Value of meta key</td> 
+          <td class="confluenceTd"><br></td> 
+         </tr> 
+        </tbody> 
+       </table> 
+      </div> 
+      <p><br></p> 
+      <hr> 
+      <h3 id="SendingdatatoTestExplorerdatabase-AddaTestcasemetainformation"><span>Add a Testcase meta information</span></h3> 
+      <p><span>It applies some key-value information to a Testcase.</span></p> 
       <div class="table-wrap"> 
        <table class="wrapped confluenceTable"> 
         <colgroup> 
@@ -632,6 +667,6 @@
      </div> 
     </div> 
    </div> 
-  </div>   
+  </div>  
  </body>
 </html>
