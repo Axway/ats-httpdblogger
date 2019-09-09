@@ -72,23 +72,24 @@
 <script> 
 
 	httpdblogger_swagger_json_object = {
+	{
   "swagger" : "2.0",
   "info" : {
     "description" : "ATS HTTP application for logging test data in ATS DB",
-    "version" : "v4.0.5",
+    "version" : "v4.0.6",
     "title" : "ATS HTTP DB logger",
     "contact" : {
       "name" : "ATS Team",
       "url" : "http://github.com/Axway/ats-httpdblogger",
-      "email" : "ats.team _at_ axway.com"
+      "email" : "ats.team@axway.com"
     }
   },
   "host" : "localhost:8080",
   "basePath" : "/ats-httpdblogger/service",
   "tags" : [ {
-    "name" : "reporter"
-  }, {
     "name" : "logger"
+  }, {
+    "name" : "reporter"
   } ],
   "schemes" : [ "http" ],
   "paths" : {
@@ -142,6 +143,36 @@
         "responses" : {
           "200" : {
             "description" : "Successful added scenario metainfo"
+          },
+          "500" : {
+            "description" : "Internal server error",
+            "schema" : {
+              "$ref" : "#/definitions/Response"
+            }
+          }
+        }
+      }
+    },
+    "/logger/addTestcaseMetainfo" : {
+      "post" : {
+        "tags" : [ "logger" ],
+        "summary" : "Add Testcase Metainfo",
+        "description" : "",
+        "operationId" : "addTestcaseMetainfo",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "description" : "Testcase metainfo details",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/Testcase metainfo details"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful added testcase metainfo"
           },
           "500" : {
             "description" : "Internal server error",
@@ -514,9 +545,17 @@
           "type" : "string",
           "default" : "127.0.0.1"
         }, {
+          "name" : "dbPort",
+          "in" : "query",
+          "description" : "DB host. Default is 1433",
+          "required" : false,
+          "type" : "integer",
+          "default" : "1433",
+          "format" : "int32"
+        }, {
           "name" : "dbUser",
           "in" : "query",
-          "description" : "DB user. Default is AutoUser",
+          "description" : "DB user. Default is AtsUser",
           "required" : false,
           "type" : "string",
           "default" : "AtsUser"
@@ -704,6 +743,43 @@
       }
     },
     "Scenario metainfo details" : {
+      "required" : [ "metaKey", "metaValue", "sessionId" ],
+      "properties" : {
+        "sessionId" : {
+          "type" : "string",
+          "example" : "f177f4f5-a649-4faa-920e-978ef8d60cb2",
+          "description" : "Session ID"
+        },
+        "timestamp" : {
+          "type" : "integer",
+          "format" : "int64",
+          "example" : "1493709734",
+          "description" : "timestamp"
+        },
+        "parentId" : {
+          "type" : "integer",
+          "format" : "int32",
+          "example" : "323",
+          "description" : "Parent ID"
+        },
+        "parentType" : {
+          "type" : "string",
+          "example" : "RUN|SUITE|TESTCASE",
+          "description" : "Parent Type"
+        },
+        "metaKey" : {
+          "type" : "string",
+          "example" : "group",
+          "description" : "meta key"
+        },
+        "metaValue" : {
+          "type" : "string",
+          "example" : "File transfer",
+          "description" : "meta value"
+        }
+      }
+    },
+    "Testcase metainfo details" : {
       "required" : [ "metaKey", "metaValue", "sessionId" ],
       "properties" : {
         "sessionId" : {
@@ -979,6 +1055,11 @@
           "example" : "localhost",
           "description" : "DB host"
         },
+        "dbPort" : {
+          "type" : "string",
+          "example" : "1433",
+          "description" : "DB port"
+        },
         "dbName" : {
           "type" : "string",
           "example" : "HTTP_TESTS",
@@ -1187,6 +1268,8 @@
     }
   }
 }
+
+	}
 
 	window.onload = function() {
 
