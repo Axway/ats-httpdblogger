@@ -22,7 +22,7 @@ import com.axway.ats.core.dbaccess.postgresql.DbConnPostgreSQL;
 import com.axway.ats.core.utils.StringUtils;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagesPojo;
-import com.axway.ats.log.autodb.PGDbWriteAccess;
+import com.axway.ats.log.autodb.io.PGDbWriteAccess;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
 
 public class HttpDbLoggerPGWriteAccess extends PGDbWriteAccess implements IHttpDbLoggerWriteAccess {
@@ -70,7 +70,9 @@ public class HttpDbLoggerPGWriteAccess extends PGDbWriteAccess implements IHttpD
 
             dbEventsCache.flushCache();
         } finally {
-            DbUtils.closeConnection(dbEventsCache.getConnection());
+            if (dbEventsCache != null) {
+                DbUtils.closeConnection(dbEventsCache.getConnection());
+            }
         }
 
     }
@@ -114,7 +116,9 @@ public class HttpDbLoggerPGWriteAccess extends PGDbWriteAccess implements IHttpD
             dbEventsCache.flushCache();
 
         } finally {
-            DbUtils.closeConnection(dbEventsCache.getConnection());
+            if (dbEventsCache != null) {
+                DbUtils.closeConnection(dbEventsCache.getConnection());
+            }
         }
 
     }
@@ -151,7 +155,9 @@ public class HttpDbLoggerPGWriteAccess extends PGDbWriteAccess implements IHttpD
             dbEventsCache.flushCache();
 
         } finally {
-            DbUtils.closeConnection(dbEventsCache.getConnection());
+            if (dbEventsCache != null) {
+                DbUtils.closeConnection(dbEventsCache.getConnection());
+            }
         }
 
     }

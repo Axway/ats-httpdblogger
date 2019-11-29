@@ -56,7 +56,7 @@ import com.axway.ats.httpdblogger.model.pojo.request.UpdateSuitePojo;
 import com.axway.ats.httpdblogger.model.pojo.response.ResponseStartRunPojo;
 import com.axway.ats.httpdblogger.model.pojo.response.ResponseStartSuitePojo;
 import com.axway.ats.httpdblogger.model.pojo.response.ResponseStartTestcasePojo;
-import com.axway.ats.log.autodb.LifeCycleState;
+import com.axway.ats.log.autodb.logqueue.LifeCycleState;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;

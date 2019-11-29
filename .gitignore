@@ -1,8 +1,8 @@
-.settings/
-
 target/
-.settings/
 
+.settings/
 .project
 .classpath
 .checkstyle
+
+.idea/

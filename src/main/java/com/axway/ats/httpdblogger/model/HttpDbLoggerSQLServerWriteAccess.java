@@ -20,7 +20,7 @@ import com.axway.ats.core.dbaccess.DbUtils;
 import com.axway.ats.core.dbaccess.mssql.DbConnSQLServer;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagesPojo;
-import com.axway.ats.log.autodb.SQLServerDbWriteAccess;
+import com.axway.ats.log.autodb.io.SQLServerDbWriteAccess;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
 
 public class HttpDbLoggerSQLServerWriteAccess extends SQLServerDbWriteAccess implements IHttpDbLoggerWriteAccess {
@@ -65,7 +65,9 @@ public class HttpDbLoggerSQLServerWriteAccess extends SQLServerDbWriteAccess imp
 
             dbEventsCache.flushCache();
         } finally {
-            DbUtils.closeConnection(dbEventsCache.getConnection());
+            if (dbEventsCache != null) {
+                DbUtils.closeConnection(dbEventsCache.getConnection());
+            }
         }
 
     }
@@ -106,7 +108,9 @@ public class HttpDbLoggerSQLServerWriteAccess extends SQLServerDbWriteAccess imp
             dbEventsCache.flushCache();
 
         } finally {
-            DbUtils.closeConnection(dbEventsCache.getConnection());
+            if (dbEventsCache != null) {
+                DbUtils.closeConnection(dbEventsCache.getConnection());
+            }
         }
 
     }
@@ -140,7 +144,9 @@ public class HttpDbLoggerSQLServerWriteAccess extends SQLServerDbWriteAccess imp
             dbEventsCache.flushCache();
 
         } finally {
-            DbUtils.closeConnection(dbEventsCache.getConnection());
+            if (dbEventsCache != null) {
+                DbUtils.closeConnection(dbEventsCache.getConnection());
+            }
         }
 
     }

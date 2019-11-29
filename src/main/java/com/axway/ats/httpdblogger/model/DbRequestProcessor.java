@@ -47,9 +47,9 @@ import com.axway.ats.httpdblogger.model.pojo.request.StartSuitePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.StartTestcasePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.UpdateRunPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.UpdateSuitePojo;
-import com.axway.ats.log.autodb.LifeCycleState;
-import com.axway.ats.log.autodb.PGDbReadAccess;
-import com.axway.ats.log.autodb.SQLServerDbReadAccess;
+import com.axway.ats.log.autodb.logqueue.LifeCycleState;
+import com.axway.ats.log.autodb.io.PGDbReadAccess;
+import com.axway.ats.log.autodb.io.SQLServerDbReadAccess;
 import com.axway.ats.log.autodb.entities.Run;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
 
@@ -566,12 +566,14 @@ public class DbRequestProcessor {
      * Returns info about runs.
      * Note: this is a session-less operation
      * 
-     * @param host
-     * @param db
-     * @param user
-     * @param password
-     * @param whereClause
+     * @param host DB host name
+     * @param port DB port to use to connect
+     * @param db database name
+     * @param user username for DB connection
+     * @param password password  for DB connection
+     * @param whereClause filtering clause
      * @param recordsCount
+     * @param timeOffset local time offset relativeto UTC to be applied
      * @return
      * @throws DatabaseAccessException
      */
