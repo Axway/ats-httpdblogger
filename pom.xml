@@ -205,7 +205,7 @@
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
                         <artifactId>checkstyle</artifactId>
-                        <version>8.19</version> <!-- 6.19 is the maximum version that could be used for Java 7 -->
+                        <version>8.29</version> <!-- 6.19 is the maximum version that could be used for Java 7 -->
                     </dependency>
                 </dependencies>
                 <executions>
