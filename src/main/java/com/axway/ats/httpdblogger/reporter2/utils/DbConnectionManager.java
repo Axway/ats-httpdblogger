@@ -35,7 +35,7 @@ public class DbConnectionManager {
     private static Map<String, DbConnectionData> dbConnections = java.util.Collections.synchronizedMap(new HashMap<String, DbConnectionData>());
 
     static {
-        dbConnections.put("DRAGO", new DbConnectionData("10.232.22.2", 1433, "DS_406", "AtsUser", "AtsPassword"));
+        
     }
 
     public static boolean doesDbConnectionExists( String dbConnectionId ) {
