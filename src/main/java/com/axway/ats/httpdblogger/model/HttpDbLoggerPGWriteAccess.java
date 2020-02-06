@@ -22,8 +22,8 @@ import com.axway.ats.core.dbaccess.postgresql.DbConnPostgreSQL;
 import com.axway.ats.core.utils.StringUtils;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagesPojo;
-import com.axway.ats.log.autodb.PGDbWriteAccess;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
+import com.axway.ats.log.autodb.io.PGDbWriteAccess;
 
 public class HttpDbLoggerPGWriteAccess extends PGDbWriteAccess implements IHttpDbLoggerWriteAccess {
 

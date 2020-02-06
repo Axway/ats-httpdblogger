@@ -20,8 +20,8 @@ import com.axway.ats.core.dbaccess.DbUtils;
 import com.axway.ats.core.dbaccess.mssql.DbConnSQLServer;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.InsertMessagesPojo;
-import com.axway.ats.log.autodb.SQLServerDbWriteAccess;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
+import com.axway.ats.log.autodb.io.SQLServerDbWriteAccess;
 
 public class HttpDbLoggerSQLServerWriteAccess extends SQLServerDbWriteAccess implements IHttpDbLoggerWriteAccess {
 

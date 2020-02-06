@@ -47,11 +47,11 @@ import com.axway.ats.httpdblogger.model.pojo.request.StartSuitePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.StartTestcasePojo;
 import com.axway.ats.httpdblogger.model.pojo.request.UpdateRunPojo;
 import com.axway.ats.httpdblogger.model.pojo.request.UpdateSuitePojo;
-import com.axway.ats.log.autodb.LifeCycleState;
-import com.axway.ats.log.autodb.PGDbReadAccess;
-import com.axway.ats.log.autodb.SQLServerDbReadAccess;
 import com.axway.ats.log.autodb.entities.Run;
 import com.axway.ats.log.autodb.exceptions.DatabaseAccessException;
+import com.axway.ats.log.autodb.io.PGDbReadAccess;
+import com.axway.ats.log.autodb.io.SQLServerDbReadAccess;
+import com.axway.ats.log.autodb.logqueue.LifeCycleState;
 
 /**
  * A wrapper around the ATS DB Writer.
