@@ -53,41 +53,24 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
 @Path( "reporter2")
-@Api( value = "/reporter2/run", description = "Retrieve Run(s) information")
+@Api( value = "/reporter2/runs", description = "Retrieve Run(s) information")
 public class RunsServiceImpl {
 
     private static final Logger LOG = Logger.getLogger(RunsServiceImpl.class);
 
     @GET
     @Path( "/runs")
-    @ApiOperation(
-            value = "Get runs",
-            notes = "Get runs",
-            position = 1)
-    @ApiResponses(
-            value = { @ApiResponse(
-                    code = 200,
-                    message = "Successfully obtained runs",
-                    response = RunsPojo.class),
-                      @ApiResponse(
-                              code = 500,
-                              message = "Problem obtaining runs. The server was not able to process the request",
-                              response = InternalServerErrorPojo.class)
-            })
+    @ApiOperation( value = "Get runs", notes = "Get runs", position = 1)
+    @ApiResponses( value = { @ApiResponse( code = 200, message = "Successfully obtained runs", response = RunsPojo.class),
+                             @ApiResponse( code = 500, message = "Problem obtaining runs. The server was not able to process the request", response = InternalServerErrorPojo.class)
+    })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getRuns( @Context HttpServletRequest request,
-                             @ApiParam(
-                                     required = true,
-                                     name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                             @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
                              @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
                              @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
-                             @ApiParam(
-                                     required = false,
-                                     allowMultiple = true,
-                                     name = "properties") @QueryParam( "properties") String properties,
-                             @ApiParam(
-                                     required = false,
-                                     name = "whereClause") @QueryParam( "whereClause") String whereClause ) {
+                             @ApiParam( required = false, allowMultiple = true, name = "properties") @QueryParam( "properties") String properties,
+                             @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
@@ -138,42 +121,24 @@ public class RunsServiceImpl {
 
     @GET
     @Path( "/run/{runId: \\d+}")
-    @ApiOperation(
-            value = "Get run",
-            notes = "Get run",
-            position = 1)
-    @ApiResponses(
-            value = { @ApiResponse(
-                    code = 200,
-                    message = "Successfully obtained run",
-                    response = RunPojo.class),
-                      @ApiResponse(
-                              code = 500,
-                              message = "Problem obtaining run. The server was not able to process the request",
-                              response = InternalServerErrorPojo.class)
-            })
+    @ApiOperation( value = "Get run", notes = "Get run", position = 1)
+    @ApiResponses( value = { @ApiResponse( code = 200, message = "Successfully obtained run", response = RunPojo.class),
+                             @ApiResponse( code = 500, message = "Problem obtaining run. The server was not able to process the request", response = InternalServerErrorPojo.class)
+    })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getRun( @Context HttpServletRequest request,
-                            @ApiParam(
-                                    required = true,
-                                    name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                            @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
                             @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
                             @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
-                            @ApiParam(
-                                    required = false,
-                                    name = "properties") @QueryParam( "properties") String properties,
+                            @ApiParam( required = false, name = "properties") @QueryParam( "properties") String properties,
 
-                            @ApiParam(
-                                    required = false,
-                                    name = "whereClause") @QueryParam( "whereClause") String whereClause,
+                            @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause,
 
-                            @ApiParam(
-                                    name = "runId",
-                                    allowMultiple = false,
-                                    required = true) @PathParam( "runId") int runId ) {
+                            @ApiParam( name = "runId", allowMultiple = false, required = true) @PathParam( "runId") int runId ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
+        requiredQueryParams.add("runId");
         try {
             RequestValidator.validateQueryParams(request, requiredQueryParams);
             if (!RequestValidator.hasQueryParam(request, "from")) {
@@ -222,42 +187,24 @@ public class RunsServiceImpl {
 
     @GET
     @Path( "/run/{runId: \\d+}/messages")
-    @ApiOperation(
-            value = "Get run messages",
-            notes = "Get run messages",
-            position = 1)
-    @ApiResponses(
-            value = { @ApiResponse(
-                    code = 200,
-                    message = "Successfully obtained run messages",
-                    response = MessagesPojo.class),
-                      @ApiResponse(
-                              code = 500,
-                              message = "Problem obtaining run messages. The server was not able to process the request",
-                              response = InternalServerErrorPojo.class)
-            })
+    @ApiOperation( value = "Get run messages", notes = "Get run messages", position = 1)
+    @ApiResponses( value = { @ApiResponse( code = 200, message = "Successfully obtained run messages", response = MessagesPojo.class),
+                             @ApiResponse( code = 500, message = "Problem obtaining run messages. The server was not able to process the request", response = InternalServerErrorPojo.class)
+    })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getRunMessages( @Context HttpServletRequest request,
-                                    @ApiParam(
-                                            required = true,
-                                            name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                    @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
                                     @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
                                     @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
-                                    @ApiParam(
-                                            required = false,
-                                            name = "properties") @QueryParam( "properties") String properties,
+                                    @ApiParam( required = false, name = "properties") @QueryParam( "properties") String properties,
 
-                                    @ApiParam(
-                                            required = false,
-                                            name = "whereClause") @QueryParam( "whereClause") String whereClause,
+                                    @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause,
 
-                                    @ApiParam(
-                                            name = "runId",
-                                            allowMultiple = false,
-                                            required = true) @PathParam( "runId") int runId ) {
+                                    @ApiParam( name = "runId", allowMultiple = false, required = true) @PathParam( "runId") int runId ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
+        requiredQueryParams.add("runId");
         try {
             RequestValidator.validateQueryParams(request, requiredQueryParams);
             if (!RequestValidator.hasQueryParam(request, "from")) {
@@ -308,37 +255,21 @@ public class RunsServiceImpl {
 
     @GET
     @Path( "/run/{runId: \\d+}/metainfo")
-    @ApiOperation(
-            value = "Get run metainfo",
-            notes = "Get run metainfo",
-            position = 1)
-    @ApiResponses(
-            value = { @ApiResponse(
-                    code = 200,
-                    message = "Successfully obtained run metainfo",
-                    response = MetaInfosPojo.class),
-                      @ApiResponse(
-                              code = 500,
-                              message = "Problem obtaining run metainfo. The server was not able to process the request",
-                              response = InternalServerErrorPojo.class)
-            })
+    @ApiOperation( value = "Get run metainfo", notes = "Get run metainfo", position = 1)
+    @ApiResponses( value = { @ApiResponse( code = 200, message = "Successfully obtained run metainfo", response = MetaInfosPojo.class),
+                             @ApiResponse( code = 500, message = "Problem obtaining run metainfo. The server was not able to process the request", response = InternalServerErrorPojo.class)
+    })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getRunMetainfo( @Context HttpServletRequest request,
-                                    @ApiParam(
-                                            required = true,
-                                            name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                    @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
 
-                                    @ApiParam(
-                                            required = false,
-                                            name = "properties") @QueryParam( "properties") String properties,
+                                    @ApiParam( required = false, name = "properties") @QueryParam( "properties") String properties,
 
-                                    @ApiParam(
-                                            name = "runId",
-                                            allowMultiple = false,
-                                            required = true) @PathParam( "runId") int runId ) {
+                                    @ApiParam( name = "runId", allowMultiple = false, required = true) @PathParam( "runId") int runId ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
+        requiredQueryParams.add("runId");
         try {
 
             if (StringUtils.isNullOrEmpty(properties)) {

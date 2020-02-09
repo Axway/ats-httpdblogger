@@ -15,264 +15,216 @@
  */
 package com.axway.ats.httpdblogger.reporter2.scenarios;
 
-import javax.ws.rs.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
+import com.axway.ats.core.utils.StringUtils;
+import com.axway.ats.httpdblogger.reporter2.pojo.response.InternalServerErrorPojo;
+import com.axway.ats.httpdblogger.reporter2.pojo.response.MetaInfosPojo;
+import com.axway.ats.httpdblogger.reporter2.scenarios.pojo.response.ScenarioPojo;
+import com.axway.ats.httpdblogger.reporter2.scenarios.pojo.response.ScenariosPojo;
+import com.axway.ats.httpdblogger.reporter2.utils.DbConnectionManager;
+import com.axway.ats.httpdblogger.reporter2.utils.DbReader;
+import com.axway.ats.httpdblogger.reporter2.utils.DbReader.CompareSign;
+import com.axway.ats.httpdblogger.reporter2.utils.RequestValidator;
 import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiParam;
+import com.wordnik.swagger.annotations.ApiResponse;
+import com.wordnik.swagger.annotations.ApiResponses;
 
 @Path( "reporter2")
-@Api( value = "/reporter2/scenario", description = "Retrieve Scenario(s) information")
+@Api( value = "/reporter2/scenarios", description = "Retrieve Scenario(s) information")
 public class ScenariosServiceImpl {
 
     private static final Logger LOG = Logger.getLogger(ScenariosServiceImpl.class);
 
-    /*@GET
+    @GET
     @Path( "/scenarios")
-    @ApiOperation(
-            value = "Get all scenarios",
-            notes = "Get all scenarios",
-            position = 2)
-    @ApiResponses(
-            value = { @ApiResponse(
-                    code = 200,
-                    message = "Successfully obtained all scenarios",
-                    response = ScenariosPojo.class),
-                      @ApiResponse(
-                              code = 500,
-                              message = "Problem obtaining all scenarios. The server was not able to process the request",
-                              response = InternalServerErrorPojo.class)
-            })
+    @ApiOperation( value = "Get scenarios", notes = "Get scenarios", position = 2)
+    @ApiResponses( value = {
+                             @ApiResponse( code = 200, message = "Successfully obtained scenarios", response = ScenariosPojo.class),
+                             @ApiResponse( code = 500, message = "Problem obtaining scenarios. The server was not able to process the request", response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
-    public Response getScenarios( @ApiParam( name = "connectionId", required = true) @Validate(
-            name = "connectionId",
-            type = ValidationType.STRING_NOT_EMPTY) @QueryParam( "connectionId") final String connectionId,
-                                  @ApiParam(
-                                          name = "suiteId",
-                                          required = false) @QueryParam( "suiteId") final int suiteId,
-                                  @ApiParam(
-                                          name = "from",
-                                          required = false) @QueryParam( "from") final int from,
-                                  @ApiParam(
-                                          name = "to",
-                                          required = false) @QueryParam( "to") final int to,
-    
-                                  @ApiParam(
-                                          name = "fromDate",
-                                          required = false,
-                                          allowableValues = "Milliseconds since Epoch. Must be in UTC") @QueryParam( "fromDate") final long fromDate,
-                                  @ApiParam(
-                                          name = "toDate",
-                                          required = false,
-                                          allowableValues = "Milliseconds since Epoch. Must be in UTC") @QueryParam( "toDate") final long toDate,
-                                  @Context HttpServletRequest request ) {
-    
-        boolean hasSuiteId = (request != null && request.getQueryString() != null
-                              && request.getQueryString().contains("suiteId"));
-    
-        boolean hasFromDate = (request != null && request.getQueryString() != null
-                               && request.getQueryString().contains("fromDate"));
-    
-        boolean hasToDate = (request != null && request.getQueryString() != null
-                             && request.getQueryString().contains("toDate"));
+    public Response getScenarios( @Context HttpServletRequest request,
+                                  @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                  @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
+                                  @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
+                                  @ApiParam( required = false, allowMultiple = true, name = "properties") @QueryParam( "properties") String properties,
+                                  @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause ) {
+
+        List<String> requiredQueryParams = new ArrayList<String>();
+        requiredQueryParams.add("connectionId");
         try {
-    
-            String whereClause = null;
-            // validate input
-            if (hasSuiteId) {
-                if (suiteId < 0) {
-                    throw new RuntimeException("Suite ID must be zero or positive!");
-                }
-    
-                whereClause = "WHERE suiteId = " + suiteId;
-            } else {
-                whereClause = "WHERE 1=1";
+            RequestValidator.validateQueryParams(request, requiredQueryParams);
+            if (!RequestValidator.hasQueryParam(request, "from")) {
+                from = 0;
             }
-    
-            if (from < 0) {
-                throw new RuntimeException("from parameter must be zero or positive!");
+            if (!RequestValidator.hasQueryParam(request, "to")) {
+                to = Integer.MAX_VALUE;
             }
-    
-            if (to < 0) {
-                throw new RuntimeException("to parameter must be zero or positive!");
-            }
-    
-            IDbReadAccess readAccess = DbConnectionManager.getReadAccess(connectionId);
-    
-            int startRecord = from;
-            int endRecord = (to == 0)
-                                      ? readAccess.getScenariosCount(whereClause)
-                                      : to;
-    
-            if (hasFromDate) {
-                whereClause += " AND dateStart >= " + "DATEADD(MILLISECOND, " + fromDate
-                               + " % 1000, DATEADD(SECOND, " + fromDate + " / 1000, '19700101'))";
-            }
-    
-            if (hasToDate) {
-                whereClause += " AND dateStart <= " + "DATEADD(MILLISECOND, " + toDate
-                               + " % 1000, DATEADD(SECOND, " + toDate + " / 1000, '19700101'))";
-            }
-    
-            List<Scenario> scenarios = readAccess.getScenarios(startRecord, endRecord,
-                                                               whereClause, "scenarioId", true,
-                                                               0);
-    
-            ScenariosPojo pojo = null;
-            if (scenarios == null || scenarios.isEmpty()) {
-                pojo = new ScenariosPojo();
-                pojo.setScenarios(new ScenarioPojo[]{});
-            } else {
-                pojo = (ScenariosPojo) PojoUtils.logEntityToPojo(scenarios);
-            }
-    
-            return Response.ok(pojo).build();
-        } catch (Exception e) {
-            String errorMessage = "Could not obtain all scenarios, using connection ID '" + connectionId + "'";
-            if (hasSuiteId) {
-                errorMessage += " and suite ID '" + suiteId + "'";
-            }
-            LOG.error(errorMessage, e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                           .entity(new InternalServerErrorPojo(errorMessage, e))
-                           .build();
-        }
-    
-    }
-    
-    @GET
-    @Path( "/scenario/{scenarioId: [0-9]*}")
-    @ApiOperation(
-            value = "Get scenario details by providing scenarioId",
-            notes = "Get scenario details by providing scenarioId",
-            position = 1)
-    @ApiResponses(
-            value = { @ApiResponse(
-                    code = 200,
-                    message = "Successfully obtained scenario details",
-                    response = ScenarioPojo.class),
-                      @ApiResponse(
-                              code = 500,
-                              message = "Problem obtaining scenario details. The server was not able to process the request",
-                              response = InternalServerErrorPojo.class)
-            })
-    @Produces( MediaType.APPLICATION_JSON)
-    public Response
-            getScenario( @ApiParam(
-                    name = "connectionId",
-                    required = true) @QueryParam( "connectionId") final String connectionId,
-    
-                         @ApiParam(
-                                 name = "scenarioId",
-                                 allowMultiple = false,
-                                 required = true) @PathParam( "scenarioId") final int scenarioId,
-    
-                         @ApiParam(
-                                 name = "properties",
-                                 allowMultiple = true,
-                                 value = "If you want to obtain only a subset of the scenario's properties, use this parameter",
-                                 required = false) @QueryParam( "properties") final String properties ) {
-    
-        try {
-            if (scenarioId < 0) {
-                throw new IllegalArgumentException("Scenario ID must be equal or greater than zero");
-            }
-            IDbReadAccess readAccess = DbConnectionManager.getReadAccess(connectionId);
-            List<Scenario> scenarios = readAccess.getScenarios(0, 1, "WHERE scenarioId = " + scenarioId, "scenarioId",
-                                                               false,
-                                                               0);
-            if (scenarios == null || scenarios.isEmpty()) {
-                // It is possible that the scenario exists, but all of the testcases, related to that scenario were deleted
-                // In that case you will receive the exception below as well, which can be confusing for the end user
-                throw new NoSuchScenarioException(scenarioId, connectionId);
-            }
-            ScenarioPojo scenarioPojo = (ScenarioPojo) PojoUtils.logEntityToPojo(scenarios.get(0));
-            if (StringUtils.isNullOrEmpty(properties)) {
-                return Response.ok(scenarioPojo).build();
-            } else {
-                String[] propsKeys = properties.replace(" ", "").split(",");
-                Object[] propsValues = new Object[propsKeys.length];
-                for (int i = 0; i < propsKeys.length; i++) {
-                    try {
-                        propsValues[i] = ReflectionUtils.getFieldValue(scenarioPojo, propsKeys[i], false);
-                    } catch (Exception e) {
-                        if (e.getMessage().contains("Could not obtain field '" + propsKeys[i] + "' from class")) {
-                            throw new IllegalArgumentException("" + propsKeys[i]
-                                                               + " is not a valid scenario property.");
-                        } else {
-                            throw e;
-                        }
+            Map<String, Pair<CompareSign, Object>> whereClauseEntries = new HashMap<String, Pair<CompareSign, Object>>();
+            if (RequestValidator.hasQueryParam(request, "whereClause")) {
+
+                String[] whereClauseTokens = whereClause.split(",");
+                for (String token : whereClauseTokens) {
+                    String[] subTokens = token.split(Pattern.quote(" "));
+                    if (subTokens.length != 3) {
+                        throw new RuntimeException(
+                                                   "Incorrect where clause syntax. Expected format for the where clause is <key> <compare sign> <value>");
                     }
+                    whereClauseEntries.put(subTokens[0].trim(), new ImmutablePair<DbReader.CompareSign, Object>(
+                                                                                                                CompareSign.fromString(subTokens[1].trim()),
+                                                                                                                subTokens[2].trim()));
                 }
-                String json = JsonUtils.constructJson(propsKeys, propsValues, true);
-                return Response.ok(json).build();
+
             }
-    
+            if (StringUtils.isNullOrEmpty(properties)) {
+                return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId)).getScenarios(from, to,
+                                                                                                              whereClauseEntries,
+                                                                                                              null))
+                               .build();
+            } else {
+                return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId)).getScenarios(from, to,
+                                                                                                              whereClauseEntries,
+                                                                                                              Arrays.asList(properties.split(","))))
+                               .build();
+            }
+
         } catch (Exception e) {
-            String errorMessage = "Could not obtain scenario details, by using ID '" + scenarioId
-                                  + "' and connection ID '"
-                                  + connectionId;
+            String errorMessage = "Could not get suites";
+            LOG.error(errorMessage, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                           .entity(new InternalServerErrorPojo(errorMessage, e))
+                           .build();
+        }
+
+    }
+
+    @GET
+    @Path( "/scenario/{scenarioId: \\d+}")
+    @ApiOperation( value = "Get scenario", notes = "Get scenario", position = 1)
+    @ApiResponses( value = {
+                             @ApiResponse( code = 200, message = "Successfully obtained scenario", response = ScenarioPojo.class),
+                             @ApiResponse( code = 500, message = "Problem obtaining scenario. The server was not able to process the request", response = InternalServerErrorPojo.class) })
+    @Produces( MediaType.APPLICATION_JSON)
+    public Response getScenario( @Context HttpServletRequest request,
+                                 @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                 @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
+                                 @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
+                                 @ApiParam( required = false, name = "properties") @QueryParam( "properties") String properties,
+
+                                 @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause,
+
+                                 @ApiParam( name = "scenarioId", allowMultiple = false, required = true) @PathParam( "scenarioId") int scenarioId ) {
+
+        List<String> requiredQueryParams = new ArrayList<String>();
+        requiredQueryParams.add("connectionId");
+        requiredQueryParams.add("scenarioId");
+        try {
+            RequestValidator.validateQueryParams(request, requiredQueryParams);
+            if (!RequestValidator.hasQueryParam(request, "from")) {
+                from = 0;
+            }
+            if (!RequestValidator.hasQueryParam(request, "to")) {
+                to = Integer.MAX_VALUE;
+            }
+            Map<String, Pair<CompareSign, Object>> whereClauseEntries = new HashMap<String, Pair<CompareSign, Object>>();
+            whereClauseEntries.put("scenarioId",
+                                   new ImmutablePair<DbReader.CompareSign, Object>(DbReader.CompareSign.EQUAL,
+                                                                                   scenarioId));
+            if (RequestValidator.hasQueryParam(request, "whereClause")) {
+
+                String[] whereClauseTokens = whereClause.split(",");
+                for (String token : whereClauseTokens) {
+                    String[] subTokens = token.split(Pattern.quote(" "));
+                    if (subTokens.length != 3) {
+                        throw new RuntimeException(
+                                                   "Incorrect where clause syntax. Expected format for the where clause is <key> <compare sign> <value>");
+                    }
+                    whereClauseEntries.put(subTokens[0].trim(), new ImmutablePair<DbReader.CompareSign, Object>(
+                                                                                                                CompareSign.fromString(subTokens[1].trim()),
+                                                                                                                subTokens[2].trim()));
+                }
+
+            }
+            if (StringUtils.isNullOrEmpty(properties)) {
+                return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId)).getScenario(from, to,
+                                                                                                             whereClauseEntries,
+                                                                                                             null))
+                               .build();
+            } else {
+                return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId)).getScenario(from, to,
+                                                                                                             whereClauseEntries,
+                                                                                                             Arrays.asList(properties.split(","))))
+                               .build();
+            }
+
+        } catch (Exception e) {
+            String errorMessage = "Could not get suite";
             LOG.error(errorMessage, e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                            .entity(new InternalServerErrorPojo(errorMessage, e))
                            .build();
         }
     }
-    
+
     @GET
-    @Path( "/scenario/{scenarioId: [0-9]*}/metainfo")
-    @ApiOperation(
-            value = "Get scenario metainfo by providing scenarioId",
-            notes = "Get scenario metainfo by providing scenarioId",
-            position = 1)
-    @ApiResponses(
-            value = { @ApiResponse(
-                    code = 200,
-                    message = "Successfully obtained scenario metainfo",
-                    response = MetaInfosPojo.class),
-                      @ApiResponse(
-                              code = 500,
-                              message = "Problem obtaining scenario metainfo. The server was not able to process the request",
-                              response = InternalServerErrorPojo.class)
-            })
+    @Path( "/scenario/{scenarioId: \\d+}/metainfo")
+    @ApiOperation( value = "Get scenario metainfo", notes = "Get scenario metainfo", position = 1)
+    @ApiResponses( value = {
+                             @ApiResponse( code = 200, message = "Successfully obtained scenario metainfo", response = MetaInfosPojo.class),
+                             @ApiResponse( code = 500, message = "Problem obtaining scenario metainfo. The server was not able to process the request", response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
-    public Response
-            getScenarioMetainfo( @ApiParam(
-                    name = "connectionId",
-                    required = true) @QueryParam( "connectionId") final String connectionId,
-    
-                                 @ApiParam(
-                                         name = "scenarioId",
-                                         allowMultiple = false,
-                                         required = true) @PathParam( "scenarioId") final int scenarioId ) {
-    
+    public Response getRunMetainfo( @Context HttpServletRequest request,
+                                    @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+
+                                    @ApiParam( required = false, name = "properties") @QueryParam( "properties") String properties,
+
+                                    @ApiParam( name = "scenarioId", allowMultiple = false, required = true) @PathParam( "scenarioId") int scenarioId ) {
+
+        List<String> requiredQueryParams = new ArrayList<String>();
+        requiredQueryParams.add("connectionId");
+        requiredQueryParams.add("scenarioId");
         try {
-            if (scenarioId < 0) {
-                throw new IllegalArgumentException("Scenario ID must be equal or greater than zero");
-            }
-    
-            IDbReadAccess readAccess = DbConnectionManager.getReadAccess(connectionId);
-            List<ScenarioMetaInfo> metainfos = readAccess.getScenarioMetaInfo(scenarioId);
-    
-            MetaInfosPojo metaInfosPojo = null;
-            if (metainfos == null || metainfos.isEmpty()) {
-                metaInfosPojo = new MetaInfosPojo();
-                metaInfosPojo.setMetaInfo(new MetaInfoPojo[]{});
+
+            if (StringUtils.isNullOrEmpty(properties)) {
+                return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId))
+                                                                                                .getScenarioMetainfo(scenarioId,
+                                                                                                                     null))
+                               .build();
             } else {
-                metaInfosPojo = (MetaInfosPojo) PojoUtils.logEntityToPojo(metainfos);
+                return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId))
+                                                                                                .getScenarioMetainfo(scenarioId,
+                                                                                                                     Arrays.asList(properties.split(","))))
+                               .build();
             }
-    
-            return Response.ok(metaInfosPojo).build();
-    
+
         } catch (Exception e) {
-            String errorMessage = "Could not obtain scenario metainfo, by using scenario ID '" + scenarioId
-                                  + "' and connection ID '"
-                                  + connectionId;
+            String errorMessage = "Could not get scenario metainfo";
             LOG.error(errorMessage, e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                            .entity(new InternalServerErrorPojo(errorMessage, e))
                            .build();
         }
-    }*/
+    }
 
 }
