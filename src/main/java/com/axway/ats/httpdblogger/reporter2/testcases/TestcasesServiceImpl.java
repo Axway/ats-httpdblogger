@@ -17,10 +17,8 @@ package com.axway.ats.httpdblogger.reporter2.testcases;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -37,6 +35,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import com.axway.ats.core.utils.StringUtils;
+import com.axway.ats.httpdblogger.reporter2.BaseReporterServiceImpl;
 import com.axway.ats.httpdblogger.reporter2.pojo.response.InternalServerErrorPojo;
 import com.axway.ats.httpdblogger.reporter2.pojo.response.MessagesPojo;
 import com.axway.ats.httpdblogger.reporter2.pojo.response.MetaInfosPojo;
@@ -54,23 +53,43 @@ import com.wordnik.swagger.annotations.ApiResponses;
 
 @Path( "reporter2")
 @Api( value = "/reporter2/testcases", description = "Retrieve Testcase(s) information")
-public class TestcasesServiceImpl {
+public class TestcasesServiceImpl extends BaseReporterServiceImpl {
 
     private static final Logger LOG = Logger.getLogger(TestcasesServiceImpl.class);
 
     @GET
     @Path( "/testcases")
     @ApiOperation( value = "Get testcases", notes = "Get testcases", position = 1)
-    @ApiResponses( value = {
-                             @ApiResponse( code = 200, message = "Successfully obtained testcases", response = TestcasesPojo.class),
-                             @ApiResponse( code = 500, message = "Problem obtaining testcases. The server was not able to process the request", response = InternalServerErrorPojo.class) })
+    @ApiResponses(
+            value = {
+                      @ApiResponse(
+                              code = 200,
+                              message = "Successfully obtained testcases",
+                              response = TestcasesPojo.class),
+                      @ApiResponse(
+                              code = 500,
+                              message = "Problem obtaining testcases. The server was not able to process the request",
+                              response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getTestcases( @Context HttpServletRequest request,
-                                  @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                  @ApiParam(
+                                          required = true,
+                                          name = "connectionId") @QueryParam( "connectionId") String connectionId,
                                   @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
                                   @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
-                                  @ApiParam( required = false, allowMultiple = true, name = "properties") @QueryParam( "properties") String properties,
-                                  @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause ) {
+                                  @ApiParam(
+                                          required = false,
+                                          allowMultiple = true,
+                                          name = "properties") @QueryParam( "properties") String properties,
+                                  @ApiParam(
+                                          required = false,
+                                          name = "whereClauseKeys") @QueryParam( "whereClauseKeys") String whereClauseKeys,
+                                  @ApiParam(
+                                          required = false,
+                                          name = "whereClauseCmpSigns") @QueryParam( "whereClauseCmpSigns") String whereClauseCmpSigns,
+                                  @ApiParam(
+                                          required = false,
+                                          name = "whereClauseValues") @QueryParam( "whereClauseValues") String whereClauseValues ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
@@ -82,22 +101,9 @@ public class TestcasesServiceImpl {
             if (!RequestValidator.hasQueryParam(request, "to")) {
                 to = Integer.MAX_VALUE;
             }
-            Map<String, Pair<CompareSign, Object>> whereClauseEntries = new HashMap<String, Pair<CompareSign, Object>>();
-            if (RequestValidator.hasQueryParam(request, "whereClause")) {
-
-                String[] whereClauseTokens = whereClause.split(",");
-                for (String token : whereClauseTokens) {
-                    String[] subTokens = token.split(Pattern.quote(" "));
-                    if (subTokens.length != 3) {
-                        throw new RuntimeException(
-                                                   "Incorrect where clause syntax. Expected format for the where clause is <key> <compare sign> <value>");
-                    }
-                    whereClauseEntries.put(subTokens[0].trim(), new ImmutablePair<DbReader.CompareSign, Object>(
-                                                                                                                CompareSign.fromString(subTokens[1].trim()),
-                                                                                                                subTokens[2].trim()));
-                }
-
-            }
+            Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries = constructWhereClauseMap(whereClauseKeys,
+                                                                                                      whereClauseCmpSigns,
+                                                                                                      whereClauseValues);
             if (StringUtils.isNullOrEmpty(properties)) {
                 return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId)).getTestcases(from, to,
                                                                                                               whereClauseEntries,
@@ -123,19 +129,41 @@ public class TestcasesServiceImpl {
     @GET
     @Path( "/testcase/{testcaseId: \\d+}")
     @ApiOperation( value = "Get testcase", notes = "Get testcase", position = 1)
-    @ApiResponses( value = {
-                             @ApiResponse( code = 200, message = "Successfully obtained testcase", response = TestcasePojo.class),
-                             @ApiResponse( code = 500, message = "Problem obtaining testcase. The server was not able to process the request", response = InternalServerErrorPojo.class) })
+    @ApiResponses(
+            value = {
+                      @ApiResponse(
+                              code = 200,
+                              message = "Successfully obtained testcase",
+                              response = TestcasePojo.class),
+                      @ApiResponse(
+                              code = 500,
+                              message = "Problem obtaining testcase. The server was not able to process the request",
+                              response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getTestcase( @Context HttpServletRequest request,
-                                 @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                 @ApiParam(
+                                         required = true,
+                                         name = "connectionId") @QueryParam( "connectionId") String connectionId,
                                  @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
                                  @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
-                                 @ApiParam( required = false, name = "properties") @QueryParam( "properties") String properties,
+                                 @ApiParam(
+                                         required = false,
+                                         name = "properties") @QueryParam( "properties") String properties,
 
-                                 @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause,
+                                 @ApiParam(
+                                         required = false,
+                                         name = "whereClauseKeys") @QueryParam( "whereClauseKeys") String whereClauseKeys,
+                                 @ApiParam(
+                                         required = false,
+                                         name = "whereClauseCmpSigns") @QueryParam( "whereClauseCmpSigns") String whereClauseCmpSigns,
+                                 @ApiParam(
+                                         required = false,
+                                         name = "whereClauseValues") @QueryParam( "whereClauseValues") String whereClauseValues,
 
-                                 @ApiParam( name = "testcaseId", allowMultiple = false, required = true) @PathParam( "testcaseId") int testcaseId ) {
+                                 @ApiParam(
+                                         name = "testcaseId",
+                                         allowMultiple = false,
+                                         required = true) @PathParam( "testcaseId") int testcaseId ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
@@ -148,24 +176,18 @@ public class TestcasesServiceImpl {
             if (!RequestValidator.hasQueryParam(request, "to")) {
                 to = Integer.MAX_VALUE;
             }
-            Map<String, Pair<CompareSign, Object>> whereClauseEntries = new HashMap<String, Pair<CompareSign, Object>>();
-            whereClauseEntries.put("testcaseId",
-                                   new ImmutablePair<DbReader.CompareSign, Object>(DbReader.CompareSign.EQUAL,
-                                                                                   testcaseId));
-            if (RequestValidator.hasQueryParam(request, "whereClause")) {
-
-                String[] whereClauseTokens = whereClause.split(",");
-                for (String token : whereClauseTokens) {
-                    String[] subTokens = token.split(Pattern.quote(" "));
-                    if (subTokens.length != 3) {
-                        throw new RuntimeException(
-                                                   "Incorrect where clause syntax. Expected format for the where clause is <key> <compare sign> <value>");
-                    }
-                    whereClauseEntries.put(subTokens[0].trim(), new ImmutablePair<DbReader.CompareSign, Object>(
-                                                                                                                CompareSign.fromString(subTokens[1].trim()),
-                                                                                                                subTokens[2].trim()));
-                }
-
+            Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries = constructWhereClauseMap(whereClauseKeys,
+                                                                                                      whereClauseCmpSigns,
+                                                                                                      whereClauseValues);
+            Pair<DbReader.CompareSign, Object> pair = new ImmutablePair<DbReader.CompareSign, Object>(CompareSign.EQUAL,
+                                                                                                      testcaseId);
+            if (whereClauseEntries.containsKey("testcaseId")) {
+                whereClauseEntries.get("testcaseId")
+                                  .add(pair);
+            } else {
+                List<Pair<CompareSign, Object>> array = new ArrayList<Pair<CompareSign, Object>>();
+                array.add(pair);
+                whereClauseEntries.put("testcaseId", array);
             }
             if (StringUtils.isNullOrEmpty(properties)) {
                 return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId)).getTestcase(from, to,
@@ -191,19 +213,41 @@ public class TestcasesServiceImpl {
     @GET
     @Path( "/testcase/{testcaseId: \\d+}/messages")
     @ApiOperation( value = "Get testcase messages", notes = "Get testcase messages", position = 1)
-    @ApiResponses( value = {
-                             @ApiResponse( code = 200, message = "Successfully obtained testcase messages", response = MessagesPojo.class),
-                             @ApiResponse( code = 500, message = "Problem obtaining testcase messages. The server was not able to process the request", response = InternalServerErrorPojo.class) })
+    @ApiResponses(
+            value = {
+                      @ApiResponse(
+                              code = 200,
+                              message = "Successfully obtained testcase messages",
+                              response = MessagesPojo.class),
+                      @ApiResponse(
+                              code = 500,
+                              message = "Problem obtaining testcase messages. The server was not able to process the request",
+                              response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getTestcaseMessages( @Context HttpServletRequest request,
-                                         @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                         @ApiParam(
+                                                 required = true,
+                                                 name = "connectionId") @QueryParam( "connectionId") String connectionId,
                                          @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
                                          @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
-                                         @ApiParam( required = false, name = "properties") @QueryParam( "properties") String properties,
+                                         @ApiParam(
+                                                 required = false,
+                                                 name = "properties") @QueryParam( "properties") String properties,
 
-                                         @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause,
+                                         @ApiParam(
+                                                 required = false,
+                                                 name = "whereClauseKeys") @QueryParam( "whereClauseKeys") String whereClauseKeys,
+                                         @ApiParam(
+                                                 required = false,
+                                                 name = "whereClauseCmpSigns") @QueryParam( "whereClauseCmpSigns") String whereClauseCmpSigns,
+                                         @ApiParam(
+                                                 required = false,
+                                                 name = "whereClauseValues") @QueryParam( "whereClauseValues") String whereClauseValues,
 
-                                         @ApiParam( name = "testcaseId", allowMultiple = false, required = true) @PathParam( "testcaseId") int testcaseId ) {
+                                         @ApiParam(
+                                                 name = "testcaseId",
+                                                 allowMultiple = false,
+                                                 required = true) @PathParam( "testcaseId") int testcaseId ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
@@ -216,24 +260,18 @@ public class TestcasesServiceImpl {
             if (!RequestValidator.hasQueryParam(request, "to")) {
                 to = Integer.MAX_VALUE;
             }
-            Map<String, Pair<CompareSign, Object>> whereClauseEntries = new HashMap<String, Pair<CompareSign, Object>>();
-            whereClauseEntries.put("testcaseId",
-                                   new ImmutablePair<DbReader.CompareSign, Object>(DbReader.CompareSign.EQUAL,
-                                                                                   testcaseId));
-            if (RequestValidator.hasQueryParam(request, "whereClause")) {
-
-                String[] whereClauseTokens = whereClause.split(",");
-                for (String token : whereClauseTokens) {
-                    String[] subTokens = token.split(Pattern.quote(" "));
-                    if (subTokens.length != 3) {
-                        throw new RuntimeException(
-                                                   "Incorrect where clause syntax. Expected format for the where clause is <key> <compare sign> <value>");
-                    }
-                    whereClauseEntries.put(subTokens[0].trim(), new ImmutablePair<DbReader.CompareSign, Object>(
-                                                                                                                CompareSign.fromString(subTokens[1].trim()),
-                                                                                                                subTokens[2].trim()));
-                }
-
+            Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries = constructWhereClauseMap(whereClauseKeys,
+                                                                                                      whereClauseCmpSigns,
+                                                                                                      whereClauseValues);
+            Pair<DbReader.CompareSign, Object> pair = new ImmutablePair<DbReader.CompareSign, Object>(CompareSign.EQUAL,
+                                                                                                      testcaseId);
+            if (whereClauseEntries.containsKey("testcaseId")) {
+                whereClauseEntries.get("testcaseId")
+                                  .add(pair);
+            } else {
+                List<Pair<CompareSign, Object>> array = new ArrayList<Pair<CompareSign, Object>>();
+                array.add(pair);
+                whereClauseEntries.put("testcaseId", array);
             }
             if (StringUtils.isNullOrEmpty(properties)) {
                 return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId))
@@ -263,16 +301,30 @@ public class TestcasesServiceImpl {
     @GET
     @Path( "/testcase/{testcaseId: \\d+}/metainfo")
     @ApiOperation( value = "Get testcase metainfo", notes = "Get testcase metainfo", position = 1)
-    @ApiResponses( value = {
-                             @ApiResponse( code = 200, message = "Successfully obtained testcase metainfo", response = MetaInfosPojo.class),
-                             @ApiResponse( code = 500, message = "Problem obtaining testcase metainfo. The server was not able to process the request", response = InternalServerErrorPojo.class) })
+    @ApiResponses(
+            value = {
+                      @ApiResponse(
+                              code = 200,
+                              message = "Successfully obtained testcase metainfo",
+                              response = MetaInfosPojo.class),
+                      @ApiResponse(
+                              code = 500,
+                              message = "Problem obtaining testcase metainfo. The server was not able to process the request",
+                              response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getRunMetainfo( @Context HttpServletRequest request,
-                                    @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                    @ApiParam(
+                                            required = true,
+                                            name = "connectionId") @QueryParam( "connectionId") String connectionId,
 
-                                    @ApiParam( required = false, name = "properties") @QueryParam( "properties") String properties,
+                                    @ApiParam(
+                                            required = false,
+                                            name = "properties") @QueryParam( "properties") String properties,
 
-                                    @ApiParam( name = "testcaseId", allowMultiple = false, required = true) @PathParam( "testcaseId") int testcaseId ) {
+                                    @ApiParam(
+                                            name = "testcaseId",
+                                            allowMultiple = false,
+                                            required = true) @PathParam( "testcaseId") int testcaseId ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");

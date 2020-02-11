@@ -17,10 +17,8 @@ package com.axway.ats.httpdblogger.reporter2.testcases.loadqueues;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -37,6 +35,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import com.axway.ats.core.utils.StringUtils;
+import com.axway.ats.httpdblogger.reporter2.BaseReporterServiceImpl;
 import com.axway.ats.httpdblogger.reporter2.pojo.response.InternalServerErrorPojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.LoadQueuePojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.LoadQueuesPojo;
@@ -52,23 +51,43 @@ import com.wordnik.swagger.annotations.ApiResponses;
 
 @Path( "reporter2")
 @Api( value = "/reporter2/loadqueues", description = "Retrieve LoadQueue(s) information")
-public class LoadQueuesServiceImpl {
+public class LoadQueuesServiceImpl extends BaseReporterServiceImpl {
 
     private static final Logger LOG = Logger.getLogger(LoadQueuesServiceImpl.class);
 
     @GET
     @Path( "/loadqueues")
     @ApiOperation( value = "Get load queues", notes = "Get load queues", position = 1)
-    @ApiResponses( value = {
-                             @ApiResponse( code = 200, message = "Successfully obtained load queues", response = LoadQueuesPojo.class),
-                             @ApiResponse( code = 500, message = "Problem obtaining load queues. The server was not able to process the request", response = InternalServerErrorPojo.class) })
+    @ApiResponses(
+            value = {
+                      @ApiResponse(
+                              code = 200,
+                              message = "Successfully obtained load queues",
+                              response = LoadQueuesPojo.class),
+                      @ApiResponse(
+                              code = 500,
+                              message = "Problem obtaining load queues. The server was not able to process the request",
+                              response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getLoadQueues( @Context HttpServletRequest request,
-                                   @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                   @ApiParam(
+                                           required = true,
+                                           name = "connectionId") @QueryParam( "connectionId") String connectionId,
                                    @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
                                    @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
-                                   @ApiParam( required = false, allowMultiple = true, name = "properties") @QueryParam( "properties") String properties,
-                                   @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause ) {
+                                   @ApiParam(
+                                           required = false,
+                                           allowMultiple = true,
+                                           name = "properties") @QueryParam( "properties") String properties,
+                                   @ApiParam(
+                                           required = false,
+                                           name = "whereClauseKeys") @QueryParam( "whereClauseKeys") String whereClauseKeys,
+                                   @ApiParam(
+                                           required = false,
+                                           name = "whereClauseCmpSigns") @QueryParam( "whereClauseCmpSigns") String whereClauseCmpSigns,
+                                   @ApiParam(
+                                           required = false,
+                                           name = "whereClauseValues") @QueryParam( "whereClauseValues") String whereClauseValues ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
@@ -80,22 +99,9 @@ public class LoadQueuesServiceImpl {
             if (!RequestValidator.hasQueryParam(request, "to")) {
                 to = Integer.MAX_VALUE;
             }
-            Map<String, Pair<CompareSign, Object>> whereClauseEntries = new HashMap<String, Pair<CompareSign, Object>>();
-            if (RequestValidator.hasQueryParam(request, "whereClause")) {
-
-                String[] whereClauseTokens = whereClause.split(",");
-                for (String token : whereClauseTokens) {
-                    String[] subTokens = token.split(Pattern.quote(" "));
-                    if (subTokens.length != 3) {
-                        throw new RuntimeException(
-                                                   "Incorrect where clause syntax. Expected format for the where clause is <key> <compare sign> <value>");
-                    }
-                    whereClauseEntries.put(subTokens[0].trim(), new ImmutablePair<DbReader.CompareSign, Object>(
-                                                                                                                CompareSign.fromString(subTokens[1].trim()),
-                                                                                                                subTokens[2].trim()));
-                }
-
-            }
+            Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries = constructWhereClauseMap(whereClauseKeys,
+                                                                                                      whereClauseCmpSigns,
+                                                                                                      whereClauseValues);
             if (StringUtils.isNullOrEmpty(properties)) {
                 return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId)).getLoadQueues(from, to,
                                                                                                                whereClauseEntries,
@@ -121,19 +127,41 @@ public class LoadQueuesServiceImpl {
     @GET
     @Path( "/loadqueue/{loadqueueId: \\d+}")
     @ApiOperation( value = "Get load queue", notes = "Get load queue", position = 1)
-    @ApiResponses( value = {
-                             @ApiResponse( code = 200, message = "Successfully obtained load queue", response = LoadQueuePojo.class),
-                             @ApiResponse( code = 500, message = "Problem obtaining load queue. The server was not able to process the request", response = InternalServerErrorPojo.class) })
+    @ApiResponses(
+            value = {
+                      @ApiResponse(
+                              code = 200,
+                              message = "Successfully obtained load queue",
+                              response = LoadQueuePojo.class),
+                      @ApiResponse(
+                              code = 500,
+                              message = "Problem obtaining load queue. The server was not able to process the request",
+                              response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getLoadQueue( @Context HttpServletRequest request,
-                                 @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
-                                 @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
-                                 @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
-                                 @ApiParam( required = false, name = "properties") @QueryParam( "properties") String properties,
+                                  @ApiParam(
+                                          required = true,
+                                          name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                  @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
+                                  @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
+                                  @ApiParam(
+                                          required = false,
+                                          name = "properties") @QueryParam( "properties") String properties,
 
-                                 @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause,
+                                  @ApiParam(
+                                          required = false,
+                                          name = "whereClauseKeys") @QueryParam( "whereClauseKeys") String whereClauseKeys,
+                                  @ApiParam(
+                                          required = false,
+                                          name = "whereClauseCmpSigns") @QueryParam( "whereClauseCmpSigns") String whereClauseCmpSigns,
+                                  @ApiParam(
+                                          required = false,
+                                          name = "whereClauseValues") @QueryParam( "whereClauseValues") String whereClauseValues,
 
-                                 @ApiParam( name = "loadqueueId", allowMultiple = false, required = true) @PathParam( "loadqueueId") int loadqueueId ) {
+                                  @ApiParam(
+                                          name = "loadqueueId",
+                                          allowMultiple = false,
+                                          required = true) @PathParam( "loadqueueId") int loadqueueId ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
@@ -146,24 +174,19 @@ public class LoadQueuesServiceImpl {
             if (!RequestValidator.hasQueryParam(request, "to")) {
                 to = Integer.MAX_VALUE;
             }
-            Map<String, Pair<CompareSign, Object>> whereClauseEntries = new HashMap<String, Pair<CompareSign, Object>>();
-            whereClauseEntries.put("loadqueueId",
-                                   new ImmutablePair<DbReader.CompareSign, Object>(DbReader.CompareSign.EQUAL,
-                                                                                   loadqueueId));
-            if (RequestValidator.hasQueryParam(request, "whereClause")) {
-
-                String[] whereClauseTokens = whereClause.split(",");
-                for (String token : whereClauseTokens) {
-                    String[] subTokens = token.split(Pattern.quote(" "));
-                    if (subTokens.length != 3) {
-                        throw new RuntimeException(
-                                                   "Incorrect where clause syntax. Expected format for the where clause is <key> <compare sign> <value>");
-                    }
-                    whereClauseEntries.put(subTokens[0].trim(), new ImmutablePair<DbReader.CompareSign, Object>(
-                                                                                                                CompareSign.fromString(subTokens[1].trim()),
-                                                                                                                subTokens[2].trim()));
-                }
-
+            String idKey = "loadqueueId";
+            Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries = constructWhereClauseMap(whereClauseKeys,
+                                                                                                      whereClauseCmpSigns,
+                                                                                                      whereClauseValues);
+            Pair<DbReader.CompareSign, Object> pair = new ImmutablePair<DbReader.CompareSign, Object>(CompareSign.EQUAL,
+                                                                                                      loadqueueId);
+            if (whereClauseEntries.containsKey(idKey)) {
+                whereClauseEntries.get(idKey)
+                                  .add(pair);
+            } else {
+                List<Pair<CompareSign, Object>> array = new ArrayList<Pair<CompareSign, Object>>();
+                array.add(pair);
+                whereClauseEntries.put(idKey, array);
             }
             if (StringUtils.isNullOrEmpty(properties)) {
                 return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId)).getLoadQueue(from, to,

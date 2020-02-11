@@ -36,12 +36,15 @@ import com.axway.ats.httpdblogger.reporter2.scenarios.pojo.response.ScenarioPojo
 import com.axway.ats.httpdblogger.reporter2.scenarios.pojo.response.ScenariosPojo;
 import com.axway.ats.httpdblogger.reporter2.suites.pojo.response.SuitePojo;
 import com.axway.ats.httpdblogger.reporter2.suites.pojo.response.SuitesPojo;
+import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.CheckpointPojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.CheckpointSummaryPojo;
+import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.CheckpointsPojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.CheckpointsSummariesPojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.LoadQueuePojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.LoadQueuesPojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.TestcasePojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.TestcasesPojo;
+import com.axway.ats.log.autodb.entities.Checkpoint;
 import com.axway.ats.log.autodb.entities.CheckpointSummary;
 import com.axway.ats.log.autodb.entities.LoadQueue;
 import com.axway.ats.log.autodb.entities.Message;
@@ -129,7 +132,7 @@ public class DbReader {
     /**
      * @return either {@link RunsPojo} or JSON string
      */
-    public Object getRuns( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getRuns( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                            List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -163,7 +166,7 @@ public class DbReader {
         }
     }
 
-    public Object getRun( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getRun( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                           List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -196,7 +199,7 @@ public class DbReader {
         }
     }
 
-    public Object getRunMessages( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getRunMessages( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                                   List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -260,7 +263,7 @@ public class DbReader {
         }
     }
 
-    public Object getSuites( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getSuites( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                              List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -294,7 +297,7 @@ public class DbReader {
         }
     }
 
-    public Object getSuite( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getSuite( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                             List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -327,7 +330,7 @@ public class DbReader {
         }
     }
 
-    public Object getSuiteMessages( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getSuiteMessages( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                                     List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -361,7 +364,7 @@ public class DbReader {
         }
     }
 
-    public Object getScenarios( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getScenarios( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                                 List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -395,7 +398,7 @@ public class DbReader {
         }
     }
 
-    public Object getScenario( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getScenario( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                                List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -459,7 +462,7 @@ public class DbReader {
         }
     }
 
-    public Object getTestcases( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getTestcases( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                                 List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -493,7 +496,7 @@ public class DbReader {
         }
     }
 
-    public Object getTestcase( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getTestcase( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                                List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -526,7 +529,8 @@ public class DbReader {
         }
     }
 
-    public Object getTestcaseMessages( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getTestcaseMessages( int from, int to,
+                                       Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                                        List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -590,7 +594,7 @@ public class DbReader {
         }
     }
 
-    public Object getLoadQueues( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getLoadQueues( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                                  List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -625,7 +629,7 @@ public class DbReader {
         }
     }
 
-    public Object getLoadQueue( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getLoadQueue( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                                 List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -658,7 +662,8 @@ public class DbReader {
         }
     }
 
-    public Object getCheckpointsSummaries( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getCheckpointsSummaries( int from, int to,
+                                           Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                                            List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -673,7 +678,7 @@ public class DbReader {
                 if (properties != null && !properties.isEmpty()) {
 
                     return getSubsetOfPropertiesFromPojos(Arrays.asList(pojo.getCheckpointsSummaries()), properties,
-                                                          "loadqueues");
+                                                          "checkpointsSummaries");
                 }
 
             } else {
@@ -694,7 +699,8 @@ public class DbReader {
         }
     }
 
-    public Object getCheckpointSummary( int from, int to, Map<String, Pair<CompareSign, Object>> whereClauseEntries,
+    public Object getCheckpointSummary( int from, int to,
+                                        Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
                                         List<String> properties ) throws DatabaseAccessException {
 
         try {
@@ -722,7 +728,78 @@ public class DbReader {
 
         } catch (DatabaseAccessException e) {
             String errorMessage = String.format(
-                                                "Could not obtain load queue from DB. Item range was from %d to %d, where clause was: %s",
+                                                "Could not obtain checkpoint summary from DB. Item range was from %d to %d, where clause was: %s",
+                                                from, to,
+                                                whereClauseEntries);
+            throw new DatabaseAccessException(errorMessage, e);
+        }
+    }
+
+    public Object getCheckpoints( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
+                                  List<String> properties ) throws DatabaseAccessException {
+
+        try {
+            String whereClause = constructWhereClause(CheckpointPojo.class, whereClauseEntries);
+            CheckpointsPojo pojo = null;
+            List<Checkpoint> entities = readAccess.getCheckpoints(whereClause, "checkpointId",
+                                                                  true);
+
+            if (entities != null && !entities.isEmpty()) {
+
+                pojo = (CheckpointsPojo) PojoUtils.logEntityToPojo(entities);
+                if (properties != null && !properties.isEmpty()) {
+
+                    return getSubsetOfPropertiesFromPojos(Arrays.asList(pojo.getCheckpoints()), properties,
+                                                          "checkpoints");
+                }
+
+            } else {
+                // no data available
+                pojo = new CheckpointsPojo();
+                pojo.setCheckpoints(new CheckpointPojo[]{});
+                return pojo;
+            }
+
+            return pojo;
+
+        } catch (DatabaseAccessException e) {
+            String errorMessage = String.format(
+                                                "Could not obtain checkpoints from DB. Item range was from %d to %d, where clause was: %s",
+                                                from,
+                                                to, whereClauseEntries);
+            throw new DatabaseAccessException(errorMessage, e);
+        }
+    }
+
+    public Object getCheckpoint( int from, int to, Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries,
+                                 List<String> properties ) throws DatabaseAccessException {
+
+        try {
+            String whereClause = constructWhereClause(CheckpointPojo.class, whereClauseEntries);
+            CheckpointPojo pojo = null;
+            List<Checkpoint> entities = readAccess.getCheckpoints(whereClause, "checkpointId",
+                                                                  true); // or false?!?
+
+            if (entities != null && !entities.isEmpty()) {
+
+                pojo = (CheckpointPojo) PojoUtils.logEntityToPojo(entities.get(0));
+                if (properties != null && !properties.isEmpty()) {
+
+                    return getSubsetOfPropertiesFromPojos(Collections.singletonList(pojo), properties,
+                                                          "checkpoint");
+                }
+
+            } else {
+                // no data available
+                pojo = new CheckpointPojo();
+                return pojo;
+            }
+
+            return pojo;
+
+        } catch (DatabaseAccessException e) {
+            String errorMessage = String.format(
+                                                "Could not obtain checkpoint from DB. Item range was from %d to %d, where clause was: %s",
                                                 from, to,
                                                 whereClauseEntries);
             throw new DatabaseAccessException(errorMessage, e);
@@ -764,7 +841,7 @@ public class DbReader {
     }
 
     private String constructWhereClause( Class<?> pojoClass,
-                                         Map<String, Pair<CompareSign, Object>> whereClauseEntries ) {
+                                         Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries ) {
 
         if (pojoClass == null) {
             throw new RuntimeException("Pojo class is null!");
@@ -773,24 +850,24 @@ public class DbReader {
         StringBuilder sb = new StringBuilder();
         sb.append("WHERE 1=1");
         if (whereClauseEntries != null && !whereClauseEntries.isEmpty()) {
-            for (Map.Entry<String, Pair<CompareSign, Object>> entry : whereClauseEntries.entrySet()) {
+            for (Map.Entry<String, List<Pair<CompareSign, Object>>> entry : whereClauseEntries.entrySet()) {
                 String key = entry.getKey();
-                Pair<CompareSign, Object> value = entry.getValue();
-                CompareSign cmpSign = value.getLeft();
-                Object theValue = value.getRight();
-                /*
-                 * Object object = null; try { object = pojoClass.newInstance(); } catch
-                 * (Exception e) { throw new RuntimeException("No such pojo '" +
-                 * pojoClass.getName() + "'"); }
-                 */
 
-                // will throw a RuntimeException is error occurred
-                // ReflectionUtils.getField(object, key, true);
-                if (theValue instanceof String) {
-                    sb.append(" AND " + key + cmpSign.toString() + "'" + theValue + "'");
-                } else {
-                    sb.append(" AND " + key + cmpSign.toString() + theValue);
+                List<Pair<CompareSign, Object>> values = entry.getValue();
+                for (Pair<CompareSign, Object> value : values) {
+
+                    CompareSign cmpSign = value.getLeft();
+                    Object theValue = value.getRight();
+
+                    // will throw a RuntimeException is error occurred
+                    // ReflectionUtils.getField(object, key, true);
+                    if (theValue instanceof String) {
+                        sb.append(" AND " + key + cmpSign.toString() + "'" + theValue + "'");
+                    } else {
+                        sb.append(" AND " + key + cmpSign.toString() + theValue);
+                    }
                 }
+
             }
         }
 

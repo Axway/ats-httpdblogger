@@ -17,10 +17,8 @@ package com.axway.ats.httpdblogger.reporter2.scenarios;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -37,6 +35,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import com.axway.ats.core.utils.StringUtils;
+import com.axway.ats.httpdblogger.reporter2.BaseReporterServiceImpl;
 import com.axway.ats.httpdblogger.reporter2.pojo.response.InternalServerErrorPojo;
 import com.axway.ats.httpdblogger.reporter2.pojo.response.MetaInfosPojo;
 import com.axway.ats.httpdblogger.reporter2.scenarios.pojo.response.ScenarioPojo;
@@ -53,23 +52,43 @@ import com.wordnik.swagger.annotations.ApiResponses;
 
 @Path( "reporter2")
 @Api( value = "/reporter2/scenarios", description = "Retrieve Scenario(s) information")
-public class ScenariosServiceImpl {
+public class ScenariosServiceImpl extends BaseReporterServiceImpl {
 
     private static final Logger LOG = Logger.getLogger(ScenariosServiceImpl.class);
 
     @GET
     @Path( "/scenarios")
     @ApiOperation( value = "Get scenarios", notes = "Get scenarios", position = 2)
-    @ApiResponses( value = {
-                             @ApiResponse( code = 200, message = "Successfully obtained scenarios", response = ScenariosPojo.class),
-                             @ApiResponse( code = 500, message = "Problem obtaining scenarios. The server was not able to process the request", response = InternalServerErrorPojo.class) })
+    @ApiResponses(
+            value = {
+                      @ApiResponse(
+                              code = 200,
+                              message = "Successfully obtained scenarios",
+                              response = ScenariosPojo.class),
+                      @ApiResponse(
+                              code = 500,
+                              message = "Problem obtaining scenarios. The server was not able to process the request",
+                              response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getScenarios( @Context HttpServletRequest request,
-                                  @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                  @ApiParam(
+                                          required = true,
+                                          name = "connectionId") @QueryParam( "connectionId") String connectionId,
                                   @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
                                   @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
-                                  @ApiParam( required = false, allowMultiple = true, name = "properties") @QueryParam( "properties") String properties,
-                                  @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause ) {
+                                  @ApiParam(
+                                          required = false,
+                                          allowMultiple = true,
+                                          name = "properties") @QueryParam( "properties") String properties,
+                                  @ApiParam(
+                                          required = false,
+                                          name = "whereClauseKeys") @QueryParam( "whereClauseKeys") String whereClauseKeys,
+                                  @ApiParam(
+                                          required = false,
+                                          name = "whereClauseCmpSigns") @QueryParam( "whereClauseCmpSigns") String whereClauseCmpSigns,
+                                  @ApiParam(
+                                          required = false,
+                                          name = "whereClauseValues") @QueryParam( "whereClauseValues") String whereClauseValues ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
@@ -81,22 +100,9 @@ public class ScenariosServiceImpl {
             if (!RequestValidator.hasQueryParam(request, "to")) {
                 to = Integer.MAX_VALUE;
             }
-            Map<String, Pair<CompareSign, Object>> whereClauseEntries = new HashMap<String, Pair<CompareSign, Object>>();
-            if (RequestValidator.hasQueryParam(request, "whereClause")) {
-
-                String[] whereClauseTokens = whereClause.split(",");
-                for (String token : whereClauseTokens) {
-                    String[] subTokens = token.split(Pattern.quote(" "));
-                    if (subTokens.length != 3) {
-                        throw new RuntimeException(
-                                                   "Incorrect where clause syntax. Expected format for the where clause is <key> <compare sign> <value>");
-                    }
-                    whereClauseEntries.put(subTokens[0].trim(), new ImmutablePair<DbReader.CompareSign, Object>(
-                                                                                                                CompareSign.fromString(subTokens[1].trim()),
-                                                                                                                subTokens[2].trim()));
-                }
-
-            }
+            Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries = constructWhereClauseMap(whereClauseKeys,
+                                                                                                      whereClauseCmpSigns,
+                                                                                                      whereClauseValues);
             if (StringUtils.isNullOrEmpty(properties)) {
                 return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId)).getScenarios(from, to,
                                                                                                               whereClauseEntries,
@@ -122,19 +128,41 @@ public class ScenariosServiceImpl {
     @GET
     @Path( "/scenario/{scenarioId: \\d+}")
     @ApiOperation( value = "Get scenario", notes = "Get scenario", position = 1)
-    @ApiResponses( value = {
-                             @ApiResponse( code = 200, message = "Successfully obtained scenario", response = ScenarioPojo.class),
-                             @ApiResponse( code = 500, message = "Problem obtaining scenario. The server was not able to process the request", response = InternalServerErrorPojo.class) })
+    @ApiResponses(
+            value = {
+                      @ApiResponse(
+                              code = 200,
+                              message = "Successfully obtained scenario",
+                              response = ScenarioPojo.class),
+                      @ApiResponse(
+                              code = 500,
+                              message = "Problem obtaining scenario. The server was not able to process the request",
+                              response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getScenario( @Context HttpServletRequest request,
-                                 @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                 @ApiParam(
+                                         required = true,
+                                         name = "connectionId") @QueryParam( "connectionId") String connectionId,
                                  @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
                                  @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
-                                 @ApiParam( required = false, name = "properties") @QueryParam( "properties") String properties,
+                                 @ApiParam(
+                                         required = false,
+                                         name = "properties") @QueryParam( "properties") String properties,
 
-                                 @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause,
+                                 @ApiParam(
+                                         required = false,
+                                         name = "whereClauseKeys") @QueryParam( "whereClauseKeys") String whereClauseKeys,
+                                 @ApiParam(
+                                         required = false,
+                                         name = "whereClauseCmpSigns") @QueryParam( "whereClauseCmpSigns") String whereClauseCmpSigns,
+                                 @ApiParam(
+                                         required = false,
+                                         name = "whereClauseValues") @QueryParam( "whereClauseValues") String whereClauseValues,
 
-                                 @ApiParam( name = "scenarioId", allowMultiple = false, required = true) @PathParam( "scenarioId") int scenarioId ) {
+                                 @ApiParam(
+                                         name = "scenarioId",
+                                         allowMultiple = false,
+                                         required = true) @PathParam( "scenarioId") int scenarioId ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
@@ -147,24 +175,18 @@ public class ScenariosServiceImpl {
             if (!RequestValidator.hasQueryParam(request, "to")) {
                 to = Integer.MAX_VALUE;
             }
-            Map<String, Pair<CompareSign, Object>> whereClauseEntries = new HashMap<String, Pair<CompareSign, Object>>();
-            whereClauseEntries.put("scenarioId",
-                                   new ImmutablePair<DbReader.CompareSign, Object>(DbReader.CompareSign.EQUAL,
-                                                                                   scenarioId));
-            if (RequestValidator.hasQueryParam(request, "whereClause")) {
-
-                String[] whereClauseTokens = whereClause.split(",");
-                for (String token : whereClauseTokens) {
-                    String[] subTokens = token.split(Pattern.quote(" "));
-                    if (subTokens.length != 3) {
-                        throw new RuntimeException(
-                                                   "Incorrect where clause syntax. Expected format for the where clause is <key> <compare sign> <value>");
-                    }
-                    whereClauseEntries.put(subTokens[0].trim(), new ImmutablePair<DbReader.CompareSign, Object>(
-                                                                                                                CompareSign.fromString(subTokens[1].trim()),
-                                                                                                                subTokens[2].trim()));
-                }
-
+            Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries = constructWhereClauseMap(whereClauseKeys,
+                                                                                                      whereClauseCmpSigns,
+                                                                                                      whereClauseValues);
+            Pair<DbReader.CompareSign, Object> pair = new ImmutablePair<DbReader.CompareSign, Object>(CompareSign.EQUAL,
+                                                                                                      scenarioId);
+            if (whereClauseEntries.containsKey("scenarioId")) {
+                whereClauseEntries.get("scenarioId")
+                                  .add(pair);
+            } else {
+                List<Pair<CompareSign, Object>> array = new ArrayList<Pair<CompareSign, Object>>();
+                array.add(pair);
+                whereClauseEntries.put("scenarioId", array);
             }
             if (StringUtils.isNullOrEmpty(properties)) {
                 return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId)).getScenario(from, to,
@@ -190,16 +212,30 @@ public class ScenariosServiceImpl {
     @GET
     @Path( "/scenario/{scenarioId: \\d+}/metainfo")
     @ApiOperation( value = "Get scenario metainfo", notes = "Get scenario metainfo", position = 1)
-    @ApiResponses( value = {
-                             @ApiResponse( code = 200, message = "Successfully obtained scenario metainfo", response = MetaInfosPojo.class),
-                             @ApiResponse( code = 500, message = "Problem obtaining scenario metainfo. The server was not able to process the request", response = InternalServerErrorPojo.class) })
+    @ApiResponses(
+            value = {
+                      @ApiResponse(
+                              code = 200,
+                              message = "Successfully obtained scenario metainfo",
+                              response = MetaInfosPojo.class),
+                      @ApiResponse(
+                              code = 500,
+                              message = "Problem obtaining scenario metainfo. The server was not able to process the request",
+                              response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getRunMetainfo( @Context HttpServletRequest request,
-                                    @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                    @ApiParam(
+                                            required = true,
+                                            name = "connectionId") @QueryParam( "connectionId") String connectionId,
 
-                                    @ApiParam( required = false, name = "properties") @QueryParam( "properties") String properties,
+                                    @ApiParam(
+                                            required = false,
+                                            name = "properties") @QueryParam( "properties") String properties,
 
-                                    @ApiParam( name = "scenarioId", allowMultiple = false, required = true) @PathParam( "scenarioId") int scenarioId ) {
+                                    @ApiParam(
+                                            name = "scenarioId",
+                                            allowMultiple = false,
+                                            required = true) @PathParam( "scenarioId") int scenarioId ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");

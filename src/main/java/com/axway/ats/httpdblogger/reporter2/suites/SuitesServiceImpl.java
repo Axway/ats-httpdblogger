@@ -17,10 +17,8 @@ package com.axway.ats.httpdblogger.reporter2.suites;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -37,6 +35,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import com.axway.ats.core.utils.StringUtils;
+import com.axway.ats.httpdblogger.reporter2.BaseReporterServiceImpl;
 import com.axway.ats.httpdblogger.reporter2.pojo.response.InternalServerErrorPojo;
 import com.axway.ats.httpdblogger.reporter2.pojo.response.MessagesPojo;
 import com.axway.ats.httpdblogger.reporter2.suites.pojo.response.SuitePojo;
@@ -53,23 +52,40 @@ import com.wordnik.swagger.annotations.ApiResponses;
 
 @Path( "reporter2")
 @Api( value = "/reporter2/suites", description = "Retrieve Suite(s) information")
-public class SuitesServiceImpl {
+public class SuitesServiceImpl extends BaseReporterServiceImpl {
 
     private static final Logger LOG = Logger.getLogger(SuitesServiceImpl.class);
 
     @GET
     @Path( "/suites")
     @ApiOperation( value = "Get suites", notes = "Get suites", position = 1)
-    @ApiResponses( value = {
-                             @ApiResponse( code = 200, message = "Successfully obtained suites", response = SuitesPojo.class),
-                             @ApiResponse( code = 500, message = "Problem obtaining suites. The server was not able to process the request", response = InternalServerErrorPojo.class) })
+    @ApiResponses(
+            value = {
+                      @ApiResponse( code = 200, message = "Successfully obtained suites", response = SuitesPojo.class),
+                      @ApiResponse(
+                              code = 500,
+                              message = "Problem obtaining suites. The server was not able to process the request",
+                              response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getSuites( @Context HttpServletRequest request,
-                               @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                               @ApiParam(
+                                       required = true,
+                                       name = "connectionId") @QueryParam( "connectionId") String connectionId,
                                @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
                                @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
-                               @ApiParam( required = false, allowMultiple = true, name = "properties") @QueryParam( "properties") String properties,
-                               @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause ) {
+                               @ApiParam(
+                                       required = false,
+                                       allowMultiple = true,
+                                       name = "properties") @QueryParam( "properties") String properties,
+                               @ApiParam(
+                                       required = false,
+                                       name = "whereClauseKeys") @QueryParam( "whereClauseKeys") String whereClauseKeys,
+                               @ApiParam(
+                                       required = false,
+                                       name = "whereClauseCmpSigns") @QueryParam( "whereClauseCmpSigns") String whereClauseCmpSigns,
+                               @ApiParam(
+                                       required = false,
+                                       name = "whereClauseValues") @QueryParam( "whereClauseValues") String whereClauseValues ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
@@ -81,22 +97,9 @@ public class SuitesServiceImpl {
             if (!RequestValidator.hasQueryParam(request, "to")) {
                 to = Integer.MAX_VALUE;
             }
-            Map<String, Pair<CompareSign, Object>> whereClauseEntries = new HashMap<String, Pair<CompareSign, Object>>();
-            if (RequestValidator.hasQueryParam(request, "whereClause")) {
-
-                String[] whereClauseTokens = whereClause.split(",");
-                for (String token : whereClauseTokens) {
-                    String[] subTokens = token.split(Pattern.quote(" "));
-                    if (subTokens.length != 3) {
-                        throw new RuntimeException(
-                                                   "Incorrect where clause syntax. Expected format for the where clause is <key> <compare sign> <value>");
-                    }
-                    whereClauseEntries.put(subTokens[0].trim(), new ImmutablePair<DbReader.CompareSign, Object>(
-                                                                                                                CompareSign.fromString(subTokens[1].trim()),
-                                                                                                                subTokens[2].trim()));
-                }
-
-            }
+            Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries = constructWhereClauseMap(whereClauseKeys,
+                                                                                                      whereClauseCmpSigns,
+                                                                                                      whereClauseValues);
             if (StringUtils.isNullOrEmpty(properties)) {
                 return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId)).getSuites(from, to,
                                                                                                            whereClauseEntries,
@@ -122,19 +125,38 @@ public class SuitesServiceImpl {
     @GET
     @Path( "/suite/{suiteId: \\d+}")
     @ApiOperation( value = "Get suite", notes = "Get suite", position = 1)
-    @ApiResponses( value = {
-                             @ApiResponse( code = 200, message = "Successfully obtained suite", response = SuitePojo.class),
-                             @ApiResponse( code = 500, message = "Problem obtaining suite. The server was not able to process the request", response = InternalServerErrorPojo.class) })
+    @ApiResponses(
+            value = {
+                      @ApiResponse( code = 200, message = "Successfully obtained suite", response = SuitePojo.class),
+                      @ApiResponse(
+                              code = 500,
+                              message = "Problem obtaining suite. The server was not able to process the request",
+                              response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getSuite( @Context HttpServletRequest request,
-                              @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                              @ApiParam(
+                                      required = true,
+                                      name = "connectionId") @QueryParam( "connectionId") String connectionId,
                               @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
                               @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
-                              @ApiParam( required = false, name = "properties") @QueryParam( "properties") String properties,
+                              @ApiParam(
+                                      required = false,
+                                      name = "properties") @QueryParam( "properties") String properties,
 
-                              @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause,
+                              @ApiParam(
+                                      required = false,
+                                      name = "whereClauseKeys") @QueryParam( "whereClauseKeys") String whereClauseKeys,
+                              @ApiParam(
+                                      required = false,
+                                      name = "whereClauseCmpSigns") @QueryParam( "whereClauseCmpSigns") String whereClauseCmpSigns,
+                              @ApiParam(
+                                      required = false,
+                                      name = "whereClauseValues") @QueryParam( "whereClauseValues") String whereClauseValues,
 
-                              @ApiParam( name = "suiteId", allowMultiple = false, required = true) @PathParam( "suiteId") int suiteId ) {
+                              @ApiParam(
+                                      name = "suiteId",
+                                      allowMultiple = false,
+                                      required = true) @PathParam( "suiteId") int suiteId ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
@@ -147,24 +169,19 @@ public class SuitesServiceImpl {
             if (!RequestValidator.hasQueryParam(request, "to")) {
                 to = Integer.MAX_VALUE;
             }
-            Map<String, Pair<CompareSign, Object>> whereClauseEntries = new HashMap<String, Pair<CompareSign, Object>>();
-            whereClauseEntries.put("suiteId",
-                                   new ImmutablePair<DbReader.CompareSign, Object>(DbReader.CompareSign.EQUAL,
-                                                                                   suiteId));
-            if (RequestValidator.hasQueryParam(request, "whereClause")) {
-
-                String[] whereClauseTokens = whereClause.split(",");
-                for (String token : whereClauseTokens) {
-                    String[] subTokens = token.split(Pattern.quote(" "));
-                    if (subTokens.length != 3) {
-                        throw new RuntimeException(
-                                                   "Incorrect where clause syntax. Expected format for the where clause is <key> <compare sign> <value>");
-                    }
-                    whereClauseEntries.put(subTokens[0].trim(), new ImmutablePair<DbReader.CompareSign, Object>(
-                                                                                                                CompareSign.fromString(subTokens[1].trim()),
-                                                                                                                subTokens[2].trim()));
-                }
-
+            String idKey = "suiteId";
+            Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries = constructWhereClauseMap(whereClauseKeys,
+                                                                                                      whereClauseCmpSigns,
+                                                                                                      whereClauseValues);
+            Pair<DbReader.CompareSign, Object> pair = new ImmutablePair<DbReader.CompareSign, Object>(CompareSign.EQUAL,
+                                                                                                      suiteId);
+            if (whereClauseEntries.containsKey(idKey)) {
+                whereClauseEntries.get(idKey)
+                                  .add(pair);
+            } else {
+                List<Pair<CompareSign, Object>> array = new ArrayList<Pair<CompareSign, Object>>();
+                array.add(pair);
+                whereClauseEntries.put(idKey, array);
             }
             if (StringUtils.isNullOrEmpty(properties)) {
                 return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId)).getSuite(from, to,
@@ -190,19 +207,41 @@ public class SuitesServiceImpl {
     @GET
     @Path( "/suite/{suiteId: \\d+}/messages")
     @ApiOperation( value = "Get suite messages", notes = "Get suite messages", position = 1)
-    @ApiResponses( value = {
-                             @ApiResponse( code = 200, message = "Successfully obtained suite messages", response = MessagesPojo.class),
-                             @ApiResponse( code = 500, message = "Problem obtaining suite messages. The server was not able to process the request", response = InternalServerErrorPojo.class) })
+    @ApiResponses(
+            value = {
+                      @ApiResponse(
+                              code = 200,
+                              message = "Successfully obtained suite messages",
+                              response = MessagesPojo.class),
+                      @ApiResponse(
+                              code = 500,
+                              message = "Problem obtaining suite messages. The server was not able to process the request",
+                              response = InternalServerErrorPojo.class) })
     @Produces( MediaType.APPLICATION_JSON)
     public Response getSuiteMessages( @Context HttpServletRequest request,
-                                      @ApiParam( required = true, name = "connectionId") @QueryParam( "connectionId") String connectionId,
+                                      @ApiParam(
+                                              required = true,
+                                              name = "connectionId") @QueryParam( "connectionId") String connectionId,
                                       @ApiParam( required = false, name = "from") @QueryParam( "from") int from,
                                       @ApiParam( required = false, name = "to") @QueryParam( "to") int to,
-                                      @ApiParam( required = false, name = "properties") @QueryParam( "properties") String properties,
+                                      @ApiParam(
+                                              required = false,
+                                              name = "properties") @QueryParam( "properties") String properties,
 
-                                      @ApiParam( required = false, name = "whereClause") @QueryParam( "whereClause") String whereClause,
+                                      @ApiParam(
+                                              required = false,
+                                              name = "whereClauseKeys") @QueryParam( "whereClauseKeys") String whereClauseKeys,
+                                      @ApiParam(
+                                              required = false,
+                                              name = "whereClauseCmpSigns") @QueryParam( "whereClauseCmpSigns") String whereClauseCmpSigns,
+                                      @ApiParam(
+                                              required = false,
+                                              name = "whereClauseValues") @QueryParam( "whereClauseValues") String whereClauseValues,
 
-                                      @ApiParam( name = "suiteId", allowMultiple = false, required = true) @PathParam( "suiteId") int suiteId ) {
+                                      @ApiParam(
+                                              name = "suiteId",
+                                              allowMultiple = false,
+                                              required = true) @PathParam( "suiteId") int suiteId ) {
 
         List<String> requiredQueryParams = new ArrayList<String>();
         requiredQueryParams.add("connectionId");
@@ -215,24 +254,19 @@ public class SuitesServiceImpl {
             if (!RequestValidator.hasQueryParam(request, "to")) {
                 to = Integer.MAX_VALUE;
             }
-            Map<String, Pair<CompareSign, Object>> whereClauseEntries = new HashMap<String, Pair<CompareSign, Object>>();
-            whereClauseEntries.put("suiteId",
-                                   new ImmutablePair<DbReader.CompareSign, Object>(DbReader.CompareSign.EQUAL,
-                                                                                   suiteId));
-            if (RequestValidator.hasQueryParam(request, "whereClause")) {
-
-                String[] whereClauseTokens = whereClause.split(",");
-                for (String token : whereClauseTokens) {
-                    String[] subTokens = token.split(Pattern.quote(" "));
-                    if (subTokens.length != 3) {
-                        throw new RuntimeException(
-                                                   "Incorrect where clause syntax. Expected format for the where clause is <key> <compare sign> <value>");
-                    }
-                    whereClauseEntries.put(subTokens[0].trim(), new ImmutablePair<DbReader.CompareSign, Object>(
-                                                                                                                CompareSign.fromString(subTokens[1].trim()),
-                                                                                                                subTokens[2].trim()));
-                }
-
+            String idKey = "suiteId";
+            Map<String, List<Pair<CompareSign, Object>>> whereClauseEntries = constructWhereClauseMap(whereClauseKeys,
+                                                                                                      whereClauseCmpSigns,
+                                                                                                      whereClauseValues);
+            Pair<DbReader.CompareSign, Object> pair = new ImmutablePair<DbReader.CompareSign, Object>(CompareSign.EQUAL,
+                                                                                                      suiteId);
+            if (whereClauseEntries.containsKey(idKey)) {
+                whereClauseEntries.get(idKey)
+                                  .add(pair);
+            } else {
+                List<Pair<CompareSign, Object>> array = new ArrayList<Pair<CompareSign, Object>>();
+                array.add(pair);
+                whereClauseEntries.put(idKey, array);
             }
             if (StringUtils.isNullOrEmpty(properties)) {
                 return Response.ok(new DbReader(DbConnectionManager.getReadAccess(connectionId)).getSuiteMessages(from,

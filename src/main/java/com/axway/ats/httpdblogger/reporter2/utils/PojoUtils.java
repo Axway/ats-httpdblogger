@@ -29,7 +29,9 @@ import com.axway.ats.httpdblogger.reporter2.scenarios.pojo.response.ScenarioPojo
 import com.axway.ats.httpdblogger.reporter2.scenarios.pojo.response.ScenariosPojo;
 import com.axway.ats.httpdblogger.reporter2.suites.pojo.response.SuitePojo;
 import com.axway.ats.httpdblogger.reporter2.suites.pojo.response.SuitesPojo;
+import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.CheckpointPojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.CheckpointSummaryPojo;
+import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.CheckpointsPojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.CheckpointsSummariesPojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.LoadQueuePojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.LoadQueuesPojo;
@@ -38,6 +40,7 @@ import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.StatisticPoj
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.StatisticsDescriptionsPojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.TestcasePojo;
 import com.axway.ats.httpdblogger.reporter2.testcases.pojo.response.TestcasesPojo;
+import com.axway.ats.log.autodb.entities.Checkpoint;
 import com.axway.ats.log.autodb.entities.CheckpointSummary;
 import com.axway.ats.log.autodb.entities.DbEntity;
 import com.axway.ats.log.autodb.entities.LoadQueue;
@@ -147,6 +150,10 @@ public class PojoUtils {
             return checkpointSummaryToPojo((CheckpointSummary) entity);
         } else if (isList && ((List<?>) entity).get(0) instanceof CheckpointSummary) {
             return checkpointSummaryListToPojo((List<CheckpointSummary>) entity);
+        } else if (entity instanceof Checkpoint) {
+            return checkpointToPojo((Checkpoint) entity);
+        } else if (isList && ((List<?>) entity).get(0) instanceof Checkpoint) {
+            return checkpointListToPojo((List<Checkpoint>) entity);
         }
 
         throw new UnsupportedOperationException("Entity '" + entity.getClass().getName()
@@ -154,7 +161,36 @@ public class PojoUtils {
 
     }
 
+    private static CheckpointsPojo checkpointListToPojo( List<Checkpoint> checkpoints ) {
+
+        CheckpointsPojo checkpointsPojo = new CheckpointsPojo();
+        CheckpointPojo[] pojos = new CheckpointPojo[checkpoints.size()];
+
+        for (int i = 0; i < pojos.length; i++) {
+            pojos[i] = (CheckpointPojo) logEntityToPojo(checkpoints.get(i));
+        }
+
+        checkpointsPojo.setCheckpoints(pojos);
+
+        return checkpointsPojo;
+    }
+
+    private static CheckpointPojo checkpointToPojo( Checkpoint checkpoint ) {
+
+        CheckpointPojo pojo = new CheckpointPojo();
+        pojo.id = checkpoint.checkpointId;
+        pojo.checkpointSummaryId = checkpoint.checkpointSummaryId;
+        pojo.name = checkpoint.name;
+        pojo.responseTime = checkpoint.responseTime;
+        pojo.transferRate = checkpoint.transferRate;
+        pojo.transferRateUnit = checkpoint.transferRateUnit;
+        pojo.result = checkpoint.result;
+        pojo.insertTimestamp = checkpoint.getEndTimestamp();
+        return pojo;
+    }
+
     private static CheckpointsSummariesPojo
+
             checkpointSummaryListToPojo( List<CheckpointSummary> checkpointsSummaries ) {
 
         CheckpointsSummariesPojo checkpointsSummariesPojo = new CheckpointsSummariesPojo();
