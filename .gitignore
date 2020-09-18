@@ -1,8 +1,49 @@
-target/
 
+### Eclipse ###
+*.pydevproject
+.metadata
+.gradle
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
 .settings/
-.project
-.classpath
+.loadpath
 .checkstyle
 
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+# PDT-specific
+.buildpath
+
+# External tool builders
+.externalToolBuilders/
+
+# Ignore changes in Eclipse .project and .classpath
+# Eclipse Core
+.project
+# JDT-specific (Eclipse Java Development Tools)
+.classpath
+
+### IntelliJ IDEA exclusions
 .idea/
+*.iml
+
+### Ant ###
+build/
+test-output/
+
+### Maven ###
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
