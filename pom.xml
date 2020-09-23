@@ -444,32 +444,14 @@
 
     <developers>
         <developer>
-            <name>Angel Todorov</name>
-            <email>atodorov@axway.com</email>
-            <organization>Axway</organization>
-            <organizationUrl>http://www.axway.com</organizationUrl>
-        </developer>
-        <developer>
-            <name>Nikolay Gogovski</name>
-            <email>ngogovski@axway.com</email>
-            <organization>Axway</organization>
-            <organizationUrl>http://www.axway.com</organizationUrl>
-        </developer>
-        <developer>
             <name>Svilen Dikov</name>
-            <email>sdikov@axway.com</email>
-            <organization>Axway</organization>
-            <organizationUrl>http://www.axway.com</organizationUrl>
-        </developer>
-        <developer>
-            <name>Radoslav Kostadinov</name>
-            <email>rkostadinov@axway.com</email>
+            <email>sdikov _@_ axway.com</email>
             <organization>Axway</organization>
             <organizationUrl>http://www.axway.com</organizationUrl>
         </developer>
         <developer>
             <name>Dragoslav Slaveykov</name>
-            <email>dslaveykov@axway.com</email>
+            <email>dslaveykov _@_ axway.com</email>
             <organization>Axway</organization>
             <organizationUrl>http://www.axway.com</organizationUrl>
         </developer>
