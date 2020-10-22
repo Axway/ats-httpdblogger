@@ -5,7 +5,7 @@
     <groupId>com.axway.ats.httpdblogger</groupId>
     <artifactId>ats-httpdblogger</artifactId>
     <packaging>war</packaging>
-    <version>4.0.7-SNAPSHOT</version>
+    <version>4.0.7-jre11-SNAPSHOT</version>
     <name>ATS-HttpDbLogger</name>
     <description>
         ATS HTTP application for logging test data in ATS DB
@@ -17,7 +17,7 @@
         <java.classlevel.version>1.7</java.classlevel.version> <!-- Output class compliance level -->
         <maven.min.version>3.2.5</maven.min.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ats.framework.version>4.0.6-SNAPSHOT</ats.framework.version>
+        <ats.framework.version>${project.version}</ats.framework.version>
 
         <org.glassfish.jersey.jersey-server.version>2.3.1</org.glassfish.jersey.jersey-server.version>
 
@@ -287,7 +287,7 @@
         <dependency>
             <groupId>com.axway.ats.framework</groupId>
             <artifactId>ats-core</artifactId>
-            <version>4.0.7-SNAPSHOT</version>
+            <version>${ats.framework.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.axway.ats.expectj</groupId>
@@ -354,7 +354,7 @@
         <dependency>
             <groupId>com.axway.ats.framework</groupId>
             <artifactId>ats-log</artifactId>
-            <version>4.0.7-SNAPSHOT</version>
+            <version>${ats.framework.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.mail</groupId>
@@ -395,11 +395,11 @@
             <artifactId>jersey-media-moxy</artifactId>
             <version>${org.glassfish.jersey.jersey-server.version}</version>
         </dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-multipart</artifactId>
-			<version>${org.glassfish.jersey.jersey-server.version}</version>
-		</dependency>
+               <dependency>
+                   <groupId>org.glassfish.jersey.media</groupId>
+                   <artifactId>jersey-media-multipart</artifactId>
+                   <version>${org.glassfish.jersey.jersey-server.version}</version>
+               </dependency>
         <!-- Web server provided dependencies -->
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -444,35 +444,18 @@
 
     <developers>
         <developer>
-            <name>Angel Todorov</name>
-            <email>atodorov@axway.com</email>
-            <organization>Axway</organization>
-            <organizationUrl>http://www.axway.com</organizationUrl>
-        </developer>
-        <developer>
-            <name>Nikolay Gogovski</name>
-            <email>ngogovski@axway.com</email>
+            <name>Dragoslav Slaveykov</name>
+            <email>dslaveykov__@__axway.com</email>
             <organization>Axway</organization>
             <organizationUrl>http://www.axway.com</organizationUrl>
         </developer>
         <developer>
             <name>Svilen Dikov</name>
-            <email>sdikov@axway.com</email>
+            <email>sdikov__@__axway.com</email>
             <organization>Axway</organization>
             <organizationUrl>http://www.axway.com</organizationUrl>
         </developer>
-        <developer>
-            <name>Radoslav Kostadinov</name>
-            <email>rkostadinov@axway.com</email>
-            <organization>Axway</organization>
-            <organizationUrl>http://www.axway.com</organizationUrl>
-        </developer>
-        <developer>
-            <name>Dragoslav Slaveykov</name>
-            <email>dslaveykov@axway.com</email>
-            <organization>Axway</organization>
-            <organizationUrl>http://www.axway.com</organizationUrl>
-        </developer>
+
     </developers>
 
 </project>
