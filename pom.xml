@@ -295,7 +295,7 @@
         <dependency>
             <groupId>com.axway.ats.framework</groupId>
             <artifactId>ats-core</artifactId>
-            <version>4.0.8-SNAPSHOT</version>
+            <version>${ats.framework.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.axway.ats.expectj</groupId>
@@ -362,7 +362,7 @@
         <dependency>
             <groupId>com.axway.ats.framework</groupId>
             <artifactId>ats-log</artifactId>
-            <version>4.0.8-SNAPSHOT</version>
+            <version>${ats.framework.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.mail</groupId>
