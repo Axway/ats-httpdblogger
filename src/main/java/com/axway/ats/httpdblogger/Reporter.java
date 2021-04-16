@@ -129,7 +129,7 @@ public class Reporter extends BaseEntry {
             internalDbVersion = dbRequestProcessor.getDbInternalVersion();
 
             String runsInfo = toJsonFormat(runs, columns, currentTimestamp);
-            logInfo(request, "Found the folloing runs:\n" + runsInfo);
+            logInfo(request, "Found the following runs:\n" + runsInfo);
 
             return Response.ok(runsInfo).build();
         } catch (DatabaseAccessException e) {

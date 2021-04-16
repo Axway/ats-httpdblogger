@@ -21,6 +21,7 @@
 
         <org.glassfish.jersey.jersey-server.version>2.3.1</org.glassfish.jersey.jersey-server.version>
 
+        <maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
         <buildnumber-maven-plugin.version>1.4</buildnumber-maven-plugin.version>
         <maven-war-plugin.version>3.0.0</maven-war-plugin.version>
         <maven-compiler-plugin.version>3.2</maven-compiler-plugin.version>
@@ -36,7 +37,8 @@
         <gpg.executable>gpg2</gpg.executable>
 
         <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
-
+        <log4j.version>2.14.0</log4j.version>
+        <slf4j.version>1.7.30</slf4j.version>  <!-- KEEP in sync with ATS-Framework -->
         <build.number>SNAPSHOT</build.number>
 
     </properties>
@@ -44,6 +46,58 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven-enforcer-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>enforce-rules</id>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireJavaVersion>
+                                        <message>At least Java 8 is required for ATS framework compilation. The limitations
+                                            come from third-party dependencies.
+                                        </message>
+                                        <version>${java.version}</version>
+                                    </requireJavaVersion>
+                                    <requireMavenVersion>
+                                        <version>${maven.min.version}</version>
+                                    </requireMavenVersion>
+                                </rules>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>enforce-banned-dependencies</id>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <bannedDependencies>
+                                        <excludes>
+                                            <exclude>log4j:log4j</exclude>
+                                            <exclude>org.slf4j:slf4j-log4j12</exclude>
+                                            <exclude>org.slf4j:jcl-over-slf4j</exclude>
+                                            <exclude>org.slf4j:jul-to-slf4j</exclude>
+                                            <exclude>org.apache.logging.log4j:log4j-to-slf4j</exclude>
+                                            <exclude>org.slf4j:log4j-over-slf4j</exclude>
+                                            <exclude>ch.qos.logback:logback-core</exclude>
+                                            <!--<exclude>groupId:artifactId</exclude> -->
+                                            <!--<exclude>*:badArtifact</exclude> -->
+                                        </excludes>
+                                    </bannedDependencies>
+                                </rules>
+                                <fail>true</fail> <!-- Fail build if such is found -->
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
                 <plugin>
                     <groupId>org.eclipse.m2e</groupId>
                     <artifactId>lifecycle-mapping</artifactId>
@@ -291,6 +345,28 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <!-- artifactId>log4j-slf4j18-impl</artifactId -->
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
         <!-- ATS dependencies -->
         <dependency>
             <groupId>com.axway.ats.framework</groupId>
@@ -403,11 +479,11 @@
             <artifactId>jersey-media-moxy</artifactId>
             <version>${org.glassfish.jersey.jersey-server.version}</version>
         </dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-multipart</artifactId>
-			<version>${org.glassfish.jersey.jersey-server.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-multipart</artifactId>
+            <version>${org.glassfish.jersey.jersey-server.version}</version>
+        </dependency>
         <!-- Web server provided dependencies -->
         <dependency>
             <groupId>javax.servlet</groupId>
