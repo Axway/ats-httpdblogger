@@ -5,7 +5,7 @@
     <groupId>com.axway.ats.httpdblogger</groupId>
     <artifactId>ats-httpdblogger</artifactId>
     <packaging>war</packaging>
-    <version>4.0.9</version>
+    <version>4.0.10-SNAPSHOT</version>
     <name>ATS-HttpDbLogger</name>
     <description>
         ATS HTTP application for logging test data in ATS DB
