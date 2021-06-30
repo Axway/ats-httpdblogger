@@ -17,7 +17,6 @@
         <java.classlevel.version>1.7</java.classlevel.version> <!-- Output class compliance level -->
         <maven.min.version>3.2.5</maven.min.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ats.framework.version>${project.version}</ats.framework.version>
 
         <org.glassfish.jersey.jersey-server.version>2.3.1</org.glassfish.jersey.jersey-server.version>
 
@@ -37,8 +36,6 @@
         <gpg.executable>gpg2</gpg.executable>
 
         <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
-        <log4j.version>2.14.0</log4j.version>
-        <slf4j.version>1.7.30</slf4j.version>  <!-- KEEP in sync with ATS-Framework -->
         <build.number>SNAPSHOT</build.number>
 
     </properties>
@@ -69,31 +66,6 @@
                                         <version>${maven.min.version}</version>
                                     </requireMavenVersion>
                                 </rules>
-                            </configuration>
-                        </execution>
-                        <execution>
-                            <id>enforce-banned-dependencies</id>
-                            <phase>validate</phase>
-                            <goals>
-                                <goal>enforce</goal>
-                            </goals>
-                            <configuration>
-                                <rules>
-                                    <bannedDependencies>
-                                        <excludes>
-                                            <exclude>log4j:log4j</exclude>
-                                            <exclude>org.slf4j:slf4j-log4j12</exclude>
-                                            <exclude>org.slf4j:jcl-over-slf4j</exclude>
-                                            <exclude>org.slf4j:jul-to-slf4j</exclude>
-                                            <exclude>org.apache.logging.log4j:log4j-to-slf4j</exclude>
-                                            <exclude>org.slf4j:log4j-over-slf4j</exclude>
-                                            <exclude>ch.qos.logback:logback-core</exclude>
-                                            <!--<exclude>groupId:artifactId</exclude> -->
-                                            <!--<exclude>*:badArtifact</exclude> -->
-                                        </excludes>
-                                    </bannedDependencies>
-                                </rules>
-                                <fail>true</fail> <!-- Fail build if such is found -->
                             </configuration>
                         </execution>
                     </executions>
@@ -345,33 +317,11 @@
             </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-1.2-api</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <!-- artifactId>log4j-slf4j18-impl</artifactId -->
-            <version>${log4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-
         <!-- ATS dependencies -->
         <dependency>
             <groupId>com.axway.ats.framework</groupId>
             <artifactId>ats-core</artifactId>
-            <version>4.0.9-SNAPSHOT</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.axway.ats.expectj</groupId>
@@ -438,7 +388,7 @@
         <dependency>
             <groupId>com.axway.ats.framework</groupId>
             <artifactId>ats-log</artifactId>
-            <version>4.0.9-SNAPSHOT</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.mail</groupId>
