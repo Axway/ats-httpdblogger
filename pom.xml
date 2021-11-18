@@ -7,7 +7,7 @@
 	<groupId>com.axway.ats.httpdblogger</groupId>
 	<artifactId>ats-httpdblogger</artifactId>
 	<packaging>war</packaging>
-	<version>4.0.10-log4j1-SNAPSHOT</version>
+	<version>4.0.10</version>
 	<name>ATS-HttpDbLogger</name>
 	<description>
         ATS HTTP application for logging test data in ATS DB
