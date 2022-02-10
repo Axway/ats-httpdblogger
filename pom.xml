@@ -7,16 +7,16 @@
 	<groupId>com.axway.ats.httpdblogger</groupId>
 	<artifactId>ats-httpdblogger</artifactId>
 	<packaging>war</packaging>
-	<version>4.0.10</version>
+	<version>4.0.11-log4j1-SNAPSHOT</version>
 	<name>ATS-HttpDbLogger</name>
 	<description>
         ATS HTTP application for logging test data in ATS DB
     </description>
 	<url>https://github.com/Axway/ats-httpdblogger</url>
-	<properties>
 
+	<properties>
 		<java.version>1.8</java.version> <!-- min. JDK version to use -->
-		<java.classlevel.version>1.7</java.classlevel.version> <!-- Output class compliance level -->
+		<java.classlevel.version>1.8</java.classlevel.version> <!-- Output class compliance level -->
 		<maven.min.version>3.2.5</maven.min.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -59,9 +59,7 @@
 							<configuration>
 								<rules>
 									<requireJavaVersion>
-										<message>At least Java 8 is required for ATS framework
-											compilation. The limitations
-											come from third-party dependencies.
+										<message>At least Java 8 is required for ATS HTTP DB Logger compilation.
 										</message>
 										<version>${java.version}</version>
 									</requireJavaVersion>
@@ -217,8 +215,7 @@
 						<configuration>
 							<rules>
 								<requireJavaVersion>
-									<message>At least Java 8 is required for ATS HTTP-DB-logger
-										build</message>
+									<message>At least Java 8 is required for ATS HTTP-DB-Logger build</message>
 									<version>${java.version}</version>
 								</requireJavaVersion>
 								<requireMavenVersion>
