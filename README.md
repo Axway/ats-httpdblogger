@@ -4,7 +4,7 @@
 # ATS HTTP Db Logger
 ATS HTTP DB Logger is a Web ( HTTP ) application used for logging test execution data into ATS Log database.
 
-**Note** that this library is scoped for testing purposes and is not targeted for production use.
+**Note** that this library is scoped for internal testing purposes and is not targeted for public or production use.
 
 **Documentation** is available at https://axway.github.io/ats-httpdblogger/ATS-HTTP-DB-Logger-Guide.html  
 **Release notes** are available at https://axway.github.io/ats-httpdblogger/HTTP-DB-Logger-Release-Notes.html
